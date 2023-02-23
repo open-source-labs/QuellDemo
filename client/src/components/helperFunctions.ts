@@ -131,6 +131,12 @@ fragment getalbums on Album {
         id
         name
     }
+}`,
+  'delete': `mutation {
+    deleteCity(name: "San Diego") {
+        id
+        name
+    }
 }`
 }
 
