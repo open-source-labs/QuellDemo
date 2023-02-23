@@ -22,15 +22,15 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static("./dist"));
 
-app.use('/graphql', quellCache.rateLimiter, quellCache.costLimit, quellCache.depthLimit, quellCache.query, (req, res) => {
+app.use('/api/graphql', quellCache.rateLimiter, quellCache.costLimit, quellCache.depthLimit, quellCache.query, (req, res) => {
   return res.status(200).send(res.locals);
 });
 
-app.get('/clearCache', quellCache.clearCache, (req, res) => {
+app.get('/api/clearCache', quellCache.clearCache, (req, res) => {
   return res.status(200).send('Redis cache successfully cleared');
 });
 
-app.use('/redis', quellCache.getRedisInfo({
+app.use('/api/redis', quellCache.getRedisInfo({
   getStats: false,
   getKeys: true,
   getValues: true
