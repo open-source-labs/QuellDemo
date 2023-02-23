@@ -5,8 +5,6 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function HitMiss({cacheMiss, cacheHit}: HitMissProps) {
-    console.log('inside hitmiss component...cacheMiss = ', cacheMiss)
-    console.log('inside hitmiss component....cacheHit= ', cacheHit)
      const data = {
       labels: ['Cache Hit', 'Cache Miss'],
       datasets: [

@@ -91,9 +91,11 @@ async function Quellify(endPoint, query, costOptions) {
         };
         // execute initial query
         const serverResponse = await fetch(endPoint, fetchOptions);
-        const parsedData = await serverResponse.json();
+        let parsedData = await serverResponse.json();
+        parsedData = parsedData.queryResponse
         // clear caches
         clearCache();
+        console.log(lokiCache.find())
         // return data
         return [parsedData];
       } else if (//if query is update mutation
