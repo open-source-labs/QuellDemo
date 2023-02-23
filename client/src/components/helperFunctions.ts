@@ -111,8 +111,7 @@ export const querySamples: querySamples = {
               }
           }
       }
-  }
-}`,
+  }`,
   'fragment': `query {
     artist(name: "Frank Ocean") {
         id
@@ -139,4 +138,3 @@ fragment getalbums on Album {
     }
 }`
 }
-

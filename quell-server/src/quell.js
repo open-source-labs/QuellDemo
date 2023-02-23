@@ -1,10 +1,8 @@
-
 const redis = require('redis');
 const { parse } = require('graphql/language/parser');
 const { visit, BREAK } = require('graphql/language/visitor');
 const { graphql, GraphQLError } = require('graphql');
 const e = require('express');
-// const { PlaylistRemove } = require('@mui/icons-material');
 
 const defaultCostParams = {
   maxCost: 50, // maximum cost allowed before a request is rejected
@@ -12,12 +10,11 @@ const defaultCostParams = {
   objectCost: 2, // cost of retrieving an object
   scalarCost: 1, // cost of retrieving a scalar
   depthCostFactor: 1.5, // multiplicative cost of each depth level
-  depthMax: 10 //depth limit parameter
+  depthMax: 10, //depth limit parameter
+  ipRate: 3 // requests allowed per second
 }
 
-//work around for graphql not handling ids
-let idCache = {}
-
+let idCache = {};
 
 class QuellCache {
   // default expiry time is 14 days in milliseconds
@@ -27,6 +24,7 @@ class QuellCache {
       this.costParameters = Object.assign(defaultCostParams, costParameters);
       this.depthLimit = this.depthLimit.bind(this);
       this.costLimit = this.costLimit.bind(this);
+      this.rateLimiter = this.rateLimiter.bind(this);
       this.queryMap = this.getQueryMap(schema);
       this.mutationMap = this.getMutationMap(schema);
       this.fieldsMap = this.getFieldsMap(schema);
@@ -52,6 +50,48 @@ class QuellCache {
         });
   
   }
+
+   /**
+   * A redis-based IP rate limiter method. It:
+   *    - receives the ipRate in requests per second from the request object on the front-end,
+   *    - if there is no ipRate set on front-end, it'll default to the value in the defaultCostParameters,
+   *    - creates a key using the IP address and current time in seconds,
+   *    - increments the value at this key for each new call received,
+   *    - if the value of calls is greater than the ipRate limit, it will not process the query,
+   *    - keys are set to expire after 1 second
+   *  @param {Object} req - Express request object, including request body with GraphQL query string
+   *  @param {Object} res - Express response object, will carry query response to next middleware
+   *  @param {Function} next - Express next middleware function, invoked when QuellCache completes its work
+   */
+  async rateLimiter (req, res, next) {
+    let ipRates;
+     //ipRate can be reassigned to get ipRate limit from req.body if user selects requests limit
+     if (req.body.costOptions.ipRate) ipRates = req.body.costOptions.ipRate;
+     //  else ipRates = this.costParameters.ipRate;
+     //return error if no query in request.
+     if (!req.body.query) return next({log: 'Error: no GraphQL query found on request body'});
+     const ip = req.ip;
+     const now = Math.floor(Date.now() / 1000);
+     const ipKey = `${ip}:${now}`;
+
+     this.redisCache.incr(ipKey, (err, count) => {
+      if (err) {
+        console.error('Redis cache error: ', err);
+        return next({ log: 'Internal Server Error in redis :(' })
+      }
+
+      this.redisCache.expire(ipKey, 1);
+      console.error('Redis cache incremented:', ipKey, count);
+      return next();
+    });
+
+    const calls = await this.getFromRedis(ipKey);
+
+    if (calls > ipRates) return next({ log: `Express error handler caught too many requests from this IP address: ${ip}` });  
+    
+    return next();
+  } 
+
   /**
    * The class's controller method. It:
    *    - reads the query string from the request object,
@@ -66,9 +106,7 @@ class QuellCache {
    *  @param {Function} next - Express next middleware function, invoked when QuellCache completes its work
    */
   async query(req, res, next) {
-    if (!req.body.query) {
-      return next({err: 'Error: no GraphQL query found on request body'});
-    }
+    if (!req.body.query) return next({ log: 'Error: no GraphQL query found on request body' });
     // retrieve GraphQL query string from request object;
     const queryString = req.body.query;
 
@@ -89,7 +127,7 @@ class QuellCache {
           return next();
         })
         .catch((error) => {
-          return next('graphql library error: ', error);
+          return next({ log: 'graphql library error line 170' });
         });
 
       /*
@@ -105,7 +143,8 @@ class QuellCache {
         return next();
       })
       .catch((error) => {
-        return next('graphql library error: ', error);
+        // console.log('error caught when operationType is noID');
+        return next({ log:'graphql library error' });
       });
       let redisValue = await this.getFromRedis(queryString);
       // console.log("here's redis value:", redisValue)
@@ -122,7 +161,7 @@ class QuellCache {
           return next();
         })
         .catch((error) => {
-          return next('graphql library error: ', error);
+          return next({ log:'graphql library error line 206' });
         });
       }
     
@@ -162,7 +201,7 @@ class QuellCache {
         })
         .catch((error) => {
           // console.log('error caught in graphql database response');
-          return next('graphql library error: ', error);
+          return next({ log:'graphql library error line 244' });
         });
     } else {
       // if QUERY
@@ -189,6 +228,7 @@ class QuellCache {
         // console.log('newQueryString:', newQueryString);
         graphql({ schema: this.schema, source: newQueryString })
           .then(async (databaseResponseRaw) => {
+            console.log('!!!!!!NOT CACHED!!!!!!');
             // databaseResponse must be parsed in order to join with cacheResponse before sending back to user
             // console.log('inside GQL query, raw database response:', databaseResponseRaw);
             const databaseResponse = JSON.parse(
@@ -225,7 +265,7 @@ class QuellCache {
           })
           .catch((error) => {
             // console.log('error present when queryObj.keys has a length greater than 0, inside else case:')
-            return next('graphql library error: ', error);
+            return next({ log:'graphql library error line 318' });
           });
       } else {
 
@@ -538,6 +578,7 @@ class QuellCache {
    * and isExist if we have this key in redis
    *
    */
+  // currently unused
   async createRedisKey(mutationMap, proto) {
     // console.log('creating Redis Key');
     let isExist = false;
@@ -597,7 +638,7 @@ class QuellCache {
   getFromRedis(key) {
     if (typeof key !== 'string' || key === undefined) return;
     const lowerKey = key.toLowerCase();
-    console.log('in getFromRedis, here is key:', key)
+    // console.log('in getFromRedis, here is key:', key)
     // console.log('inside get from redis');
     return this.redisCache.get(lowerKey, (error, result) =>
         error ? reject(error) : resolve(result)
@@ -766,20 +807,20 @@ class QuellCache {
         let cacheID = subID
           ? subID
           : this.generateCacheID(prototype[typeKey]);
-        const keyName = prototype[typeKey].__args.name
+        const keyName = prototype[typeKey].__args?.name;
         if (idCache[keyName] && idCache[keyName][cacheID]) {
-          cacheID = idCache[keyName][cacheID]
+          cacheID = idCache[keyName][cacheID];
         }
         //capitalize first letter of cache id just in case
         const capitalized = cacheID.charAt(0).toUpperCase() + cacheID.slice(1);
         if (idCache[keyName] && idCache[keyName][capitalized]) {
-          cacheID = idCache[keyName][capitalized]
+          cacheID = idCache[keyName][capitalized];
         }
         // console.log('getting from redis line 827ish here is key: ', cacheID)
         const cacheResponse = await this.getFromRedis(cacheID);
         itemFromCache[typeKey] = cacheResponse ? JSON.parse(cacheResponse) : {};
-        console.log('typekey: ', typeKey)
-        console.log(itemFromCache[typeKey])
+        // console.log('typekey: ', typeKey)
+        // console.log(itemFromCache[typeKey])
       }
 
       // if itemFromCache at the current key is an array, iterate through and gather data
@@ -1846,13 +1887,13 @@ class QuellCache {
           return next();
         })
           .catch((err) => {
-            return next(err);
+            return next({ log: err });
           });
       };
 
       getStats();
     } catch (err) {
-      return next(err);
+      return next({ log: err });
     }
   }
 
@@ -1866,7 +1907,7 @@ class QuellCache {
         })
       .catch((err) => {
         // console.log('Error inside get keys', err);
-        return next(err);
+        return({ log: err });
       });
     };
   
@@ -1880,7 +1921,7 @@ class QuellCache {
           })
         .catch((err) => {
           // console.log('Error inside get keys', err);
-          return next(err);
+          return next({ log: err });
         });
       }
     else {
@@ -1928,10 +1969,11 @@ class QuellCache {
       // console.log('inside determineDepth')
       if (currentDepth > maxDepth) {
       //add err to res.locals.queryRes obj as a new key
-      const err = { err: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.` };
-      console.log('Error: ', err);
+      const err = { log: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.` };
+      // console.log('Error: ', err);
       res.locals.queryErr = err;
-      return next();//do we return with err?
+      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
+      return next(err);//do we return with err?
       }
       // console.log("Checking depth:", currentDepth)
       Object.keys(proto).forEach((key) => {
@@ -1941,7 +1983,7 @@ class QuellCache {
       })
     }
     //call helper function
-    determineDepth(prototype)
+    determineDepth(prototype);
     //attach to res.locals so query doesn't need to re run these functions again.
     res.locals.AST = AST;
     res.locals.parsedAST = { proto, operationType, frags };
@@ -1969,6 +2011,7 @@ class QuellCache {
      //assign graphQL query string to variable queryString
      const queryString = req.body.query;
      //create AST
+    //  console.log('QUERY STRING >>>> ', queryString);
      const AST = parse(queryString);
      
      // create response prototype, and operation type, and fragments object
@@ -1988,13 +2031,18 @@ class QuellCache {
     const determineCost = (proto) => {
       // console.log("inside determineCost")
       if (cost > maxCost) {
-        throw new GraphQLError(
-          `Your query exceeds maximum operation cost of ${maxCost}`,
-          {
-            code: "COST_LIMIT_EXCEEDED",
-            http: {status: 400}
-          }
-        );
+        const err = { log: `Cost limit exceeded, tried to send query with a cost above ${maxCost}.` };
+      // console.log('Error: ', err);
+      res.locals.queryErr = err;
+      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
+      return next(err);
+        // throw new GraphQLError(
+        //   `Your query exceeds maximum operation cost of ${maxCost}`,
+        //   {
+        //     code: "COST_LIMIT_EXCEEDED",
+        //     http: {status: 400}
+        //   }
+        // );
       }
       Object.keys(proto).forEach((key) => {
         if (typeof proto[key] === 'object' && !key.includes('__')) {
@@ -2007,20 +2055,26 @@ class QuellCache {
       })
     }
       
-    determineCost(prototype)
+    determineCost(prototype);
 
   
     const determineDepthCost = (proto, totalCost = cost) => {
       // console.log("inside determineDepthCost")
       if (totalCost > maxCost) {
+        const err = { log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.` };
+      // console.log('Error: ', err);
+      res.locals.queryErr = err;
+      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
+
+      return next(err);
         // console.log("The cost: ", totalCost)
-        throw new GraphQLError(
-          // `Your query exceeds maximum operation depth of ${maxCost}`,
-          {
-            code: "COST_LIMIT_EXCEEDED",
-            http: {status: 400}
-          }
-        );
+        // throw new GraphQLError(
+        //   // `Your query exceeds maximum operation depth of ${maxCost}`,
+        //   {
+        //     code: "COST_LIMIT_EXCEEDED",
+        //     http: {status: 400}
+        //   }
+        // );
       }
 
       Object.keys(proto).forEach((key) => {
@@ -2040,6 +2094,4 @@ class QuellCache {
   }
 };
 
-
-  
 module.exports = QuellCache;
