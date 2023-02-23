@@ -10,7 +10,7 @@ const defaultCostParams = {
   objectCost: 2, // cost of retrieving an object
   scalarCost: 1, // cost of retrieving a scalar
   depthCostFactor: 1.5, // multiplicative cost of each depth level
-  depthMax: 10, //depth limit parameter
+  maxDepth: 10, //depth limit parameter
   ipRate: 3 // requests allowed per second
 }
 
