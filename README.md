@@ -3,7 +3,7 @@ Welcome to the developer playground for GraphQL caching tool, Quell.</br>
 - Querying: Observe Quell's ability to facilitate GraphQL queries and mutations using Quell-Client OR Quell-Server.
 - Caching: Observe client-side and server-side caching of queries and mutations and therefore, reduced query and mutation speeds. 
 
-This app is currently deployed on our website: [Quell](https://quell.netlify.app/)</br>
+This app is currently deployed on our website: [Quell](https://quell.onrender.com/)</br>
 
 </br></br>
 <img width="1511" alt="quellwebsite1" src="https://user-images.githubusercontent.com/115136514/220839271-21882d56-16ad-4bf8-b37f-5910c7dc2ad6.png">
