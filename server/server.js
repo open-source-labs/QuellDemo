@@ -6,7 +6,6 @@ const bodyparser = require('body-parser')
 const mongoose = require('mongoose');
 // const schema = makeExecutableSchema({typeDefs, resolvers});
 const QuellCache = require('../quell-server/src/quell');
-// const quellCache = new QuellCache(schema, 13680, 3600);
 const quellCache = new QuellCache(schema, 13680, 3600);
 
 app.use(express.json());
@@ -31,7 +30,10 @@ app.use(express.static("./dist"));
 
 //
 
-app.use('/graphql', quellCache.costLimit, quellCache.depthLimit, quellCache.query, (req, res) => {
+app.use('/graphql', 
+// quellCache.costLimit, 
+// quellCache.depthLimit, 
+quellCache.query, (req, res) => {
   if (res.locals.queryErr) return res.status(200).json(res.locals.queryErr);
   else return res.status(200).send(res.locals.queryResponse);
 });
