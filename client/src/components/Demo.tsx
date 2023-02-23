@@ -142,7 +142,7 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
   function submitQuery() {
     console.log("Checking Query in Submit Query: ", typeof query)
     const startTime = (new Date()).getTime();
-    Quellify('/graphql', query, { maxDepth, maxCost, ipRate })
+    Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then(res => {
         console.log('NEW RESPONSE >>>>> ', res);
         console.log('res[0]:', res[0]);
@@ -211,7 +211,7 @@ function QueryDemoServer({ addErrorAlerts, responseTimes, addResponseTimes, maxD
 
     let resError: string;
 
-  fetch('/graphql', fetchOptions)
+  fetch('/api/graphql', fetchOptions)
     .then(res => res.json())
     .then(res => {
       console.log('RES LOCALS >>>>> ', res);
@@ -310,14 +310,14 @@ const CacheControlsServer = ({ setDepth, setCost, setIPRate, addResponseTimes, c
     console.log('resetting the graph');
     addResponseTimes([]);
     clearLokiCache();
-    fetch('/clearCache')
+    fetch('/api/clearCache')
     .then((res) => console.log('Cleared Server Cache!'));
     setCacheHit(cacheHit = 0);
     setCacheMiss(cacheMiss = 0);
   }
 
   const clearServerCache = () => {
-    fetch('/clearCache')
+    fetch('/api/clearCache')
       .then((res) => console.log('Cleared Server Cache!'))
   }
 
