@@ -56,8 +56,8 @@ export function Navbar({teamComp, toggleRenderTeam}: Navbar) {
       href="#scroll-about" 
       sx={{ minWidth:"85px", boxShadow: 'none', minHeight: '40px', maxHeight:"40px", maxWidth:"90px", border: 'none', overflow:'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }} color="secondary" variant='contained'
       >
-      //   <Slide direction="down" timeout={{enter: 400, exit: 350}} in={!hover} mountOnEnter unmountOnExit><Typography sx={{ position: 'relative'}} variant='button'>About</Typography></Slide>
-      //   <Slide direction="up"timeout={{enter: 400, exit: 100}} in={hover} mountOnEnter unmountOnExit><Groups2RoundedIcon /></Slide>
+         <Slide direction="down" timeout={{enter: 400, exit: 350}} in={!hover} mountOnEnter unmountOnExit><Typography sx={{ position: 'relative'}} variant='button'>About</Typography></Slide>
+         <Slide direction="up"timeout={{enter: 400, exit: 100}} in={hover} mountOnEnter unmountOnExit><Groups2RoundedIcon /></Slide>
         </Button>
     )
   }
@@ -135,7 +135,7 @@ export function Navbar({teamComp, toggleRenderTeam}: Navbar) {
       <button className="teamBtn"
         onClick={() => {toggleRenderTeam(!teamComp)}} 
         // style={{color: 'white'}}
-        >{teamComp ? "Home" : "Team" }
+        >{teamComp ? "HOME" : "TEAM" }
       </button>
       {/* <Button 
         onClick={() => {toggleRenderTeam(!teamComp)}} 

@@ -425,6 +425,8 @@ function QuerySelect({setQueryChoice, selectedQuery} : BasicSelectProps) {
           <MenuItem value={'nested'}>Nested</MenuItem>
           <MenuItem value={'fragment'}>Fragment</MenuItem>
           <MenuItem value={'mutation'}>Mutation</MenuItem>
+          <MenuItem value={'countryMut'}>Mutation Country</MenuItem>
+          <MenuItem value={'delete'}>Mutation Delete City</MenuItem>
         </Select>
       </FormControl>
     </Box>

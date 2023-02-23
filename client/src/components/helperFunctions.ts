@@ -131,6 +131,17 @@ fragment getalbums on Album {
         id
         name
     }
+}`,
+'countryMut': `mutation {
+    addCountry(name: "Canada") {
+        id
+        name
+    }
+}`,
+  'delete': `mutation {
+    deleteCity(name: "San Diego") {
+        id
+        name
+    }
 }`
 }
-

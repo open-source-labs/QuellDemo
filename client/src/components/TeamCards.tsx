@@ -26,20 +26,52 @@ import DavidLopez from "../assets/images/profile_pics/QUELL-headshot w border-Da
 import IdanMichael from "../assets/images/profile_pics/QUELL-headshot w border-IdanMichael.png";
 import SercanTuna from "../assets/images/profile_pics/QUELL-headshot w border-SercanTuna.png";
 import ThomasPryor from "../assets/images/profile_pics/QUELL-headshot w border-ThomasPryor.png";
-import ZoeH from "../assets/images/profile_pics/QUELL-headshot ZoeH.png"
-import JackieHe from "../assets/images/profile_pics/QUELL-headshot JackieHe.png"
-import CeraB from "../assets/images/profile_pics/QUELL-headshot CeraB.png"
-import AlexMartinez from "../assets/images/profile_pics/QUELL-headshot AlexM.png"
-import RylanW from "../assets/images/profile_pics/QUELL-headshot w border-RylanW.png"
+import ZoeH from "../assets/images/profile_pics/QUELL-headshot ZoeH.png";
+import JackieHe from "../assets/images/profile_pics/QUELL-headshot JackieHe.png";
+import CeraB from "../assets/images/profile_pics/QUELL-headshot CeraB.png";
+import AlexMartinez from "../assets/images/profile_pics/QUELL-headshot AlexM.png";
+import RylanW from "../assets/images/profile_pics/QUELL-headshot w border-RylanW.png";
+import SarahC from "../assets/images/profile_pics/QUELL-headshot w border-SarahC.png";
+import HannahS from "../assets/images/profile_pics/QUELL-headshot w border-HannahS.png";
+// import GarikA from "../assets/images/profile_pics/QUELL-headshot w border-GarikA.png";
+import KatieS from "../assets/images/profile_pics/QUELL-headshot w border-KatieS.png";
 
 /* 
   Reusable component to generate each team member
 */
+const KATIES = {
+  name: 'Katie Sandfort',
+  src: KatieS,
+  bio: 'Katie is an analytical and creative full-stack developer who loves discussing the pros and cons of different cache eviction policies. Specializing in JavaScript (ES6+), TypeScript, and React, she loves creating applications that help solve problems in her community. When she’s not busy creating applications, she loves running with her dog and listening to audiobooks.',
+  linkedin: 'https://www.linkedin.com/in/katie-sandfort/',
+  github: 'https://github.com/katiesandfort',
+};
+// const GARIKA = {
+//   name: 'Garik Asplund',
+//   src: GarikA,
+//   bio: 'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Corporis quisquam vel repellat saepe, quam odit porro, tempora provident aperiam voluptatem explicabo illo pariatur suscipit consectetur molestiae deleniti ipsa eum tempore',
+//   linkedin: 'https://www.linkedin.com/in/rylan-wessel-48aaa625a/',
+//   github: 'https://github.com/XpIose',
+// };
+const HANNAHS = {
+  name: 'Hannah Spencer',
+  src: HannahS,
+  bio: 'Hannah is an intuitive software engineer with a passion for debugging. Her goal for Quell is to ensure that Quell exceeds expectations in terms of functionality and is easily navigable by future contributors. Outside of the realm of Quell and software development, she enjoys hiking to discover waterfalls, modern dance, and wire wrapping gemstones.',
+  linkedin: 'https://www.linkedin.com/in/hannahspen/',
+  github: 'https://github.com/Hannahspen',
+};
+const SARAHCYNN = {
+  name: 'Sarah Cynn',
+  src: SarahC,
+  bio: 'Sarah is an empathetic full-stack developer who specializes in React, Node, and GraphQL, and she values collaboration with other software developers to create meaningful and helpful developer tools. In her free time, Sarah enjoys baking bread, learning music production, and playing with her baby niece.' ,
+  linkedin: 'https://www.linkedin.com/in/cynnsarah/',
+  github: 'https://github.com/cynnsarah',
+};
 const RYLANWESSEL = {
   name: 'Rylan Wessel',
   src: RylanW,
-  bio: 'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Corporis quisquam vel repellat saepe, quam odit porro, tempora provident aperiam voluptatem explicabo illo pariatur suscipit consectetur molestiae deleniti ipsa eum tempore',
-  linkedin: 'https://www.linkedin.com/in/rylan-wessel-48aaa625a/',
+  bio: 'Rylan is a determined software engineer that loves working with other developers sharing a passion for creating a better community with efficient and effective software applicatios, like Quell! I love playing videogames and going for hikes in the mountains in my free time, but also coding and contributing to the open-source community.',
+  linkedin: 'https://www.linkedin.com/in/rylan-wessel',
   github: 'https://github.com/XpIose',
 };
 const CERABARROW = {
@@ -232,6 +264,9 @@ const JUSTINJAEGAR = {
   github: "https://github.com/justinjaeger",
 };
 const TeamArr = [
+  KATIES,
+  HANNAHS,
+  SARAHCYNN,
   RYLANWESSEL,
   JACKIEHE,
   ALEXANDERMARTINEZ,
