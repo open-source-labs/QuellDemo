@@ -138,7 +138,6 @@ class QuellCache {
     } else if (operationType === 'noID'){
       graphql({ schema: this.schema, source: queryString })
       .then((queryResult) => {
-        // console.log('LINE 125 query result if operationType noID:', queryResult);
         res.locals.queryResponse = queryResult;
         return next();
       })
@@ -147,23 +146,21 @@ class QuellCache {
         return next({ log:'graphql library error' });
       });
       let redisValue = await this.getFromRedis(queryString);
-      // console.log("here's redis value:", redisValue)
       if(redisValue != null){
         redisValue = JSON.parse(redisValue);
         res.locals.queryResponse = redisValue; //
         return next();
-      }else{
-        graphql({ schema: this.schema, source: queryString })
-        .then((queryResult) => {
-          res.locals.queryResponse = queryResult;
-          // console.log('writing queryResult to cache line 120-ish');
-          this.writeToCache(queryString, queryResult);
-          return next();
-        })
-        .catch((error) => {
-          return next({ log:'graphql library error line 206' });
-        });
-      }
+      } else {
+          graphql({ schema: this.schema, source: queryString })
+          .then((queryResult) => {
+            res.locals.queryResponse = queryResult;
+            this.writeToCache(queryString, queryResult);
+            return next();
+          })
+          .catch((error) => {
+            return next({ log:'graphql library error line 206' });
+          });
+        }
     
     } else if (operationType === 'mutation') {
       // console.log('operationType is a mutation');
@@ -228,7 +225,6 @@ class QuellCache {
         // console.log('newQueryString:', newQueryString);
         graphql({ schema: this.schema, source: newQueryString })
           .then(async (databaseResponseRaw) => {
-            console.log('!!!!!!NOT CACHED!!!!!!');
             // databaseResponse must be parsed in order to join with cacheResponse before sending back to user
             // console.log('inside GQL query, raw database response:', databaseResponseRaw);
             const databaseResponse = JSON.parse(
@@ -545,8 +541,6 @@ class QuellCache {
     // console.log('inside updateProtoWithFragment')
     if (!protoObj) return;
 
-    //PROBLEM: RECURSING WITHOUT ACTUALLY DOING ANYTHING???
-
     for (let key in protoObj) {
       // console.log('inside forLoop, current key:', key);
       // if nested field, recurse
@@ -595,7 +589,6 @@ class QuellCache {
           isExist = await this.checkFromRedis(redisKey);
           // console.log('isExist:', isExist);
           if (isExist) {
-            console.log('redis key line 546ish: ' + redisKey)
             redisValue = await this.getFromRedis(redisKey);
             redisValue = JSON.parse(redisValue);
             // combine redis value and protoArgs
@@ -816,7 +809,6 @@ class QuellCache {
         if (idCache[keyName] && idCache[keyName][capitalized]) {
           cacheID = idCache[keyName][capitalized];
         }
-        // console.log('getting from redis line 827ish here is key: ', cacheID)
         const cacheResponse = await this.getFromRedis(cacheID);
         itemFromCache[typeKey] = cacheResponse ? JSON.parse(cacheResponse) : {};
         // console.log('typekey: ', typeKey)
@@ -825,7 +817,6 @@ class QuellCache {
 
       // if itemFromCache at the current key is an array, iterate through and gather data
       if (Array.isArray(itemFromCache[typeKey])) {
-        console.log('Item from cache is an array line 829')
         let redisRunQueue = this.redisCache.multi();
         let cachedTypeKeyArrLength = itemFromCache[typeKey].length;
         for (let i = 0; i < cachedTypeKeyArrLength; i++) {
@@ -871,7 +862,6 @@ class QuellCache {
                   prototype[typeKey][property] = false;
                 }
               }
-              // console.log("here line 851!!")
               itemFromCache[typeKey][i] = tempObj;
             }
             // if there is nothing in the cache for this key, then toggle all fields to false so it is fetched later
@@ -881,7 +871,6 @@ class QuellCache {
                   !property.includes('__') &&
                   typeof prototype[typeKey][property] !== 'object'
                 ) {
-                  // console.log('here line 856')
                   prototype[typeKey][property] = false;
                 }
               }
@@ -902,7 +891,6 @@ class QuellCache {
           !typeKey.includes('__') 
           && !itemFromCache[0]
         ) {
-          console.log(`here line 878$`)
           prototype[typeKey] = false;
         }
         // if this field is a nested query, then recurse the buildFromCache function and iterate through the nested query
@@ -1236,11 +1224,9 @@ class QuellCache {
    * @param {Object} item - item to be cached
    */
   writeToCache(key, item) {
-    // console.log('WRITE TO CACHE!!! item:', item);
-    // console.log('REDIS CACHE?!?!?!?!:', redisCache.keys())
     // console.log('inside writeToCache')
     const lowerKey = key.toLowerCase();
-    console.log('now here is lowerKey:', lowerKey)
+    // console.log('now here is lowerKey:', lowerKey)
     if (!key.includes('uncacheable')) {
       this.redisCache.set(lowerKey, JSON.stringify(item));
       this.redisCache.EXPIRE(lowerKey, this.cacheExpiration);
@@ -1253,18 +1239,16 @@ class QuellCache {
     mutationType,
     mutationQueryObject
   ) {
-  // console.log('!!!!!inside updateCacheByMutation');
-  //   console.log('KT WANTS TO KNOW: inside updateCacheByMutation, dbRespDatRaw:', dbRespDataRaw);
   //   console.log('mutationName:', mutationName);
   //   console.log('mutationType:', mutationType);
   //   console.log('mutationQueryObj:', mutationQueryObject)
     let fieldsListKey;
     let dbRespId = dbRespDataRaw.data[mutationName]?.id;
-    // console.log('WHAT ARE YOU, dbRespId?', dbRespId)
+
     let dbRespData = JSON.parse(
       JSON.stringify(dbRespDataRaw.data[mutationName])
     );
-    // console.log('WHOMST: ', dbRespData)
+
     if (!dbRespData) dbRespData = {};
 
     for (let queryKey in this.queryMap) {
@@ -1276,7 +1260,7 @@ class QuellCache {
       }
     }
 
-    //should we just plop something in the cache??? here??? 
+
     // redisCache.set(the thing)
 
 
@@ -1294,7 +1278,6 @@ class QuellCache {
           if (removalFieldKeyIdx !== -1)
             cachedFieldKeysList.splice(removalFieldKeyIdx, 1);
         });
-        // console.log('writing to cache, line 1136ish');
         this.writeToCache(fieldsListKey, cachedFieldKeysList);
       }
     };
@@ -1303,14 +1286,12 @@ class QuellCache {
       console.log('inside deleteApprFieldKeys');
       if (fieldsListKey) {
         // console.log('fieldsListKey', fieldsListKey);
-        console.log('getting from redis line 1333ish here is key: ', queryString)
         let cachedFieldKeysListRaw = await this.getFromRedis(fieldsListKey);
         let cachedFieldKeysList = JSON.parse(cachedFieldKeysListRaw);
 
         let fieldKeysToRemove = new Set();
         for (let i = 0; i < cachedFieldKeysList.length; i++) {
           let fieldKey = cachedFieldKeysList[i];
-          console.log('getting from redis line 1339ish here is key: ', queryString)
           let fieldKeyValueRaw = await this.getFromRedis(
             fieldKey.toLowerCase()
           );
@@ -1341,9 +1322,7 @@ class QuellCache {
 
     const updateApprFieldKeys = async () => {
       console.log('inside updateApprFieldKeys');
-      console.log('getting from redis line 1370ish here is key: ', queryString)
       let cachedFieldKeysListRaw = await this.getFromRedis(fieldsListKey);
-      // console.log('cachedFieldskey line 1268: ' + cachedFieldKeysListRaw);
       //conditional just in case the resolver wants to throw an error. instead of making quellCache invoke it's caching functions, we break here.
       if (cachedFieldKeysListRaw === undefined) return;
       // list of field keys stored on redis
@@ -1354,9 +1333,7 @@ class QuellCache {
       // and which fields need to be updated.
 
       cachedFieldKeysList.forEach(async (fieldKey) => {
-        console.log('getting from redis line 1382ish here is key: ', queryString)
         let fieldKeyValueRaw = await this.getFromRedis(fieldKey.toLowerCase());
-        // console.log('fieldskey line 1278: ' + fieldKeyValueRaw);
         let fieldKeyValue = JSON.parse(fieldKeyValueRaw);
 
         let fieldsToUpdateBy = [];
@@ -1374,7 +1351,7 @@ class QuellCache {
         });
 
         if (fieldsToUpdateBy.length > 0) {
-          // console.log('writing to cache on line 1208ish');
+
           this.writeToCache(fieldKey, updatedFieldKeyValue);
         }
       });
@@ -1402,7 +1379,7 @@ class QuellCache {
           removeFromFieldKeysList([`${mutationType}--${dbRespId}`]);
         } else {
           // update mutation for single dbRespId
-          // console.log('Writing to cache on line 1234-ish');
+         
           this.writeToCache(
             `${mutationType.toLowerCase()}--${mutationQueryObject.__id}`,
             dbRespData
@@ -1425,7 +1402,6 @@ class QuellCache {
     } else {
 
       // key was not found in redis server cache so mutation is an add mutation
-      // console.log('writing to cache on line 1417ish');
       // console.log('hypotheticalRedisKey: ', hypotheticalRedisKey)
       // console.log('dbrespdata: ', dbRespData)
       this.writeToCache(hypotheticalRedisKey, dbRespData);
@@ -1455,9 +1431,8 @@ class QuellCache {
   async normalizeForCache(responseData, map = {}, protoField, currName, queryStr) {
     // console.log('inside normalizeForCache');
     // console.log('response data line 1376: ' ,  responseData)
-    console.log('in normalize for cache, querystr is: ', queryStr)
-    console.log(Object.keys(queryStr))
-    console.log(queryStr[8])
+    // console.log('in normalize for cache, querystr is: ', queryStr)
+    // console.log(Object.keys(queryStr))
     for (const resultName in responseData) {
       const currField = responseData[resultName];
       const currProto = protoField[resultName];
@@ -1471,7 +1446,7 @@ class QuellCache {
           //console.log (currName)
 
           if (typeof el === 'object') {
-            // console.log('Calling normalizeForCache on line 1439 ish');
+   
             // console.log('currName is: ', currName)
             await this.normalizeForCache({ [dataType]: el }, map, {
               [dataType]: currProto,
@@ -1510,7 +1485,6 @@ class QuellCache {
             const cacheIDForIDCache = cacheID;
             // console.log(cacheIDForIDCache)
             cacheID += `--${currField[key]}`;
-            console.log('cacheid line 1415ish: ' + cacheID)
             //call idcache here idCache(cacheIDForIDCache, cacheID)
             // console.log('currName: ', currName)
             this.updateIdCache(cacheIDForIDCache, cacheID, currName);
@@ -1520,14 +1494,14 @@ class QuellCache {
 
           // if object, recurse normalizeForCache assign in that object
           if (typeof currField[key] === 'object') {
-            // console.log('Calling normalizeForCache, line 1346ish');
+
             // console.log('currName is: ', currName)
             await this.normalizeForCache({ [key]: currField[key] }, map, {
               [key]: protoField[resultName][key],
             }, currName, queryStr);
           }
         }
-        // console.log("writing cache ID to cache near 1546:", cacheID)
+
         // store "current object" on cache in JSON format
         this.writeToCache(cacheID, fieldStore);
       }
@@ -1972,8 +1946,7 @@ class QuellCache {
       const err = { log: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.` };
       // console.log('Error: ', err);
       res.locals.queryErr = err;
-      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
-      return next(err);//do we return with err?
+      return next(err);
       }
       // console.log("Checking depth:", currentDepth)
       Object.keys(proto).forEach((key) => {
@@ -2011,7 +1984,6 @@ class QuellCache {
      //assign graphQL query string to variable queryString
      const queryString = req.body.query;
      //create AST
-    //  console.log('QUERY STRING >>>> ', queryString);
      const AST = parse(queryString);
      
      // create response prototype, and operation type, and fragments object
@@ -2034,7 +2006,6 @@ class QuellCache {
         const err = { log: `Cost limit exceeded, tried to send query with a cost above ${maxCost}.` };
       // console.log('Error: ', err);
       res.locals.queryErr = err;
-      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
       return next(err);
         // throw new GraphQLError(
         //   `Your query exceeds maximum operation cost of ${maxCost}`,
@@ -2064,7 +2035,6 @@ class QuellCache {
         const err = { log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.` };
       // console.log('Error: ', err);
       res.locals.queryErr = err;
-      // console.log('RES LOCALS >>>>>> ', res.locals.queryErr);
 
       return next(err);
         // console.log("The cost: ", totalCost)

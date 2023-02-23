@@ -140,12 +140,10 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
   const [ response, setResponse ] = useState<string>('');
   
   function submitQuery() {
-    console.log("Checking Query in Submit Query: ", typeof query)
+    // console.log("Checking Query in Submit Query: ", typeof query)
     const startTime = (new Date()).getTime();
-    Quellify('https://quell.netlify.app/graphql', query, { maxDepth, maxCost, ipRate })
+    Quellify('/graphql', query, { maxDepth, maxCost, ipRate })
       .then(res => {
-        console.log('NEW RESPONSE >>>>> ', res);
-        console.log('res[0]:', res[0]);
       const responseTime: number = (new Date()).getTime() - startTime;
       addResponseTimes([...responseTimes, responseTime]);
       const queryType: string = selectedQuery;
@@ -211,10 +209,10 @@ function QueryDemoServer({ addErrorAlerts, responseTimes, addResponseTimes, maxD
 
     let resError: string;
 
-  fetch('https://quell.netlify.app/graphql', fetchOptions)
+  fetch('/graphql', fetchOptions)
     .then(res => res.json())
     .then(res => {
-      console.log('RES LOCALS >>>>> ', res);
+      // console.log('RES LOCALS >>>>> ', res);
       resError = res;
       const responseTime: number = (new Date()).getTime() - startTime;
       addResponseTimes([...responseTimes, responseTime]);
@@ -310,14 +308,14 @@ const CacheControlsServer = ({ setDepth, setCost, setIPRate, addResponseTimes, c
     console.log('resetting the graph');
     addResponseTimes([]);
     clearLokiCache();
-    fetch('https://quell.netlify.app/clearCache')
+    fetch('/clearCache')
     .then((res) => console.log('Cleared Server Cache!'));
     setCacheHit(cacheHit = 0);
     setCacheMiss(cacheMiss = 0);
   }
 
   const clearServerCache = () => {
-    fetch('https://quell.netlify.app/clearCache')
+    fetch('/clearCache')
       .then((res) => console.log('Cleared Server Cache!'))
   }
 
