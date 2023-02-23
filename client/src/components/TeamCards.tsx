@@ -31,7 +31,7 @@ import JackieHe from "../assets/images/profile_pics/QUELL-headshot JackieHe.png"
 import CeraB from "../assets/images/profile_pics/QUELL-headshot CeraB.png"
 import AlexMartinez from "../assets/images/profile_pics/QUELL-headshot AlexM.png"
 import RylanW from "../assets/images/profile_pics/QUELL-headshot w border-RylanW.png"
-import Garik from "../assets/images/profile_pics/QUELL-headshot w border-Garik.png"
+import Garik from "../assets/images/profile_pics/QUELL-headshot w border-RylanW.png"
 
 /* 
   Reusable component to generate each team member
