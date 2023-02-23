@@ -1,9 +1,0 @@
-[[redirects]]
-from = "/api/graphql"
-to = "/https://silver-panda-2241d1.netlify.app/graphql"
-status = 200
-
-[[redirects]]
-from = "/api/clearCache"
-to = "/https://silver-panda-2241d1.netlify.app/clearCache"
-status = 200
