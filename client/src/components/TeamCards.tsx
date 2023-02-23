@@ -33,8 +33,8 @@ import AlexMartinez from "../assets/images/profile_pics/QUELL-headshot AlexM.png
 import RylanW from "../assets/images/profile_pics/QUELL-headshot w border-RylanW.png";
 import SarahC from "../assets/images/profile_pics/QUELL-headshot w border-SarahC.png";
 import HannahS from "../assets/images/profile_pics/QUELL-headshot w border-HannahS.png";
-// import GarikA from "../assets/images/profile_pics/QUELL-headshot w border-GarikA.png";
 import KatieS from "../assets/images/profile_pics/QUELL-headshot w border-KatieS.png";
+import Garik from "../assets/images/profile_pics/QUELL-headshot w border-GarikA.png";
 
 /* 
   Reusable component to generate each team member
@@ -46,13 +46,6 @@ const KATIES = {
   linkedin: 'https://www.linkedin.com/in/katie-sandfort/',
   github: 'https://github.com/katiesandfort',
 };
-// const GARIKA = {
-//   name: 'Garik Asplund',
-//   src: GarikA,
-//   bio: 'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Corporis quisquam vel repellat saepe, quam odit porro, tempora provident aperiam voluptatem explicabo illo pariatur suscipit consectetur molestiae deleniti ipsa eum tempore',
-//   linkedin: 'https://www.linkedin.com/in/rylan-wessel-48aaa625a/',
-//   github: 'https://github.com/XpIose',
-// };
 const HANNAHS = {
   name: 'Hannah Spencer',
   src: HannahS,
@@ -66,6 +59,13 @@ const SARAHCYNN = {
   bio: 'Sarah is an empathetic full-stack developer who specializes in React, Node, and GraphQL, and she values collaboration with other software developers to create meaningful and helpful developer tools. In her free time, Sarah enjoys baking bread, learning music production, and playing with her baby niece.' ,
   linkedin: 'https://www.linkedin.com/in/cynnsarah/',
   github: 'https://github.com/cynnsarah',
+};
+const GARIKASPLUND = {
+  name: 'Garik Asplund',
+  src: Garik,
+  bio: 'Garik is a full-stack developer who loves new frameworks and runtimes! He also has a special spot for databases in all their variety. He is an avid backcountry skier and trailrunner who lives in rural northeast Oregon with his two cats, Wasabi and Ginger, and dog, Noodle.',
+  linkedin: 'https://www.linkedin.com/in/garik-asplund/',
+  github: 'https://github.com/garikAsplund',
 };
 const RYLANWESSEL = {
   name: 'Rylan Wessel',
@@ -267,6 +267,7 @@ const TeamArr = [
   KATIES,
   HANNAHS,
   SARAHCYNN,
+  GARIKASPLUND,
   RYLANWESSEL,
   JACKIEHE,
   ALEXANDERMARTINEZ,
@@ -316,7 +317,6 @@ const Team = memo(() => {
     }
     window.scrollTo(0, 0)
   }, [])
-
 
   return (
     <div id={renderFx}>

@@ -1,6 +1,5 @@
 const { parse } = require('graphql/language/parser');
 const determineType = require('./helpers/determineType');
-
 const loki = require('lokijs');
 const lokidb = new loki('client-cache');
 let lokiCache = lokidb.addCollection('loki-client-cache', { disableMeta: true });
@@ -43,10 +42,12 @@ async function Quellify(endPoint, query, costOptions) {
       body: JSON.stringify({ query: query, costOptions: costOptions  }),
     };
     const serverResponse = await fetch(endPoint, fetchOptions);
-    const parsedData =  await serverResponse.json();
+    let parsedData =  await serverResponse.json();
+    parsedData = parsedData.queryResponse;
     return parsedData;
   };
 
+  
   // Create AST based on the input query using the parse method available in the graphQL library (further reading: https://en.wikipedia.org/wiki/Abstract_syntax_tree)
   const AST = parse(query);
 
@@ -90,10 +91,14 @@ async function Quellify(endPoint, query, costOptions) {
         };
         // execute initial query
         const serverResponse = await fetch(endPoint, fetchOptions);
-        const parsedData = await serverResponse.json();
+        let parsedData = await serverResponse.json();
+        parsedData = parsedData.queryResponse
         // clear caches
         clearCache();
+        console.log('cache is cleared after deletion')
+        console.log(lokiCache.find())
         // return data
+        console.log('deleteone response?', parsedData)
         return [parsedData];
       } else if (//if query is update mutation
           mutationType.includes('update')
