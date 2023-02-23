@@ -172,7 +172,7 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
       <DemoControls selectedQuery={selectedQuery} setQueryChoice={setQueryChoice} submitQuery={submitQuery} />
       {/* <Button onClick={resetGraph} sx={{textAlign: 'center', minHeight: '40px', maxHeight:"40px", fontSize: '.85rem' }} size='medium' color='secondary' variant='contained'>Reset Graph</Button> */}
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
-      <h3>See your query results: </h3>
+      <h3>HELLO! See your query results: </h3>
       <div style={{width: '85%', border: 'none',  overflow: 'hidden', borderRadius: '5px'}}> 
         <div id="responseContainer" >
           <TextField
