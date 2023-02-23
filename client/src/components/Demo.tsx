@@ -140,12 +140,10 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
   const [ response, setResponse ] = useState<string>('');
   
   function submitQuery() {
-    console.log("Checking Query in Submit Query: ", typeof query)
+    // console.log("Checking Query in Submit Query: ", typeof query)
     const startTime = (new Date()).getTime();
     Quellify('/graphql', query, { maxDepth, maxCost, ipRate })
       .then(res => {
-        console.log('NEW RESPONSE >>>>> ', res);
-        console.log('res[0]:', res[0]);
       const responseTime: number = (new Date()).getTime() - startTime;
       addResponseTimes([...responseTimes, responseTime]);
       const queryType: string = selectedQuery;
@@ -214,7 +212,7 @@ function QueryDemoServer({ addErrorAlerts, responseTimes, addResponseTimes, maxD
   fetch('/graphql', fetchOptions)
     .then(res => res.json())
     .then(res => {
-      console.log('RES LOCALS >>>>> ', res);
+      // console.log('RES LOCALS >>>>> ', res);
       resError = res;
       const responseTime: number = (new Date()).getTime() - startTime;
       addResponseTimes([...responseTimes, responseTime]);

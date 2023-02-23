@@ -95,10 +95,8 @@ async function Quellify(endPoint, query, costOptions) {
         parsedData = parsedData.queryResponse
         // clear caches
         clearCache();
-        console.log('cache is cleared after deletion')
         console.log(lokiCache.find())
         // return data
-        console.log('deleteone response?', parsedData)
         return [parsedData];
       } else if (//if query is update mutation
           mutationType.includes('update')
