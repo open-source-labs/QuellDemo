@@ -4,7 +4,6 @@ import { editor } from "monaco-editor";
 import {querySamples} from './helperFunctions'
 
 export const QueryEditor = ({setQuery, selectedQuery}: QueryEditorProps) => {
-  
 
   const handleChange = (value?: any,  ev?: editor.IModelContentChangedEvent): any => {
     setQuery(value)
@@ -15,7 +14,7 @@ export const QueryEditor = ({setQuery, selectedQuery}: QueryEditorProps) => {
   return (
    <div className="monaco-editor-container" >
     <ControlledEditor
-      height={"250px"}
+      // height={"250px"}
       className={"monaco-editor"}
       defaultLanguage="graphql"
       value={query}
@@ -44,7 +43,6 @@ export const ResponseEditor = ({response}: ResponseEditorProps) => {
    </div>
   )
 };
-
 
 interface QueryEditorProps {
   setQuery: React.Dispatch<React.SetStateAction<string>>;

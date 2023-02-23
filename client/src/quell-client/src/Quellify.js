@@ -1,9 +1,8 @@
 const { parse } = require('graphql/language/parser');
 const determineType = require('./helpers/determineType');
-
 const loki = require('lokijs');
 const lokidb = new loki('client-cache');
-let lokiCache = lokidb.addCollection('loki-client-cache');
+let lokiCache = lokidb.addCollection('loki-client-cache', { disableMeta: true });
 
 
 /*The IDCache is a psuedo-join table that is a JSON object in memory, 
@@ -19,7 +18,7 @@ let IDCache = {};
 
 const clearCache = () => {
   lokidb.removeCollection('loki-client-cache');
-  lokiCache = lokidb.addCollection('loki-client-cache');
+  lokiCache = lokidb.addCollection('loki-client-cache', { disableMeta: true });
   IDCache = {};
   console.log('Client cache has been cleared.');
 };
@@ -32,22 +31,19 @@ const clearCache = () => {
  *  @param {string} query - The graphQL query that is requested from the client
  */
 
+async function Quellify(endPoint, query, costOptions) {
 
-
-async function Quellify(endPoint, query) {
   const performFetch = async () => {
     const fetchOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query: query }),
+      body: JSON.stringify({ query: query, costOptions: costOptions  }),
     };
-    console.log("DA QUERY IN QUELLIFY: ", typeof query)
     const serverResponse = await fetch(endPoint, fetchOptions);
-    console.log('serverResponse', serverResponse);
-    const parsedData =  await serverResponse.json();
-    console.log('parsedData:', parsedData);
+    let parsedData =  await serverResponse.json();
+    parsedData = parsedData.queryResponse;
     return parsedData;
   };
 
@@ -55,8 +51,8 @@ async function Quellify(endPoint, query) {
   // Create AST based on the input query using the parse method available in the graphQL library (further reading: https://en.wikipedia.org/wiki/Abstract_syntax_tree)
   const AST = parse(query);
 
-  //find operationType using determineType
-  const { operationType } = determineType(AST);
+  //find operationType, proto using determineType
+  const { operationType, proto } = determineType(AST);
 
   // pass-through for queries and operations that QuellCache cannot handle
   if (operationType === 'unQuellable') {
@@ -64,39 +60,79 @@ async function Quellify(endPoint, query) {
     const parsedData = await performFetch();
     return parsedData;
   } else if (operationType === 'mutation') {
-    // exectue initial query
-    const parsedData = await performFetch();
 
-    // clear caches
-    clearCache();
-
-    // return data
-    return parsedData;
-  } else {// if the request is query...
+    // assign mutationType
+    let mutationType = Object.keys(proto)[0];
+    // check for key words in the type
+    if ( //add mutation
+      mutationType.includes('add') ||
+      mutationType.includes('new') ||
+      mutationType.includes('create') ||
+      mutationType.includes('make')
+    ) {
+      // execute initial query
+      const parsedData = await performFetch();
+      // clear cache so the next query will include mutation
+      clearCache();
+      // return data
+      return [parsedData];
+      
+    } else if (//if query is update or delete mutation
+        mutationType.includes('delete') ||
+        mutationType.includes('remove')
+      ) {
+        //assign delete request method
+        let fetchOptions = {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: query, costOptions: costOptions }),
+        };
+        // execute initial query
+        const serverResponse = await fetch(endPoint, fetchOptions);
+        let parsedData = await serverResponse.json();
+        parsedData = parsedData.queryResponse
+        // clear caches
+        clearCache();
+        console.log('cache is cleared after deletion')
+        console.log(lokiCache.find())
+        // return data
+        console.log('deleteone response?', parsedData)
+        return [parsedData];
+      } else if (//if query is update mutation
+          mutationType.includes('update')
+        ) {
+          // execute initial query
+          const serverResponse = await performFetch();
+          const parsedData = await serverResponse.json();
+          // clear caches
+          clearCache();
+          // return data
+          return [parsedData];
+        } 
+ 
+  } else {// if the request is a query
     
-    // check IDCache with query, if query returns the $loki ID, find the results for searching the LokiDBCache
+    //check IDCache with query, if query returns the $loki ID, find the results for searching the LokiDBCache
     //lokiCache to see if this call has a $loki associated with it. if so, retrieve and return it
     if (IDCache[query]) {
-      console.log('data exists in loki cache');
       // grab the $loki ID from the IDCache
       const queryID = IDCache[query];
-      // grabs results from lokiCachi by $loki id
+      // grab results from lokiCache by $loki ID
       const results = lokiCache.get(queryID);
-      return results;
+      //second element is boolean for whether data can be found in lokiCache
+      return [results, true];
+    } else { // if this query has not been made already, execute fetch request with query
+        const parsedData = await performFetch();
+        // add new data to lokiCache
+        const addedEntry = lokiCache.insert(parsedData.data);
+        //add query $loki ID to IDcache at query key
+        IDCache[query] = addedEntry.$loki;
+        //return data 
+        return [addedEntry, false];
+      }
     }
-    // if this call has not been made already, execute fetch request with original query
-    else {
-      const parsedData = await performFetch();
-      console.log('parsed:', parsedData);
-      
-      // add new data to lokiCache, and add $loki to IDcache
-      const addedEntry = lokiCache.insert(parsedData.data);
-      //add query to IDCache so that the query returns the $loki index
-      IDCache[query] = addedEntry.$loki;
-
-      return addedEntry;
-    }
-  }
 }
 
 module.exports = { Quellify , clearLokiCache: clearCache };
