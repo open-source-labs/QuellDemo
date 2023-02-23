@@ -74,12 +74,12 @@ if (isToggled) {
           
         </div>
       </div>
-      {/* {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))} */}
+      {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
       {responseTimes.map((el, i) => {
           return <SuccessfulQuery key={i}/>
         })}
       {errorAlerts.map((el, i) => {
-        // console.log('ERROR HERE >>>>> ', el);
+        console.log('ERROR HERE >>>>> ', el);
           return <BadQuery errorMessage={el} key={i}/>
         })}
     </div>

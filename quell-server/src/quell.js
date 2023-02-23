@@ -150,17 +150,17 @@ class QuellCache {
         redisValue = JSON.parse(redisValue);
         res.locals.queryResponse = redisValue; //
         return next();
-      }else{
-        graphql({ schema: this.schema, source: queryString })
-        .then((queryResult) => {
-          res.locals.queryResponse = queryResult;
-          this.writeToCache(queryString, queryResult);
-          return next();
-        })
-        .catch((error) => {
-          return next({ log:'graphql library error line 206' });
-        });
-      }
+      } else {
+          graphql({ schema: this.schema, source: queryString })
+          .then((queryResult) => {
+            res.locals.queryResponse = queryResult;
+            this.writeToCache(queryString, queryResult);
+            return next();
+          })
+          .catch((error) => {
+            return next({ log:'graphql library error line 206' });
+          });
+        }
     
     } else if (operationType === 'mutation') {
       // console.log('operationType is a mutation');
