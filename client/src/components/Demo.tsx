@@ -142,7 +142,7 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
   function submitQuery() {
     console.log("Checking Query in Submit Query: ", typeof query)
     const startTime = (new Date()).getTime();
-    Quellify('/graphql', query, { maxDepth, maxCost, ipRate })
+    Quellify('https://quell.netlify.app/graphql', query, { maxDepth, maxCost, ipRate })
       .then(res => {
         console.log('NEW RESPONSE >>>>> ', res);
         console.log('res[0]:', res[0]);
@@ -172,7 +172,7 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
       <DemoControls selectedQuery={selectedQuery} setQueryChoice={setQueryChoice} submitQuery={submitQuery} />
       {/* <Button onClick={resetGraph} sx={{textAlign: 'center', minHeight: '40px', maxHeight:"40px", fontSize: '.85rem' }} size='medium' color='secondary' variant='contained'>Reset Graph</Button> */}
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
-      <h3>HELLO! See your query results: </h3>
+      <h3>See your query results: </h3>
       <div style={{width: '85%', border: 'none',  overflow: 'hidden', borderRadius: '5px'}}> 
         <div id="responseContainer" >
           <TextField
@@ -211,7 +211,7 @@ function QueryDemoServer({ addErrorAlerts, responseTimes, addResponseTimes, maxD
 
     let resError: string;
 
-  fetch('/graphql', fetchOptions)
+  fetch('https://quell.netlify.app/graphql', fetchOptions)
     .then(res => res.json())
     .then(res => {
       console.log('RES LOCALS >>>>> ', res);
@@ -310,14 +310,14 @@ const CacheControlsServer = ({ setDepth, setCost, setIPRate, addResponseTimes, c
     console.log('resetting the graph');
     addResponseTimes([]);
     clearLokiCache();
-    fetch('/clearCache')
+    fetch('https://quell.netlify.app/clearCache')
     .then((res) => console.log('Cleared Server Cache!'));
     setCacheHit(cacheHit = 0);
     setCacheMiss(cacheMiss = 0);
   }
 
   const clearServerCache = () => {
-    fetch('/clearCache')
+    fetch('https://quell.netlify.app/clearCache')
       .then((res) => console.log('Cleared Server Cache!'))
   }
 
