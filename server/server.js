@@ -13,9 +13,9 @@ app.use(bodyparser.json());
 app.use(cors());
 
 mongoose
-  .connect("mongodb+srv://quello:quello@cluster0.t8iquko.mongodb.net/?retryWrites=true&w=majority",
+  .connect("mongodb+srv://quell:STpdV4dfTcoJRkma@quell.7dwxu2b.mongodb.net/?retryWrites=true&w=majority",
   { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to BongoDB'))
+  .then(() => console.log('Connected to QuellDB'))
   .catch(err => console.log(err))
 
 const PORT = process.env.PORT || 3000;
@@ -39,6 +39,7 @@ app.use('/api/redis', quellCache.getRedisInfo({
 app.use((req, res) => res.status(404).send('This is not the page you\'re looking for...'));
 
 app.use((err, req, res, next) => {
+  console.log(err)
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,

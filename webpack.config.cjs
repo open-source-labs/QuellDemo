@@ -12,7 +12,7 @@ module.exports = {
   plugins: [
     new HTMLWebpackPlugin({
       template: './client/src/index.html',
-      favicon.ico: './client/src/favicon.ico'
+      'favicon.ico': './client/src/favicon.ico'
     })
   ],
 

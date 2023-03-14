@@ -64,7 +64,7 @@ const AttractionsType = new GraphQLObjectType({
 })
 
 const CityType = new GraphQLObjectType({
-  name: 'Cities',
+  name: 'City',
   fields: () => ({
     id: {type: GraphQLID},
     name: { type: GraphQLString},
@@ -149,6 +149,14 @@ const RootQuery = new GraphQLObjectType({
         return city;
       }
     },
+    cities: {
+      type: new GraphQLList(CityType),
+      args: {country: {type: GraphQLString}},
+      async resolve(parent, args) {
+        const cities = await Cities.find({country: args.country})
+        return cities;
+      }
+    },
     attractions: {
       type: AttractionsType,
       args: {name: {type: GraphQLString}},
@@ -217,6 +225,14 @@ const RootMutations = new GraphQLObjectType({
       async resolve(parent, args) {
         const country = await Countries.create({name: args.name})
         return country;
+      }
+    },
+    deleteCountry: {
+      type: CountryType,
+      args: {name: {type: GraphQLString}},
+      async resolve(parent, args) {
+        const findCountry = await Countries.findOne({name: args.name})
+        if (findCountry) await Countries.deleteOne({name: args.name});
       }
     }
 }
