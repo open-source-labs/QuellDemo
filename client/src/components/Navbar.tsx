@@ -112,7 +112,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           mountOnEnter
           unmountOnExit
         >
-          <Groups2Icon />
+          <Groups2 />
         </Slide>
       </Button>
     );
@@ -120,7 +120,6 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
 
   const DemoButton = () => {
     const [hover, setHover] = useState<boolean>(false);
-
     return (
       <Button
         onClick={() => {
@@ -160,7 +159,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           mountOnEnter
           unmountOnExit
         >
-          <AspectRatioRoundedIcon sx={{ position: 'relative' }} />
+          <Code sx={{ position: 'relative' }} />
         </Slide>
       </Button>
     );
@@ -207,10 +206,23 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
             mountOnEnter
             unmountOnExit
           >
-            <MenuBookIcon />
+            <MenuBook />
           </Slide>
         </Button>
       </Link>
+    );
+  };
+
+  const TeamToggle = () => {
+    return (
+      <button
+        className="teamBtn"
+        onClick={() => {
+          toggleRenderTeam(!teamComp);
+        }}
+      >
+        {teamComp ? 'HOME' : 'TEAM'}
+      </button>
     );
   };
 
@@ -246,15 +258,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         <DemoButton />
         <DocsButton />
       </Stack>
-      <button
-        className="teamBtn"
-        onClick={() => {
-          toggleRenderTeam(!teamComp);
-        }}
-        // style={{color: 'white'}}
-      >
-        {teamComp ? 'HOME' : 'TEAM'}
-      </button>
+      <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+        <TeamToggle />
+      </Box>
       <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
         <IconButton
           size="large"
@@ -284,14 +290,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           }}
         >
           <MenuItem onClick={handleCloseNavMenu}>
-            <a
-              onClick={() => {
-                teamComp ? toggleRenderTeam(false) : null;
-              }}
-              href="#scroll-about"
-            >
-              About
-            </a>
+            <AboutButton />
           </MenuItem>
           <MenuItem onClick={handleCloseNavMenu}>
             <DemoButton />
@@ -299,13 +298,10 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           <MenuItem onClick={handleCloseNavMenu}>
             <DocsButton />
           </MenuItem>
+          <MenuItem onClick={handleCloseNavMenu}>
+            <TeamToggle />
+          </MenuItem>
         </Menu>
-      </Box>
-      <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-        <Button
-          onClick={handleCloseNavMenu}
-          sx={{ my: 2, color: 'white', display: 'block' }}
-        ></Button>
       </Box>
     </AppBar>
   );
