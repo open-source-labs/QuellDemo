@@ -5,106 +5,6 @@ html {
   font-family: 'sofia-light';
 }
 
-/* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {
-}
-
-/* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
-}
-
-/* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
-}
-
-/* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
-  body {
-    font-size: small;
-  }
-
-  Button {
-    font-size: small;
-  }
-
-  .dropDownContainer {
-    flex-direction: column;
-    padding-bottom: 2.5rem;
-  }
-
-  .demoContainer {
-    margin: 150px auto 120px;
-    max-width: 80%;
-    max-height: 1400px;
-    min-height: 500px !important;
-  }
-
-  #scroll-demo {
-    top: 8.5rem;
-  }
-
-  .demoRight {
-    min-height: 1150px;
-    /* display: flex;
-    /* align-items: space-between; */
-    /* justify-content: space-between;
-    align-content: space-between;  */
-  }
-
-  .graphContainer {
-    height: 70em;
-    width: 90%;
-    display: flex;
-    /* align-items: space-between; */
-    justify-content: space-between;
-    align-content: space-between;
-  }
-
-  .monaco-editor-container {
-    height: 400px;
-  }
-
-  #responseContainer {
-    height: 400px !important;
-  }
-}
-
-/* For 27-in screens */
-@media screen and (min-width: 1820px) and (max-width: 2560px) {
-  .demoContainer {
-    max-width: 75%;
-    max-height: 950px;
-    margin: 320px auto 120px;
-  }
-
-  #responseContainer {
-    min-height: 300px;
-  }
-
-  #scroll-demo {
-    top: 17.5rem;
-    right: 1.75rem;
-  }
-
-  /* .demoLeft {
-    display: flex;
-    flex-direction: row;
-  } */
-
-  .demoRight {
-    min-height: 950px;
-  }
-
-  .graphContainer {
-    height: 55em;
-    width: 90%;
-  }
-
-  .monaco-editor-container {
-    height: 400%;
-  }
-}
-
 @font-face {
   font-family: 'sofia-light';
   src: url('../assets/sofiapro-light.woff2') format('woff2'),
@@ -378,8 +278,8 @@ h2 {
   font-size: 13px;
   margin-bottom: 5px;
   aspect-ratio: inherit;
-  min-height: 600px;
-  max-height: 600px;
+  min-height: 320;
+  max-height: 320;
 }
 
 #team {
@@ -547,4 +447,104 @@ h2 {
 
 #feature5:hover .arrowicon {
   color: #1876d1;
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  body {
+    /* font-size: small; */
+  }
+
+  Button {
+    font-size: small;
+  }
+
+  .dropDownContainer {
+    flex-direction: column;
+    padding-bottom: 2.5rem;
+  }
+
+  .demoContainer {
+    margin: 150px auto 120px;
+    max-width: 80%;
+    max-height: 1400px;
+    min-height: 500px !important;
+  }
+
+  #scroll-demo {
+    top: 8.5rem;
+  }
+
+  .demoRight {
+    min-height: 1150px;
+    /* display: flex;
+    /* align-items: space-between; */
+    /* justify-content: space-between;
+    align-content: space-between;  */
+  }
+
+  .graphContainer {
+    height: 70em;
+    width: 90%;
+    display: flex;
+    /* align-items: space-between; */
+    justify-content: space-between;
+    align-content: space-between;
+  }
+
+  .monaco-editor-container {
+    height: 400px;
+  }
+
+  #responseContainer {
+    height: 400px !important;
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+}
+
+/* For 27-in screens */
+@media screen and (min-width: 1820px) {
+  .demoContainer {
+    max-width: 75%;
+    max-height: 950px;
+    margin: 320px auto 120px;
+  }
+
+  #responseContainer {
+    min-height: 300px;
+  }
+
+  #scroll-demo {
+    top: 17.5rem;
+    right: 1.75rem;
+  }
+
+  /* .demoLeft {
+    display: flex;
+    flex-direction: row;
+  } */
+
+  .demoRight {
+    min-height: 950px;
+  }
+
+  .graphContainer {
+    height: 55em;
+    width: 90%;
+  }
+
+  .monaco-editor-container {
+    height: 400%;
+  }
 }

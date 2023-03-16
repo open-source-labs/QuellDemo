@@ -7,16 +7,22 @@ import {
   Box,
   Fade,
   Slide,
+  IconButton,
+  Menu,
+  MenuItem,
   Typography,
   Hidden,
   Link,
 } from '@mui/material';
 import '../stylesheets/Navbar.css';
 import quellBirdIcon from '../assets/images/quell_logos/quell-bird.svg';
-import CodeTwoToneIcon from '@mui/icons-material/CodeTwoTone';
-import AspectRatioRoundedIcon from '@mui/icons-material/AspectRatioRounded';
-import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
-import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import {
+  Menu as MenuIcon,
+  DeveloperBoard,
+  Code,
+  MenuBook,
+  Groups2,
+} from '@mui/icons-material';
 
 interface Navbar {
   toggleRenderTeam: Dispatch<SetStateAction<boolean>>;
@@ -25,6 +31,14 @@ interface Navbar {
 
 export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
   const [rendered, setRendered] = useState<boolean>(false);
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+
+  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNav(event.currentTarget);
+  };
+  const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
+  };
 
   useEffect(() => {
     setRendered(true);
@@ -98,7 +112,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           mountOnEnter
           unmountOnExit
         >
-          <Groups2RoundedIcon />
+          <Groups2Icon />
         </Slide>
       </Button>
     );
@@ -193,7 +207,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
             mountOnEnter
             unmountOnExit
           >
-            <MenuBookRoundedIcon />
+            <MenuBookIcon />
           </Slide>
         </Button>
       </Link>
@@ -222,7 +236,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
       {/* Navmenu buttons */}
       <Stack
         className="navMenuContainer"
-        sx={{ overflow: 'hidden' }}
+        sx={{ display: { xs: 'none', md: 'flex' } }}
         direction="row"
         justifyContent="center"
         divider={<Divider color="grey" orientation="vertical" flexItem />}
@@ -241,6 +255,58 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
       >
         {teamComp ? 'HOME' : 'TEAM'}
       </button>
+      <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
+        <IconButton
+          size="large"
+          aria-controls="menu-appbar"
+          aria-haspopup="true"
+          onClick={handleOpenNavMenu}
+          color="inherit"
+        >
+          <MenuIcon />
+        </IconButton>
+        <Menu
+          id="menu-appbar"
+          anchorEl={anchorElNav}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+          open={Boolean(anchorElNav)}
+          onClose={handleCloseNavMenu}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+          }}
+        >
+          <MenuItem onClick={handleCloseNavMenu}>
+            <a
+              onClick={() => {
+                teamComp ? toggleRenderTeam(false) : null;
+              }}
+              href="#scroll-about"
+            >
+              About
+            </a>
+          </MenuItem>
+          <MenuItem onClick={handleCloseNavMenu}>
+            <DemoButton />
+          </MenuItem>
+          <MenuItem onClick={handleCloseNavMenu}>
+            <DocsButton />
+          </MenuItem>
+        </Menu>
+      </Box>
+      <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+        <Button
+          onClick={handleCloseNavMenu}
+          sx={{ my: 2, color: 'white', display: 'block' }}
+        ></Button>
+      </Box>
     </AppBar>
   );
 }
