@@ -1,14 +1,13 @@
 // import quellBanner from '../assets/images/quell_logos/QUELL-nested.svg';
 import quellBanner from '../assets/images/quell_logos/quell-logo-square-no-padding.svg';
 import EggOutlinedIcon from '@mui/icons-material/EggOutlined';
-import quellCacheSVG from '../assets/images/graphics/QUELL-illu-airmail_3.svg';
 import feather from '../assets/images/icons/feather.png';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { memo } from 'react';
 
 const About = memo(() => {
   return (
-    <div id="about" className="aboutContainer">
+    <div id="about" className="aboutSection">
       <div id="scroll-about"></div>
       <div className="quell-banner-container">
         <img src={quellBanner} alt="quell-banner" id="quell-banner" />
@@ -154,9 +153,9 @@ const About = memo(() => {
           </div>
         </div>
       </div>
-      <div style={{ position: 'relative' }}>
+      {/* <div style={{ position: 'relative' }}>
         <img src={quellCacheSVG} alt="quell-cache-img" id="quell-cache-svg" />
-      </div>
+      </div> */}
     </div>
   );
 });

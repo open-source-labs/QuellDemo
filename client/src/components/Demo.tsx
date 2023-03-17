@@ -54,16 +54,9 @@ const Demo = memo(() => {
   // Server
   if (isToggled) {
     return (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
+      <div className="demoSection">
         <div id="scroll-demo" className="scrollpoint">
-          <img src={demoHeader} id="demo-header" />
+          <h1 id="demo-header">Demo</h1>
           <Box>
             <FormControlLabel
               label="Server-side caching"
@@ -138,7 +131,7 @@ const Demo = memo(() => {
         }}
       >
         <div id="scroll-demo" className="scrollpoint">
-          <img src={demoHeader} id="demo-header" />
+          <h1 id="demo-header">Demo</h1>
           <Box>
             <FormControlLabel
               label="Server-side caching"
@@ -257,6 +250,7 @@ function QueryDemo({
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
       <h3>See your query results: </h3>
       <div
+        id="results-container"
         style={{
           width: '85%',
           border: 'none',
@@ -271,6 +265,7 @@ function QueryDemo({
             sx={{ border: '1px solid white', borderStyle: 'inset' }}
             inputProps={{
               style: {
+                // height: '100px',
                 fontSize: '0.9rem',
                 width: '100%',
                 backgroundColor: '#474f57',
