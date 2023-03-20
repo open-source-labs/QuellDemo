@@ -13,9 +13,9 @@ app.use(bodyparser.json());
 app.use(cors());
 
 mongoose
-  .connect("mongodb+srv://quello:quello@cluster0.t8iquko.mongodb.net/?retryWrites=true&w=majority",
+  .connect("mongodb+srv://quell:STpdV4dfTcoJRkma@quell.7dwxu2b.mongodb.net/?retryWrites=true&w=majority",
   { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to BongoDB'))
+  .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.log(err))
 
 const PORT = process.env.PORT || 3000;

@@ -64,7 +64,7 @@ const AttractionsType = new GraphQLObjectType({
 })
 
 const CityType = new GraphQLObjectType({
-  name: 'Cities',
+  name: 'City',
   fields: () => ({
     id: {type: GraphQLID},
     name: { type: GraphQLString},
