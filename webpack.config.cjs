@@ -2,18 +2,18 @@ const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: path.resolve(__dirname, './client/src/index.tsx'), 
+  entry: path.resolve(__dirname, './client/src/index.tsx'),
   mode: 'production',
   output: {
     path: path.join(__dirname, '/dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
   },
 
   plugins: [
     new HTMLWebpackPlugin({
       template: './client/src/index.html',
-      favicon.ico: './client/src/favicon.ico'
-    })
+      // favicon: `./client/src/favicon.ico`,
+    }),
   ],
 
   module: {
@@ -24,49 +24,53 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/env', '@babel/react'] 
-          }
-        }
+            presets: ['@babel/env', '@babel/react'],
+          },
+        },
       },
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
-            loader: 'babel-loader',
-            options: {
-                presets: ['@babel/preset-env', ["@babel/preset-react", {"runtime": "automatic"}], '@babel/preset-typescript']
-            }
-        }
-    },
-    {
-      test: /\.css$/,
-      use: ["style-loader", "css-loader"],
-    },
-    {
-      test: /\.(jpe?g|png|gif|svg)$/i,
-      use: ["file-loader"],
-    },
-    ]
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              '@babel/preset-env',
+              ['@babel/preset-react', { runtime: 'automatic' }],
+              '@babel/preset-typescript',
+            ],
+          },
+        },
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.(jpe?g|png|gif|svg|ico)$/i,
+        use: ['file-loader'],
+      },
+    ],
   },
   devServer: {
     static: {
       publicPath: '/dist',
-      directory: path.resolve(__dirname, 'dist')
+      directory: path.resolve(__dirname, 'dist'),
     },
     proxy: {
       '/api': 'http://localhost:3000',
       '/api/graphql': 'http://localhost:3000',
       '/api/clearCache': 'http://localhost:3000/',
-			'/api/redis': 'http://localhost:3000/'
-    }
+      '/api/redis': 'http://localhost:3000/',
+    },
   },
   performance: {
-    hints: false
+    hints: false,
   },
   resolve: {
     fallback: {
-      "fs": false
+      fs: false,
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.react.js'],
-},
-}
+  },
+};
