@@ -1,0 +1,76 @@
+#team-quell-heading {
+  margin-top: 80px;
+  text-align: center;
+}
+
+#team-quell-logo {
+  display: block;
+  margin: auto;
+  width: 40%;
+  padding: 2%;
+}
+
+h2 {
+  margin: auto;
+  text-align: center;
+  padding-bottom: 2rem;
+}
+
+.TeamCard {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  background-color: white;
+  border: 2px solid #e9e9e9;
+  border-top-left-radius: 45%;
+  border-top-right-radius: 50%;
+  border-bottom-left-radius: 35%;
+  border-bottom-right-radius: 40%;
+  font-size: 13px;
+  margin-bottom: 5px;
+  aspect-ratio: inherit;
+  min-height: 320;
+  max-height: 320;
+}
+
+#team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+}
+
+.profile-pics {
+  width: 55%;
+  padding: 8px;
+  max-width: 400px;
+  margin-bottom: 3%;
+  margin-top: 2%;
+}
+
+.profile-pics img {
+  margin-bottom: 4%;
+  max-width: 200px;
+}
+
+.team-member-name {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  font-size: 20px;
+}
+.social-icons {
+  position: relative;
+  top: 20px;
+  bottom: 0px;
+}
+.social-icons img {
+  margin-left: 40px;
+  height: 32px;
+  width: 32px;
+}

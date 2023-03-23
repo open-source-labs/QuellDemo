@@ -1,15 +1,16 @@
 // import quellBanner from '../assets/images/quell_logos/QUELL-nested.svg';
-import quellBanner from '../assets/images/quell_logos/quell-logo-square-no-padding.svg';
+import styles from './About.modules.css';
+import quellBanner from '/client/src/assets/images/quell_logos/quell-logo-square-no-padding.svg';
 import EggOutlinedIcon from '@mui/icons-material/EggOutlined';
-import feather from '../assets/images/icons/feather.png';
+import feather from '/client/src/assets/images/icons/feather.png';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { memo } from 'react';
 
 const About = memo(() => {
   return (
-    <div id="about" className="aboutSection">
+    <div id="about" className={styles.about}>
       <div id="scroll-about"></div>
-      <div className="quell-banner-container">
+      <div className={styles.quell_banner_container}>
         <img src={quellBanner} alt="quell-banner" id="quell-banner" />
       </div>
       <div className="about-content-container">
@@ -17,7 +18,7 @@ const About = memo(() => {
           style={{ display: 'flex', flexDirection: 'column' }}
           id="about-top"
         >
-          <span id="aboutHeading">Quello World!</span>
+          <span id={styles.aboutHeading}>Quello World!</span>
           <span>
             Quell is an easy-to-use, lightweight JavaScript library providing a
             client- and server-side caching solution for GraphQL.

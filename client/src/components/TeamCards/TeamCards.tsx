@@ -1,8 +1,8 @@
 import React, { useState, useEffect, memo } from 'react';
-import Linkedin from '../assets/images/icons/QUELL-icons-linkedin.svg';
-import Github from '../assets/images/icons/QUELL-icons-github.svg';
-import Header from '../assets/images/quell_logos/quell-bird-border.svg';
-import { TeamArr } from './teaminfo';
+import Linkedin from '/client/src/assets/images/icons/QUELL-icons-linkedin.svg';
+import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
+import Header from '/client/src/assets/images/quell_logos/quell-bird-border.svg';
+import { TeamArr } from '../teaminfo';
 
 const Team = memo(() => {
   const [renderFx, toggleRenderFx] = useState<string>('unrendered');

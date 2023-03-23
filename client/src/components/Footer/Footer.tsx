@@ -1,9 +1,8 @@
 // import quellBirdIcon from '../assets/images/quell_logos/QUELL-quail only.svg';
-import quellBirdIcon from '../assets/images/quell_logos/quell-bird.svg';
+import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
 
 import GitHubIcon from '@mui/icons-material/GitHub';
-import MediumIcon from '../assets/images/icons/medium-icon.png';
-import '../stylesheets/Navbar.css';
+import MediumIcon from '/client/src/assets/images/icons/medium-icon.png';
 import { memo } from 'react';
 
 const Footer = memo(() => {

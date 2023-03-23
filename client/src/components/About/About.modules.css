@@ -1,0 +1,139 @@
+/* About Section CSS */
+
+.about {
+  margin-top: 155px;
+  height: 100vh;
+  width: 90%;
+  gap: 50px;
+  display: flex;
+  justify-content: center;
+}
+
+.quell_banner_container {
+  width: 40%;
+}
+
+.about-content-container {
+  width: 50%;
+  flex-direction: column;
+  display: flex;
+  font-size: 1.2rem;
+  gap: 20px;
+  padding: 10px;
+}
+
+#aboutHeading {
+  font-size: 1.75rem;
+  font-weight: bold;
+}
+
+.featureList {
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+#featureItemHeading {
+  font-weight: bolder;
+}
+
+#featureItemContent {
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+#about-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eggIcon {
+  cursor: pointer;
+  transition: all 0.55s ease-in-out;
+}
+
+.eggIcon:hover {
+  transform: scale(1.1);
+  transition: all 0.35s ease-in-out;
+}
+
+#quell-cache-svg {
+  position: absolute;
+  height: 500px;
+  width: 500px;
+  top: 50%;
+  right: 30vh;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+.demoContainer {
+  width: 85%;
+  margin: auto;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  /* display: flex;
+    flex-flow: wrap; */
+}
+
+.demoLeft,
+.demoRight {
+  min-width: 400px;
+}
+
+.footerContainer {
+  min-height: 60px;
+  max-height: 60px;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #474f57;
+  color: #d6d6d6;
+  padding: 0px 10px;
+}
+
+.medium-icon {
+  max-height: 25px;
+  margin-left: 10px;
+}
+
+.getstartedContainer {
+  gap: 2.5px;
+}
+
+.getstartedContainer:hover {
+  gap: 50px;
+  transition: gap 0.5s ease-in-out;
+}
+
+#get-started-link:hover {
+  color: #1876d1;
+  cursor: pointer;
+}
+
+#getstarted-text:hover {
+  color: #1876d1;
+  cursor: pointer;
+}
+
+#feature5:hover #getstarted-text {
+  color: #1876d1;
+}
+
+#getstarted {
+  gap: 2.5px;
+  transition: gap 0.25s linear;
+}
+
+#feature5:hover #getstarted {
+  gap: 20px;
+  transition: gap 0.55s ease-in-out;
+}
+
+#feature5:hover .arrowicon {
+  color: #1876d1;
+}

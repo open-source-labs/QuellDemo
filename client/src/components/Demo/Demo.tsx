@@ -19,14 +19,14 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { QueryEditor } from './Editors';
-import { querySamples } from './helperFunctions';
+import { QueryEditor } from '../Editors/Editors';
+import { querySamples } from '../helperFunctions';
 import ForwardRoundedIcon from '@mui/icons-material/ForwardRounded';
 import demoHeader from '../assets/images/headers/QUELL-headers-demo w lines.svg';
-import { Graph } from './Graph';
-import { HitMiss } from './HitMiss';
-import { SuccessfulQuery, BadQuery } from './Alert';
-import { Quellify, clearLokiCache } from '../quell-client/src/Quellify';
+import { Graph } from '../Graph/Graph';
+import { HitMiss } from '../HitMiss';
+import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
+import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
 import { styled } from '@mui/material/styles';
 import { width } from '@mui/system';
 

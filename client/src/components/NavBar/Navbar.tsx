@@ -14,8 +14,8 @@ import {
   Hidden,
   Link,
 } from '@mui/material';
-import '../stylesheets/Navbar.css';
-import quellBirdIcon from '../assets/images/quell_logos/quell-bird.svg';
+import styles from './NavBar.modules.css';
+import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
 import {
   Menu as MenuIcon,
   DeveloperBoard,
