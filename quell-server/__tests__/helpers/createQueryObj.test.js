@@ -1,8 +1,7 @@
-const QuellCache = require('../../src/quell.js');
+const QuellCache = require('../../src/quell.ts');
 const schema = require('../../test-config/testSchema');
 const redisPort = 6379;
 const timeout = 100;
-
 
 describe('server side tests for createQueryObj.js', () => {
   const Quell = new QuellCache(schema, redisPort, timeout);
@@ -15,7 +14,7 @@ describe('server side tests for createQueryObj.js', () => {
     });
   });
 
-  // TO-DO: Add the same test to the client side test folder 
+  // TO-DO: Add the same test to the client side test folder
   test('inputs prototype w/ all true should output empty object', () => {
     const prototype = {
       countries: {
@@ -52,7 +51,7 @@ describe('server side tests for createQueryObj.js', () => {
         id: false,
         name: false,
         capitol: false,
-      }
+      },
     };
 
     expect(Quell.createQueryObj(map)).toEqual({
@@ -210,7 +209,7 @@ describe('server side tests for createQueryObj.js', () => {
           id: false,
           name: true,
           population: false,
-        }
+        },
       },
       Mexico: {
         __id: '2',
@@ -226,8 +225,8 @@ describe('server side tests for createQueryObj.js', () => {
           __type: 'climate',
           seasons: true,
           id: false,
-        }
-      }
+        },
+      },
     };
 
     expect(Quell.createQueryObj(map)).toEqual({
@@ -245,7 +244,7 @@ describe('server side tests for createQueryObj.js', () => {
           __args: {},
           __type: 'capitol',
           __id: null,
-        }
+        },
       },
       Mexico: {
         name: false,
@@ -254,9 +253,9 @@ describe('server side tests for createQueryObj.js', () => {
         __args: { id: '2' },
         __type: 'country',
         __id: '2',
-      }
+      },
     });
-  })
+  });
 
   test('test requests with multiple queries in which half of the request if managed by the cache and the other half is managed by the response', () => {
     const map = {
@@ -275,7 +274,7 @@ describe('server side tests for createQueryObj.js', () => {
           id: true,
           name: true,
           population: true,
-        }
+        },
       },
       WarBook: {
         __id: '2',
@@ -291,8 +290,8 @@ describe('server side tests for createQueryObj.js', () => {
           __type: 'author',
           id: false,
           name: false,
-        }
-      }
+        },
+      },
     };
 
     expect(Quell.createQueryObj(map)).toEqual({
@@ -310,8 +309,8 @@ describe('server side tests for createQueryObj.js', () => {
           __type: 'author',
           name: false,
           id: false,
-        }
-      }
+        },
+      },
     });
-  })
+  });
 });

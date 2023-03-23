@@ -1,13 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "typeRoots" : ["node_modules/@types", "src/types"],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext",
-      "es6"
-    ],
+    "typeRoots": ["node_modules/@types", "src/types"],
+    "lib": ["dom", "dom.iterable", "esnext", "es6"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -25,12 +20,6 @@
     "strictNullChecks": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "client/src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "target",
-]
+  "include": ["client/src/**/*"],
+  "exclude": ["node_modules", "target"]
 }
-
