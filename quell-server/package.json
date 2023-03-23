@@ -1,6 +1,6 @@
 {
   "name": "@quell/server",
-  "version": "3.0.0",
+  "version": "7.0.0",
   "description": "Quell is an open-source NPM package providing a light-weight caching layer implementation and cache invalidation for GraphQL responses on both the client- and server-side. Use Quell to prevent redundant client-side API requests and to minimize costly server-side response latency.",
   "main": "src/quell.ts",
   "scripts": {
@@ -15,25 +15,42 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/open-source-labs/Quell/tree/master/quell-server"
+    "url": "https://github.com/open-source-labs/Quell/tree/main/quell-server"
   },
   "bugs": {
     "url": "https://github.com/open-source-labs/Quell/issues"
   },
   "keywords": [
     "cache-invalidation",
-    "LokiJS",
+    "depth-limiting",
+    "depth limit",
+    "cost-limiting",
+    "cost limit",
     "graphQL",
     "cache",
     "caching",
     "redis",
     "batching",
-    "client-side",
     "server-side",
-    "apollo",
     "quell"
   ],
   "contributors": [
+    {
+      "name": "Alexander Martinez",
+      "url": "https://github.com/alexmartinez123"
+    },
+    {
+      "name": "Cera Barrow",
+      "url": "https://github.com/cerab"
+    },
+    {
+      "name": "Jackie He",
+      "url": "https://github.com/Jckhe"
+    },
+    {
+      "name": "Zoe Harper",
+      "url": "https://github.com/ContraireZoe"
+    },
     {
       "name": "Idan Michael",
       "url": "https://github.com/idanmichael"
@@ -130,14 +147,26 @@
   "homepage": "http://quellql.io",
   "dependencies": {
     "graphql": "^16.6.0",
-    "redis": "^4.3.1"
+    "redis": "^4.6.5"
   },
   "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
     "dotenv": "^10.0.0",
+    "eslint": "^8.35.0",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
     "express": "^4.17.1",
     "jest": "^27.0.5",
     "pg": "^8.7.1",
+    "prettier": "^2.8.4",
     "redis-mock": "^0.56.3",
-    "supertest": "^6.1.6"
+    "supertest": "^6.1.6",
+    "typescript": "^4.9.5"
   }
 }
