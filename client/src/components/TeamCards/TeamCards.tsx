@@ -18,6 +18,7 @@ const Team = memo(() => {
   }, []);
 
   //scrolls back to top
+  // TODO - is this needed
   useEffect(() => {
     if (window.location.href.includes('scroll-demo')) {
       window.scrollTo(0, 0);
@@ -27,13 +28,13 @@ const Team = memo(() => {
 
   return (
     <div id={renderFx}>
-      <h1 id="team-quell-heading">Team Quell</h1>
-      <img id="team-quell-logo" src={Header}></img>
+      <h1 id={styles.heading}>Team Quell</h1>
+      <img id={styles.logo} src={Header}></img>
       <h2>The Good Eggs of Quell</h2>
-      <div id="team">
+      <div id={styles.team}>
         {TeamArr.map((currTeamObj: any, i: number) => {
           return (
-            <article key={i} className="TeamCard">
+            <article key={i} className={styles.card}>
               <TeamMember
                 key={i}
                 src={currTeamObj.src}
@@ -60,11 +61,11 @@ interface TeamMember {
 
 const TeamMember = ({ src, bio, name, linkedin, github }: TeamMember) => {
   return (
-    <div className="profile-pics">
+    <div className={styles.profilePic}>
       <img src={src} alt="Quell Team Member"></img>
-      <p className="team-member-name">{name}</p>
+      <p className={styles.name}>{name}</p>
       <p>{bio}</p>
-      <div className={styles.social_icons}>
+      <div className={styles.socialIcons}>
         <a href={linkedin} target="_blank">
           <img src={Linkedin}></img>
         </a>

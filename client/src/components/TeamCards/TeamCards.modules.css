@@ -1,9 +1,9 @@
-#team-quell-heading {
+#heading {
   margin-top: 80px;
   text-align: center;
 }
 
-#team-quell-logo {
+#logo {
   display: block;
   margin: auto;
   width: 40%;
@@ -16,7 +16,7 @@ h2 {
   padding-bottom: 2rem;
 }
 
-.TeamCard {
+.card {
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -44,7 +44,7 @@ h2 {
   font-size: 18px;
 }
 
-.profile-pics {
+.profilePic {
   width: 55%;
   padding: 8px;
   max-width: 400px;
@@ -52,24 +52,24 @@ h2 {
   margin-top: 2%;
 }
 
-.profile-pics img {
+.profilePic img {
   margin-bottom: 4%;
   max-width: 200px;
 }
 
-.team-member-name {
+.name {
   font-weight: bold;
   text-align: center;
   margin-bottom: 8px;
   letter-spacing: 1px;
   font-size: 20px;
 }
-.social-icons {
+.socialIcons {
   position: relative;
   top: 20px;
   bottom: 0px;
 }
-.social-icons img {
+.socialIcons img {
   margin-left: 40px;
   height: 32px;
   width: 32px;
