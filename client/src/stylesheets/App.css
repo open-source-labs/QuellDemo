@@ -1,3 +1,18 @@
+.bird-icon {
+  position: relative;
+  transition: all 0.75s ease-in-out;
+  cursor: pointer;
+  height: 30px;
+  width: 30px;
+}
+
+.bird-icon:hover {
+  transform: rotate(10deg);
+  transition: transform 0.15s linear;
+}
+
+/* up to here */
+
 html {
   margin: auto;
   /* height: 100vh; */
@@ -60,20 +75,6 @@ body {
   transition: all 1s linear;
 }
 
-.quell-bird-logo {
-  color: #4e90d6;
-  /* filter: brightness(0) invert(1); */
-  position: relative;
-  transition: all 0.75s ease-in-out;
-  cursor: pointer;
-}
-
-.quell-bird-logo:hover {
-  /* filter: invert(0); */
-  transform: rotate(10deg);
-  transition: transform 0.15s linear;
-}
-
 #quell-bird-pick {
   filter: invert(0);
   transform: rotate(10deg);
@@ -93,6 +94,11 @@ body {
   cursor: pointer;
 }
 
+.medium-icon {
+  max-height: 25px;
+  margin-left: 10px;
+}
+
 #alertDiv {
   position: fixed;
   bottom: 3vh;
@@ -105,32 +111,6 @@ body {
   height: 70%;
   width: 20vh;
   margin-bottom: 0.1vh;
-}
-
-.demoSection {
-  width: '100%';
-  height: '100%';
-  flex-direction: column;
-  justify-content: center;
-}
-
-.demoContainer {
-  justify-content: space-between;
-  z-index: 2;
-  /* width: 75%; */
-  padding: 20px;
-  border-radius: 10px;
-  /* border: 2.25px solid #BBB; */
-  box-shadow: 0px 15px 50px 0px rgba(0, 0, 0);
-  background-color: #dedede;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  scroll-snap-align: y mandatory;
-  scroll-behavior: smooth;
-  height: 1200px;
-  max-height: 3000px;
-  /* transition: scroll-behavior, scroll-snap-align 0.5s ease-in-out; */
 }
 
 .cacheControlContainer {
@@ -147,16 +127,6 @@ body {
 .graphContainer {
   border-top: 1px solid black;
   border-bottom: 1px solid black;
-}
-
-.demoRight {
-  align-items: center;
-  justify-content: space-around;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  padding-right: 15px;
-  padding-left: 10px;
 }
 
 /* this div is only to set a point on the HTML so we can scroll on click to the demo container */
@@ -184,31 +154,12 @@ body {
   /* position: relative; */
 }
 
-.demoLeft {
-  height: 100%;
-  width: 50%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-items: center;
-  gap: 20px;
-}
-
 #responseContainer {
   min-width: 95%;
   min-height: 50rem;
   max-height: 50rem !important;
   background-color: #474f57;
   overflow-y: scroll;
-}
-
-.demoRight {
-  display: flex;
-  flex-direction: column;
-  /* background-color: aquamarine; */
-  height: 100%;
-  width: 50%;
 }
 
 ::placeholder {
@@ -232,29 +183,6 @@ input::-webkit-inner-spin-button {
 
 .MuiAlert-message {
   overflow: hidden !important;
-}
-
-.monaco-editor {
-  font-size: 50px;
-  z-index: 1;
-  padding-top: 5px;
-  padding-right: 5px;
-  min-height: 30%;
-}
-
-.monaco-editor-container {
-  /* margin-top: 1em;
-  position: relative;
-  */
-  display: flex;
-  justify-content: center;
-  max-height: 20%;
-  width: 85%;
-  border-radius: 5px;
-  border: 2px solid rgba(0, 0, 0, 0.1);
-
-  /*
-  margin-bottom: 5vh; */
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */

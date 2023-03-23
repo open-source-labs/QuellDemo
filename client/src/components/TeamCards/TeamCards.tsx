@@ -1,3 +1,5 @@
+import styles from './TeamCards.modules.css';
+
 import React, { useState, useEffect, memo } from 'react';
 import Linkedin from '/client/src/assets/images/icons/QUELL-icons-linkedin.svg';
 import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
@@ -62,7 +64,7 @@ const TeamMember = ({ src, bio, name, linkedin, github }: TeamMember) => {
       <img src={src} alt="Quell Team Member"></img>
       <p className="team-member-name">{name}</p>
       <p>{bio}</p>
-      <div className="social-icons">
+      <div className={styles.social_icons}>
         <a href={linkedin} target="_blank">
           <img src={Linkedin}></img>
         </a>

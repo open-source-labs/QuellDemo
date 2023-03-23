@@ -1,4 +1,4 @@
-// import quellBirdIcon from '../assets/images/quell_logos/QUELL-quail only.svg';
+import styles from './Footer.modules.css';
 import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
 
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -9,12 +9,7 @@ const Footer = memo(() => {
   return (
     <div className="footerContainer">
       <div className="footer-image">
-        <img
-          height="30px"
-          width="30px"
-          className="quell-bird-logo"
-          src={quellBirdIcon}
-        />
+        <img className="bird-icon" src={quellBirdIcon} />
       </div>
       <div className="footer-text">
         <p style={{ fontSize: '18px' }}>{'\u00A9'}2023 Quell | MIT License</p>

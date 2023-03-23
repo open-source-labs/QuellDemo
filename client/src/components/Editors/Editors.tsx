@@ -1,3 +1,4 @@
+import styles from './Editors.modules.css';
 import * as React from 'react';
 import ControlledEditor from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
@@ -14,10 +15,9 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   const query = querySamples[selectedQuery];
 
   return (
-    <div className="monaco-editor-container">
+    <div className={styles.container}>
       <ControlledEditor
-        // height={"250px"}
-        className={'monaco-editor'}
+        className={styles.editor}
         defaultLanguage="graphql"
         value={query}
         onChange={handleChange}
@@ -32,10 +32,9 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
 
 export const ResponseEditor = ({ response }: ResponseEditorProps) => {
   return (
-    <div className="monaco-editor-container" style={{ marginTop: 10 }}>
+    <div className={styles.container}>
       <ControlledEditor
-        height={'500px'}
-        className={'monaco-editor'}
+        className={styles.editor}
         defaultLanguage="graphql"
         value={response}
         // onChange={null}

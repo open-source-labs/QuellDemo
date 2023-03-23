@@ -1,3 +1,4 @@
+import styles from './Demo.modules.css';
 import {
   Box,
   Divider,
@@ -54,7 +55,7 @@ const Demo = memo(() => {
   // Server
   if (isToggled) {
     return (
-      <div className="demoSection">
+      <div className={styles.demoSection}>
         <div id="scroll-demo" className="scrollpoint">
           <h1 id="demo-header">Demo</h1>
           <Box>
@@ -122,14 +123,7 @@ const Demo = memo(() => {
   // Client
   else {
     return (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
+      <div className={styles.demoSection}>
         <div id="scroll-demo" className="scrollpoint">
           <h1 id="demo-header">Demo</h1>
           <Box>
