@@ -10,14 +10,14 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
-  TextField,
+  TextField
 } from '@mui/material';
 import React, {
   Dispatch,
   memo,
   SetStateAction,
   useEffect,
-  useState,
+  useState
 } from 'react';
 import { QueryEditor } from './Editors';
 import { querySamples } from './helperFunctions';
@@ -55,67 +55,69 @@ const Demo = memo(() => {
   if (isToggled) {
     return (
       <div className="demoSection">
-        <div id="scroll-demo" className="scrollpoint">
-          <h1 id="demo-header">Demo</h1>
-          <Box>
-            <FormControlLabel
-              label="Server-side caching"
-              control={<Switch checked={isToggled} onChange={handleToggle} />}
-            />
-          </Box>
-        </div>
-        <div className="demoContainer">
-          {/* This div is to set a point slightly above the demo container for a natural scroll motion / point */}
-          <QueryDemoServer
-            maxDepth={maxDepth}
-            maxCost={maxCost}
-            ipRate={ipRate}
-            addErrorAlerts={addErrorAlerts}
-            responseTimes={responseTimes}
-            addResponseTimes={addResponseTimes}
-            selectedQuery={selectedQuery}
-            setQueryChoice={setQueryChoice}
-            query={query}
-            setQuery={setQuery}
-            queryTypes={queryTypes}
-            addQueryTypes={addQueryTypes}
-            cacheHit={cacheHit}
-            cacheMiss={cacheMiss}
-            setCacheHit={setCacheHit}
-            setCacheMiss={setCacheMiss}
-          />
-          <Divider
-            sx={{ zIndex: '50' }}
-            flexItem={true}
-            orientation="vertical"
-          />
-          <div className="demoRight">
-            <CacheControlsServer
-              setDepth={setDepth}
-              setCost={setCost}
-              setIPRate={setIPRate}
+        <>
+          <div id="scroll-demo" className="scrollpoint">
+            <h1 id="demo-header">Demo</h1>
+            <Box>
+              <FormControlLabel
+                label="Server-side caching"
+                control={<Switch checked={isToggled} onChange={handleToggle} />}
+              />
+            </Box>
+          </div>
+          <div className="demoContainer">
+            {/* This div is to set a point slightly above the demo container for a natural scroll motion / point */}
+            <QueryDemoServer
+              maxDepth={maxDepth}
+              maxCost={maxCost}
+              ipRate={ipRate}
+              addErrorAlerts={addErrorAlerts}
+              responseTimes={responseTimes}
               addResponseTimes={addResponseTimes}
+              selectedQuery={selectedQuery}
+              setQueryChoice={setQueryChoice}
+              query={query}
+              setQuery={setQuery}
+              queryTypes={queryTypes}
+              addQueryTypes={addQueryTypes}
               cacheHit={cacheHit}
               cacheMiss={cacheMiss}
               setCacheHit={setCacheHit}
               setCacheMiss={setCacheMiss}
             />
-            <Divider orientation="horizontal" />
-            <Graph
-              responseTimes={responseTimes}
-              selectedQuery={selectedQuery}
-              queryTypes={queryTypes}
+            <Divider
+              sx={{ zIndex: '50' }}
+              flexItem={true}
+              orientation="vertical"
             />
+            <div className="demoRight">
+              <CacheControlsServer
+                setDepth={setDepth}
+                setCost={setCost}
+                setIPRate={setIPRate}
+                addResponseTimes={addResponseTimes}
+                cacheHit={cacheHit}
+                cacheMiss={cacheMiss}
+                setCacheHit={setCacheHit}
+                setCacheMiss={setCacheMiss}
+              />
+              <Divider orientation="horizontal" />
+              <Graph
+                responseTimes={responseTimes}
+                selectedQuery={selectedQuery}
+                queryTypes={queryTypes}
+              />
+            </div>
           </div>
-        </div>
-        {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
-        {responseTimes.map((el, i) => {
-          return <SuccessfulQuery key={i} />;
-        })}
-        {errorAlerts.map((el, i) => {
-          console.log('ERROR HERE >>>>> ', el);
-          return <BadQuery errorMessage={el} key={i} />;
-        })}
+          {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
+          {responseTimes.map((el, i) => {
+            return <SuccessfulQuery key={i} />;
+          })}
+          {errorAlerts.map((el, i) => {
+            console.log('ERROR HERE >>>>> ', el);
+            return <BadQuery errorMessage={el} key={i} />;
+          })}
+        </>
       </div>
     );
   }
@@ -127,7 +129,7 @@ const Demo = memo(() => {
           width: '100%',
           height: '100%',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'center'
         }}
       >
         <div id="scroll-demo" className="scrollpoint">
@@ -210,7 +212,7 @@ function QueryDemo({
   cacheHit,
   cacheMiss,
   setCacheHit,
-  setCacheMiss,
+  setCacheMiss
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -255,7 +257,7 @@ function QueryDemo({
           width: '85%',
           border: 'none',
           overflow: 'hidden',
-          borderRadius: '5px',
+          borderRadius: '5px'
         }}
       >
         <div id="responseContainer">
@@ -271,8 +273,8 @@ function QueryDemo({
                 backgroundColor: '#474f57',
                 padding: '10px',
                 color: 'white',
-                fontFamily: 'Monaco',
-              },
+                fontFamily: 'Monaco'
+              }
             }}
             rows="50"
             value={response}
@@ -283,7 +285,7 @@ function QueryDemo({
         style={{
           border: '3px solid white',
           marginTop: '1em',
-          borderRadius: '15px',
+          borderRadius: '15px'
         }}
       >
         <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
@@ -308,7 +310,7 @@ function QueryDemoServer({
   cacheHit,
   cacheMiss,
   setCacheHit,
-  setCacheMiss,
+  setCacheMiss
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -320,12 +322,12 @@ function QueryDemoServer({
     const fetchOptions = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         query: query,
-        costOptions: { maxDepth, maxCost, ipRate },
-      }),
+        costOptions: { maxDepth, maxCost, ipRate }
+      })
     };
 
     let resError: string;
@@ -365,7 +367,7 @@ function QueryDemoServer({
           border: 'none',
           marginTop: '-1.5em',
           overflow: 'hidden',
-          borderRadius: '5px',
+          borderRadius: '5px'
         }}
       >
         <div id="responseContainer">
@@ -380,8 +382,8 @@ function QueryDemoServer({
                 backgroundColor: '#474f57',
                 padding: '10px',
                 color: 'white',
-                fontFamily: 'Monaco',
-              },
+                fontFamily: 'Monaco'
+              }
             }}
             rows="100"
             value={response}
@@ -392,7 +394,7 @@ function QueryDemoServer({
         style={{
           border: '3px solid white',
           marginTop: '1em',
-          borderRadius: '15px',
+          borderRadius: '15px'
         }}
       >
         <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
@@ -410,7 +412,7 @@ interface DemoControls {
 const DemoControls = ({
   selectedQuery,
   setQueryChoice,
-  submitQuery,
+  submitQuery
 }: DemoControls) => {
   return (
     <div className="dropDownContainer">
@@ -431,7 +433,7 @@ const DemoControls = ({
           border: 'none',
           maxHeight: 35,
           minWidth: 100,
-          maxWidth: 160,
+          maxWidth: 160
         }}
         onClick={() => submitQuery()}
         size="medium"
@@ -452,7 +454,7 @@ const CacheControls = ({
   setCacheHit,
   setCacheMiss,
   cacheHit,
-  cacheMiss,
+  cacheMiss
 }: CacheControlProps) => {
   function resetGraph() {
     console.log('resetting the graph');
@@ -480,7 +482,7 @@ const CacheControls = ({
             textAlign: 'center',
             minHeight: '40px',
             maxHeight: '40px',
-            fontSize: '.85rem',
+            fontSize: '.85rem'
           }}
           onClick={clearClientCache}
           color="secondary"
@@ -494,7 +496,7 @@ const CacheControls = ({
             textAlign: 'center',
             minHeight: '40px',
             maxHeight: '40px',
-            fontSize: '.85rem',
+            fontSize: '.85rem'
           }}
           size="medium"
           color="secondary"
@@ -521,7 +523,7 @@ const CacheControlsServer = ({
   cacheHit,
   cacheMiss,
   setCacheHit,
-  setCacheMiss,
+  setCacheMiss
 }: CacheControlProps) => {
   function resetGraph() {
     console.log('resetting the graph');
@@ -554,7 +556,7 @@ const CacheControlsServer = ({
             textAlign: 'center',
             minHeight: '40px',
             maxHeight: '40px',
-            fontSize: '.85rem',
+            fontSize: '.85rem'
           }}
           onClick={clearServerCache}
           color="secondary"
@@ -568,7 +570,7 @@ const CacheControlsServer = ({
             textAlign: 'center',
             minHeight: '40px',
             maxHeight: '40px',
-            fontSize: '.85rem',
+            fontSize: '.85rem'
           }}
           size="medium"
           color="secondary"
@@ -583,7 +585,7 @@ const CacheControlsServer = ({
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '60%',
+          width: '60%'
         }}
       >
         <Limit
@@ -641,7 +643,7 @@ const StyledDiv = styled('div')(({ theme }) => ({
   fontSmooth: 'always',
   color: 'white',
   boxShadow:
-    '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)',
+    '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)'
 }));
 
 function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
@@ -655,7 +657,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
               width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
-              color: '#FFF',
+              color: '#FFF'
             }}
             type="number"
             placeholder="10"
@@ -673,7 +675,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
               width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
-              color: '#FFF',
+              color: '#FFF'
             }}
             type="number"
             placeholder="50"
@@ -691,7 +693,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
               width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
-              color: '#FFF',
+              color: '#FFF'
             }}
             type="number"
             placeholder="22"
