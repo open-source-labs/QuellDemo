@@ -1,3 +1,4 @@
+import styles from './NavBar.modules.css';
 import { Dispatch, useEffect, useState, SetStateAction } from 'react';
 import {
   Button,
@@ -14,7 +15,7 @@ import {
   Hidden,
   Link,
 } from '@mui/material';
-import styles from './NavBar.modules.css';
+import { StyledEngineProvider } from '@mui/material/styles';
 import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
 import {
   Menu as MenuIcon,
@@ -55,16 +56,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         }, 800);
       }, 450);
     }, []);
-
     return (
       <Box>
-        <img
-          className="quell-bird-logo"
-          id={birdEffect}
-          src={quellBirdIcon}
-          height="30px"
-          width="30px"
-        />
+        <img className="bird-icon" id={birdEffect} src={quellBirdIcon} />
       </Box>
     );
   };
@@ -79,18 +73,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           teamComp ? toggleRenderTeam(false) : null;
         }}
         href="#scroll-about"
-        sx={{
-          minWidth: '85px',
-          boxShadow: 'none',
-          minHeight: '40px',
-          maxHeight: '40px',
-          maxWidth: '90px',
-          border: 'none',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
+        className={
+          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
+        }
         color="secondary"
         variant="contained"
       >
@@ -126,18 +111,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           teamComp ? toggleRenderTeam(false) : null;
         }}
         href="#scroll-demo"
-        sx={{
-          minWidth: '85px',
-          boxShadow: 'none',
-          minHeight: '40px',
-          maxHeight: '40px',
-          maxWidth: '90px',
-          border: 'none',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
+        className={
+          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
+        }
         color="secondary"
         variant="contained"
       >
@@ -175,18 +151,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         rel="noreferrer"
       >
         <Button
-          sx={{
-            minWidth: '85px',
-            minHeight: '40px',
-            maxHeight: '40px',
-            maxWidth: '90px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            border: 'none',
-            boxShadow: 'none',
-          }}
+          className={
+            Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
+          }
           color="secondary"
           variant="contained"
         >
@@ -216,7 +183,9 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
   const TeamToggle = () => {
     return (
       <button
-        className="teamBtn"
+        className={
+          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
+        }
         onClick={() => {
           toggleRenderTeam(!teamComp);
         }}
@@ -227,83 +196,76 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
   };
 
   return (
-    <AppBar
-      id={rendered ? 'renderedNav' : ''}
-      sx={{
-        opacity: 0,
-        minHeight: 60,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingLeft: '15px',
-        paddingRight: '15px',
-      }}
-      color="primary"
-      position="fixed"
-      elevation={5}
-    >
-      {/* For Quell Bird Logo */}
-      <BirdLogo />
-      {/* Navmenu buttons */}
-      <Stack
-        className="navMenuContainer"
-        sx={{ display: { xs: 'none', md: 'flex' } }}
-        direction="row"
-        justifyContent="center"
-        divider={<Divider color="grey" orientation="vertical" flexItem />}
-        spacing={2}
+    <StyledEngineProvider injectFirst>
+      <AppBar
+        id={rendered ? styles.renderedNav : ''}
+        className={styles.navBar}
+        color="primary"
+        position="fixed"
+        elevation={5}
       >
-        <AboutButton />
-        <DemoButton />
-        <DocsButton />
-      </Stack>
-      <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-        <TeamToggle />
-      </Box>
-      <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
-        <IconButton
-          size="large"
-          aria-controls="menu-appbar"
-          aria-haspopup="true"
-          onClick={handleOpenNavMenu}
-          color="inherit"
+        {/* For Quell Bird Logo */}
+        <BirdLogo />
+        {/* Navmenu buttons */}
+        <Stack
+          id="horizontalMenu"
+          sx={{ display: { xs: 'none', md: 'flex' } }}
+          direction="row"
+          justifyContent="center"
+          divider={<Divider color="grey" orientation="vertical" flexItem />}
+          spacing={2}
         >
-          <MenuIcon />
-        </IconButton>
-        <Menu
-          id="menu-appbar"
-          anchorEl={anchorElNav}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-          open={Boolean(anchorElNav)}
-          onClose={handleCloseNavMenu}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-          }}
-        >
-          <MenuItem onClick={handleCloseNavMenu}>
-            <AboutButton />
-          </MenuItem>
-          <MenuItem onClick={handleCloseNavMenu}>
-            <DemoButton />
-          </MenuItem>
-          <MenuItem onClick={handleCloseNavMenu}>
-            <DocsButton />
-          </MenuItem>
-          <MenuItem onClick={handleCloseNavMenu}>
-            <TeamToggle />
-          </MenuItem>
-        </Menu>
-      </Box>
-    </AppBar>
+          <AboutButton />
+          <DemoButton />
+          <DocsButton />
+        </Stack>
+        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <TeamToggle />
+        </Box>
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
+          <IconButton
+            size="large"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleOpenNavMenu}
+            color="inherit"
+          >
+            <MenuIcon />
+          </IconButton>
+          <Menu
+            id={styles.dropDownMenu}
+            anchorEl={anchorElNav}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            open={Boolean(anchorElNav)}
+            onClose={handleCloseNavMenu}
+            sx={{
+              display: { xs: 'block', md: 'none' },
+            }}
+          >
+            <MenuItem onClick={handleCloseNavMenu}>
+              <AboutButton />
+            </MenuItem>
+            <MenuItem onClick={handleCloseNavMenu}>
+              <DemoButton />
+            </MenuItem>
+            <MenuItem onClick={handleCloseNavMenu}>
+              <DocsButton />
+            </MenuItem>
+            <MenuItem onClick={handleCloseNavMenu}>
+              <TeamToggle />
+            </MenuItem>
+          </Menu>
+        </Box>
+      </AppBar>
+    </StyledEngineProvider>
   );
 }
 

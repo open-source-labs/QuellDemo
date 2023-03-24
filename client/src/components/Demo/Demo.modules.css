@@ -46,3 +46,36 @@
   height: 100%;
   width: 50%;
 }
+
+.cacheControlContainer {
+  height: 10%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+  color: rgb(53, 49, 49);
+  font-weight: bolder;
+}
+
+#responseContainer {
+  min-width: 95%;
+  min-height: 50rem;
+  max-height: 50rem !important;
+  background-color: #474f57;
+  overflow-y: scroll;
+}
+
+.demoContainer {
+  width: 85%;
+  margin: auto;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  /* display: flex;
+    flex-flow: wrap; */
+}
+
+.demoLeft,
+.demoRight {
+  min-width: 400px;
+}

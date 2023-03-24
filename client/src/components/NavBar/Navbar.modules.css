@@ -1,0 +1,54 @@
+#renderedNav {
+  opacity: 1;
+  transition: all 1s linear;
+}
+
+.navBar {
+  opacity: 0;
+  min-height: 60px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 15px;
+  position: fixed;
+}
+
+#horizontalMenu {
+  /* flex-direction: row;
+  justify-content: center; */
+}
+
+.navLink {
+  min-width: 85px;
+  min-height: 40px;
+  max-height: 40px;
+  max-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.dropDownLink {
+  width: 100%;
+}
+
+#dropDownMenu {
+  width: 200px;
+}
+
+.teamButton {
+  color: white;
+  background-color: #474f57;
+  border: none;
+  font-family: 'sofia-light';
+  font-size: medium;
+}
+
+.teamButton:hover {
+  color: #1876d1;
+  cursor: pointer;
+}

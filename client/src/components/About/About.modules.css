@@ -1,7 +1,5 @@
-/* About Section CSS */
-
 .about {
-  margin-top: 155px;
+  margin-top: 4%;
   height: 100vh;
   width: 90%;
   gap: 50px;
@@ -9,11 +7,11 @@
   justify-content: center;
 }
 
-.quell_banner_container {
+.bannerContainer {
   width: 40%;
 }
 
-.about-content-container {
+.contentContainer {
   width: 50%;
   flex-direction: column;
   display: flex;
@@ -22,9 +20,19 @@
   padding: 10px;
 }
 
-#aboutHeading {
-  font-size: 1.75rem;
-  font-weight: bold;
+#featuresContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h1 {
+  font-size: 2.25em;
+}
+
+h1,
+h2 {
+  margin: 0.2em;
 }
 
 .featureList {
@@ -33,21 +41,16 @@
   align-items: flex-start;
 }
 
-#featureItemHeading {
+.featureHeading {
+  margin: 0;
   font-weight: bolder;
 }
 
-#featureItemContent {
-  font-size: 0.8rem;
+.featureContent {
+  font-size: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0px;
-}
-
-#about-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .eggIcon {
@@ -60,63 +63,41 @@
   transition: all 0.35s ease-in-out;
 }
 
-#quell-cache-svg {
-  position: absolute;
-  height: 500px;
-  width: 500px;
-  top: 50%;
-  right: 30vh;
-  z-index: 0;
-  opacity: 0.5;
+#devToolText {
+  text-decoration: none;
+  color: darkblue;
+  font-size: 1em;
 }
 
-.demoContainer {
-  width: 85%;
-  margin: auto;
-  margin-top: 5%;
-  margin-bottom: 5%;
-  /* display: flex;
-    flex-flow: wrap; */
-}
-
-.demoLeft,
-.demoRight {
-  min-width: 400px;
-}
-
-.getstartedContainer {
-  gap: 2.5px;
-}
-
-.getstartedContainer:hover {
-  gap: 50px;
-  transition: gap 0.5s ease-in-out;
-}
-
-#get-started-link:hover {
-  color: #1876d1;
+#callToAction {
   cursor: pointer;
 }
 
-#getstarted-text:hover {
+#callToAction:hover * {
   color: #1876d1;
   cursor: pointer;
-}
-
-#feature5:hover #getstarted-text {
-  color: #1876d1;
-}
-
-#getstarted {
-  gap: 2.5px;
   transition: gap 0.25s linear;
 }
 
-#feature5:hover #getstarted {
+#getStarted {
+  gap: 2.5px;
+  transition: gap 0.25s linear;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  margin-left: 2px;
+  margin-top: 5px;
+  font-size: 1.2rem;
+  z-index: 500;
+}
+
+#getStarted:hover {
   gap: 20px;
   transition: gap 0.55s ease-in-out;
 }
 
-#feature5:hover .arrowicon {
-  color: #1876d1;
+#getStartedText {
+  font-size: 1.35rem;
+  text-decoration: none;
+  color: black;
 }

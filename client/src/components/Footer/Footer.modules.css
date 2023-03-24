@@ -17,3 +17,8 @@
 .githubIcon {
   color: black;
 }
+
+.mediumIcon {
+  max-height: 25px;
+  margin-left: 10px;
+}

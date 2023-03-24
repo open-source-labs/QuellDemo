@@ -23,7 +23,6 @@ import React, {
 import { QueryEditor } from '../Editors/Editors';
 import { querySamples } from '../helperFunctions';
 import ForwardRoundedIcon from '@mui/icons-material/ForwardRounded';
-import demoHeader from '../assets/images/headers/QUELL-headers-demo w lines.svg';
 import { Graph } from '../Graph/Graph';
 import { HitMiss } from '../HitMiss';
 import { SuccessfulQuery, BadQuery } from '../Alert/Alert';

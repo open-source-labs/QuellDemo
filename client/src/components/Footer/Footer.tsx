@@ -14,7 +14,7 @@ const Footer = memo(() => {
           <GitHubIcon className={styles.githubIcon} />
         </a>
         <a href="https://medium.com/@katie.sandfort/quello-world-quell-releases-new-updates-to-address-critical-bug-fixes-e08699e3f5d9">
-          <img className="medium-icon" src={MediumIcon} />
+          <img className={styles.mediumIcon} src={MediumIcon} />
         </a>
       </div>
     </div>

@@ -50,11 +50,6 @@ body {
   width: 100%;
 }
 
-#rendered {
-  opacity: 1;
-  transition: all 0.55s ease-in-out;
-}
-
 .main {
   scroll-snap-align: start;
   width: 100%;
@@ -70,63 +65,15 @@ body {
   transition: all 0.5s linear;
 }
 
-#renderedNav {
+#rendered {
   opacity: 1;
-  transition: all 1s linear;
+  transition: all 0.55s ease-in-out;
 }
 
 #quell-bird-pick {
   filter: invert(0);
   transform: rotate(10deg);
   transition: transform 0.35s ease-in-out;
-}
-
-.teamBtn {
-  color: white;
-  background-color: #474f57;
-  border: none;
-  font-family: 'sofia-light';
-  font-size: medium;
-}
-
-.teamBtn:hover {
-  color: #1876d1;
-  cursor: pointer;
-}
-
-.medium-icon {
-  max-height: 25px;
-  margin-left: 10px;
-}
-
-#alertDiv {
-  position: fixed;
-  bottom: 3vh;
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
-  z-index: 100;
-  left: 45%;
-  height: 70%;
-  width: 20vh;
-  margin-bottom: 0.1vh;
-}
-
-.cacheControlContainer {
-  height: 10%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 15px;
-  color: rgb(53, 49, 49);
-  font-weight: bolder;
-}
-
-.graphContainer {
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
 }
 
 /* this div is only to set a point on the HTML so we can scroll on click to the demo container */
@@ -152,14 +99,6 @@ body {
   margin: 0;
   /* height: 200px; */
   /* position: relative; */
-}
-
-#responseContainer {
-  min-width: 95%;
-  min-height: 50rem;
-  max-height: 50rem !important;
-  background-color: #474f57;
-  overflow-y: scroll;
 }
 
 ::placeholder {
