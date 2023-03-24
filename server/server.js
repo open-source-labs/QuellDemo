@@ -7,7 +7,10 @@ const mongoose = require('mongoose');
 const { QuellCache } = require('../quell-server/src/quell.js');
 const quellCache = new QuellCache({
   schema: schema,
-  cacheExpiration: 3600
+  cacheExpiration: 3600,
+  redisPort: 13680,
+  redisHost: 'redis-13680.c8.us-east-1-3.ec2.cloud.redislabs.com',
+  redisPassword: '6uVbPwQU1rWm9cScHQU8YasjZ2lHeO8q'
 });
 
 app.use(express.json());
