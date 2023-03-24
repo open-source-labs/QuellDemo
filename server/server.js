@@ -51,7 +51,10 @@ app.use(
     getStats: false,
     getKeys: true,
     getValues: true
-  })
+  }),
+  (req, res) => {
+    return res.status(200).send(res.locals);
+  }
 );
 
 app.use((req, res) =>
