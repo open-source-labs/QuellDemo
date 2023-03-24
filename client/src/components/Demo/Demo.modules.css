@@ -1,30 +1,53 @@
-.demoSection {
+.section {
   width: '100%';
   height: '100%';
   flex-direction: column;
   justify-content: center;
 }
 
-.demoContainer {
-  justify-content: space-between;
+#header {
+  font-size: 100px;
+  margin: 0;
+  /* height: 200px; */
+  /* position: relative; */
+}
+
+.container {
   z-index: 2;
-  /* width: 75%; */
   padding: 20px;
   border-radius: 10px;
   /* border: 2.25px solid #BBB; */
   box-shadow: 0px 15px 50px 0px rgba(0, 0, 0);
   background-color: #dedede;
   display: flex;
+  flex-flow: wrap;
   align-items: center;
+  justify-content: space-between;
   overflow: hidden;
   scroll-snap-align: y mandatory;
   scroll-behavior: smooth;
   height: 1200px;
   max-height: 3000px;
   /* transition: scroll-behavior, scroll-snap-align 0.5s ease-in-out; */
+  width: 85%;
+  margin: auto;
+  margin-top: 5%;
+  margin-bottom: 5%;
 }
 
-.demoLeft {
+/* #results {
+  width: 85%;
+  border: none;
+  overflow: hidden;
+  border-radius: 5px;
+} */
+
+.leftContainer,
+.rightContainer {
+  min-width: 400px;
+}
+
+.leftContainer {
   height: 100%;
   width: 50%;
   overflow: hidden;
@@ -35,7 +58,7 @@
   gap: 20px;
 }
 
-.demoRight {
+.rightContainer {
   align-items: center;
   justify-content: space-around;
   display: flex;
@@ -47,7 +70,7 @@
   width: 50%;
 }
 
-.cacheControlContainer {
+.cacheControls {
   height: 10%;
   display: flex;
   justify-content: center;
@@ -58,24 +81,41 @@
   font-weight: bolder;
 }
 
-#responseContainer {
+#response {
   min-width: 95%;
   min-height: 50rem;
   max-height: 50rem !important;
   background-color: #474f57;
   overflow-y: scroll;
-}
-
-.demoContainer {
   width: 85%;
-  margin: auto;
-  margin-top: 5%;
-  margin-bottom: 5%;
-  /* display: flex;
-    flex-flow: wrap; */
+  border: none;
+  margin-top: -1.5em;
+  overflow: hidden;
+  border-radius: 5px;
+  width: 85%;
+  border: none;
+  overflow: hidden;
+  border-radius: 5px;
 }
 
-.demoLeft,
-.demoRight {
-  min-width: 400px;
+.button {
+  border: none;
+  text-align: center;
+  min-height: 40px;
+  max-height: 40px;
+  font-size: 0.85rem;
+}
+
+#queryText {
+  border: 1px solid white;
+  border-style: inset;
+}
+
+#queryInput {
+  font-size: 0.9rem;
+  width: 100%;
+  background-color: #474f57;
+  padding: 10px;
+  color: white;
+  font-family: Monaco;
 }
