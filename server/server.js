@@ -4,11 +4,10 @@ const app = express();
 const cors = require('cors');
 const bodyparser = require('body-parser');
 const mongoose = require('mongoose');
-const QuellCache = require('../quell-server/src/quell');
+const { QuellCache } = require('../quell-server/src/quell.js');
 const quellCache = new QuellCache({
   schema: schema,
-  cacheExpiration: 3600,
-  redisPort: 13680
+  cacheExpiration: 3600
 });
 
 app.use(express.json());

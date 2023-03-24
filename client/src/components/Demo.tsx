@@ -54,7 +54,15 @@ const Demo = memo(() => {
   // Server
   if (isToggled) {
     return (
-      <div className="demoSection">
+      <div
+        className="demoSection"
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'column',
+          justifyContent: 'center'
+        }}
+      >
         <>
           <div id="scroll-demo" className="scrollpoint">
             <h1 id="demo-header">Demo</h1>
