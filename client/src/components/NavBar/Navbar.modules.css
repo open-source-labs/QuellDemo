@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0px 15px;
-  position: fixed;
+  position: sticky;
 }
 
 #horizontalMenu {
@@ -29,7 +29,7 @@
   align-items: center;
   border: none;
   box-shadow: none;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .dropDownLink {

@@ -1,5 +1,5 @@
 #container {
-  position: fixed;
+  /* position: fixed; */
   bottom: 3vh;
   align-items: center;
   display: flex;
@@ -18,5 +18,5 @@
   display: flex;
   align-items: center;
   width: 175;
-  position: fixed;
+  /* position: fixed; */
 }

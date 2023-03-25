@@ -201,7 +201,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         id={rendered ? styles.renderedNav : ''}
         className={styles.navBar}
         color="primary"
-        position="fixed"
+        // position="sticky"
         elevation={5}
       >
         {/* For Quell Bird Logo */}
