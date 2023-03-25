@@ -111,7 +111,6 @@ export class QuellCache implements QuellCache {
     this.queryMap = this.getQueryMap(schema);
     this.mutationMap = this.getMutationMap(schema);
     this.fieldsMap = this.getFieldsMap(schema);
-    this.idMap = this.getIdMap();
     this.cacheExpiration = cacheExpiration;
     this.redisReadBatchSize = 10;
     this.redisCache = createClient({
@@ -287,7 +286,7 @@ export class QuellCache implements QuellCache {
 
       // If the query string is found in Redis, add the result to the response and return.
       if (redisValue != null) {
-        redisValue = JSON.parse(redisValue);
+        redisValue = JSON.parse(redisValue as string);
         res.locals.queriesResponse = redisValue;
         return next();
       } else {
@@ -1559,7 +1558,7 @@ export class QuellCache implements QuellCache {
           cachedFieldKeysListRaw !== undefined
         ) {
           const cachedFieldKeysList: string[] = JSON.parse(
-            cachedFieldKeysListRaw
+            cachedFieldKeysListRaw as string
           );
 
           fieldKeysToRemove.forEach((fieldKey: string) => {
@@ -1588,7 +1587,7 @@ export class QuellCache implements QuellCache {
           cachedFieldKeysListRaw !== undefined
         ) {
           const cachedFieldKeysList: string[] = JSON.parse(
-            cachedFieldKeysListRaw
+            cachedFieldKeysListRaw as string
           );
 
           const fieldKeysToRemove: Set<string> = new Set();
@@ -1599,7 +1598,7 @@ export class QuellCache implements QuellCache {
               fieldKey.toLowerCase()
             );
             if (fieldKeyValueRaw !== null && fieldKeyValueRaw !== undefined) {
-              const fieldKeyValue = JSON.parse(fieldKeyValueRaw);
+              const fieldKeyValue = JSON.parse(fieldKeyValueRaw as string);
 
               let remove = true;
               for (const arg in mutationQueryObject.__args as ProtoObjType) {
@@ -1643,7 +1642,7 @@ export class QuellCache implements QuellCache {
       // list of field keys stored on redis
       if (cachedFieldKeysListRaw !== null) {
         const cachedFieldKeysList: string[] = JSON.parse(
-          cachedFieldKeysListRaw
+          cachedFieldKeysListRaw as string
         );
 
         // iterate through field key field key values in redis, and compare to user
@@ -1656,7 +1655,7 @@ export class QuellCache implements QuellCache {
           );
           if (fieldKeyValueRaw !== null && fieldKeyValueRaw !== undefined) {
             const fieldKeyValue: ResponseDataType =
-              JSON.parse(fieldKeyValueRaw);
+              JSON.parse(fieldKeyValueRaw as string);
 
             const fieldsToUpdateBy: string[] = [];
             const updatedFieldKeyValue: ResponseDataType = fieldKeyValue;
@@ -2441,107 +2440,107 @@ export class QuellCache implements QuellCache {
     return next();
   }
 
-  // TODO: Unused functions for QuellCache Class
-  /**
-   * createRedisKey creates key based on field name and argument id and returns string or null if key creation is not possible
-   * @param {Object} mutationMap -
-   * @param {Object} proto -
-   * @param {Object} protoArgs -
-   * @returns {Object} redisKey if possible, e.g. 'Book-1' or 'Book-2', where 'Book' is name from mutationMap and '1' is id from protoArgs
-   * and isExist if we have this key in redis
-   *
-   */
-  // BUG: createRedisKey is an unused function -- will give it types if it ends up being used
-  async createRedisKey(mutationMap, proto, protoArgs) {
-    let isExist = false;
-    let redisKey;
-    let redisValue = null;
-    for (const mutationName in proto) {
-      const mutationArgs = protoArgs[mutationName];
-      redisKey = mutationMap[mutationName];
-      for (const key in mutationArgs) {
-        let identifier = null;
-        if (key === 'id' || key === '_id') {
-          identifier = mutationArgs[key];
-          redisKey = mutationMap[mutationName] + '-' + identifier;
-          isExist = await this.checkFromRedis(redisKey);
-          if (isExist) {
-            redisValue = await this.getFromRedis(redisKey);
-            redisValue = JSON.parse(redisValue);
-            // combine redis value and protoArgs
-            let argumentsValue;
-            for (const mutationName in protoArgs) {
-              // change later, now we assume that we have only one mutation
-              argumentsValue = protoArgs[mutationName];
-            }
-            // updateObject is not defined anywhere
-            redisValue = this.updateObject(redisValue, argumentsValue);
-          }
-        }
-      }
-    }
-    return { redisKey, isExist, redisValue };
-  }
+  // // TODO: Unused functions for QuellCache Class
+  // /**
+  //  * createRedisKey creates key based on field name and argument id and returns string or null if key creation is not possible
+  //  * @param {Object} mutationMap -
+  //  * @param {Object} proto -
+  //  * @param {Object} protoArgs -
+  //  * @returns {Object} redisKey if possible, e.g. 'Book-1' or 'Book-2', where 'Book' is name from mutationMap and '1' is id from protoArgs
+  //  * and isExist if we have this key in redis
+  //  *
+  //  */
+  // // BUG: createRedisKey is an unused function -- will give it types if it ends up being used
+  // async createRedisKey(mutationMap, proto, protoArgs) {
+  //   let isExist = false;
+  //   let redisKey;
+  //   let redisValue = null;
+  //   for (const mutationName in proto) {
+  //     const mutationArgs = protoArgs[mutationName];
+  //     redisKey = mutationMap[mutationName];
+  //     for (const key in mutationArgs) {
+  //       let identifier = null;
+  //       if (key === 'id' || key === '_id') {
+  //         identifier = mutationArgs[key];
+  //         redisKey = mutationMap[mutationName] + '-' + identifier;
+  //         isExist = await this.checkFromRedis(redisKey);
+  //         if (isExist) {
+  //           redisValue = await this.getFromRedis(redisKey);
+  //           redisValue = JSON.parse(redisValue);
+  //           // combine redis value and protoArgs
+  //           let argumentsValue;
+  //           for (const mutationName in protoArgs) {
+  //             // change later, now we assume that we have only one mutation
+  //             argumentsValue = protoArgs[mutationName];
+  //           }
+  //           // updateObject is not defined anywhere
+  //           redisValue = this.updateObject(redisValue, argumentsValue);
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return { redisKey, isExist, redisValue };
+  // }
 
-  // BUG: getIdMap is an unused function -- will give it types if it ends up being used
-  getIdMap() {
-    const idMap = {};
-    for (const type in this.fieldsMap) {
-      const userDefinedIds = [];
-      const fieldsAtType = this.fieldsMap[type];
-      for (const key in fieldsAtType) {
-        if (fieldsAtType[key] === 'ID') userDefinedIds.push(key);
-      }
-      idMap[type] = userDefinedIds;
-    }
-    return idMap;
-  }
+  // // BUG: getIdMap is an unused function -- will give it types if it ends up being used
+  // getIdMap() {
+  //   const idMap = {};
+  //   for (const type in this.fieldsMap) {
+  //     const userDefinedIds = [];
+  //     const fieldsAtType = this.fieldsMap[type];
+  //     for (const key in fieldsAtType) {
+  //       if (fieldsAtType[key] === 'ID') userDefinedIds.push(key);
+  //     }
+  //     idMap[type] = userDefinedIds;
+  //   }
+  //   return idMap;
+  // }
 
-  /**
-   * Toggles to false all values in a nested field not present in cache so that they will
-   * be included in the reformulated query.
-   * @param {Object} proto - The prototype or a nested field within the prototype
-   * @returns {Object} proto - updated proto with false values for fields not present in cache
-   */
-  // BUG: toggleProto is an unused function -- will give it types if it ends up being used
-  toggleProto(proto) {
-    if (proto === undefined) return proto;
-    for (const key in proto) {
-      if (Object.keys(proto[key]).length > 0) this.toggleProto(proto[key]);
-      else proto[key] = false;
-    }
-    return proto;
-  }
+  // /**
+  //  * Toggles to false all values in a nested field not present in cache so that they will
+  //  * be included in the reformulated query.
+  //  * @param {Object} proto - The prototype or a nested field within the prototype
+  //  * @returns {Object} proto - updated proto with false values for fields not present in cache
+  //  */
+  // // BUG: toggleProto is an unused function -- will give it types if it ends up being used
+  // toggleProto(proto) {
+  //   if (proto === undefined) return proto;
+  //   for (const key in proto) {
+  //     if (Object.keys(proto[key]).length > 0) this.toggleProto(proto[key]);
+  //     else proto[key] = false;
+  //   }
+  //   return proto;
+  // }
 
-  /**
-   * checkFromRedis reads from Redis cache and returns a promise.
-   * @param {String} key - the key for Redis lookup
-   * @returns {Promise} A promise that represents if the key was found in the redisCache
-   */
-  // BUG: checkFromRedis is an unused function -- will give it types if it ends up being used
-  async checkFromRedis(key: string): Promise<number> {
-    try {
-      // will return 0 if key does not exists
-      const existsInRedis: number = await this.redisCache.exists(key);
-      return existsInRedis;
-    } catch (err) {
-      console.log('err in checkFromRedis: ', err);
-      return 0;
-    }
-  }
+  // /**
+  //  * checkFromRedis reads from Redis cache and returns a promise.
+  //  * @param {String} key - the key for Redis lookup
+  //  * @returns {Promise} A promise that represents if the key was found in the redisCache
+  //  */
+  // // BUG: checkFromRedis is an unused function -- will give it types if it ends up being used
+  // async checkFromRedis(key: string): Promise<number> {
+  //   try {
+  //     // will return 0 if key does not exists
+  //     const existsInRedis: number = await this.redisCache.exists(key);
+  //     return existsInRedis;
+  //   } catch (err) {
+  //     console.log('err in checkFromRedis: ', err);
+  //     return 0;
+  //   }
+  // }
 
-  /**
-   * execRedisRunQueue executes all previously queued transactions in Redis cache
-   * @param {String} redisRunQueue - Redis queue of transactions awaiting execution
-   */
-  // BUG: execRedisRunQueue is an unused function -- will give it types if it ends up being used
-  async execRedisRunQueue(
-    redisRunQueue: ReturnType<typeof this.redisCache.multi>
-  ): Promise<void> {
-    try {
-      await redisRunQueue.exec();
-    } catch (err) {
-      console.log('err in execRedisRunQueue: ', err);
-    }
-  }
+  // /**
+  //  * execRedisRunQueue executes all previously queued transactions in Redis cache
+  //  * @param {String} redisRunQueue - Redis queue of transactions awaiting execution
+  //  */
+  // // BUG: execRedisRunQueue is an unused function -- will give it types if it ends up being used
+  // async execRedisRunQueue(
+  //   redisRunQueue: ReturnType<typeof this.redisCache.multi>
+  // ): Promise<void> {
+  //   try {
+  //     await redisRunQueue.exec();
+  //   } catch (err) {
+  //     console.log('err in execRedisRunQueue: ', err);
+  //   }
+  // }
 }
