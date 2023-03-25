@@ -1,7 +1,7 @@
 .about {
   /* margin-top: 4%; */
-  height: 100%;
-  width: 90%;
+  /* height: 100%;
+  width: 90%; */
   gap: 50px;
   display: flex;
   flex-direction: column;
@@ -9,11 +9,11 @@
 }
 
 .bannerContainer {
-  width: 100%;
+  /* width: 100%; */
 }
 
 .contentContainer {
-  width: 50%;
+  /* width: 50%; */
   flex-direction: column;
   display: flex;
   font-size: 1.2rem;
@@ -124,7 +124,7 @@ h2 {
   } */
 
   .bannerContainer {
-    width: 40%;
+    /* width: 40%; */
   }
 }
 

@@ -1,5 +1,5 @@
 .section {
-  /* width: 100%; */
+  /* max-width: 100%; */
   /* height: '100%'; */
   flex-direction: column;
   justify-content: center;
@@ -27,10 +27,10 @@
   scroll-snap-align: y mandatory;
   scroll-behavior: smooth;
   height: 1200px;
-  max-height: 3000px;
+  /* max-height: 3000px; */
   /* max-width: 300px; */
   /* transition: scroll-behavior, scroll-snap-align 0.5s ease-in-out; */
-  max-width: 85%;
+  /* max-width: 85%; */
   margin: auto;
   margin-top: 5%;
   margin-bottom: 5%;
@@ -45,12 +45,12 @@
 
 .leftContainer,
 .rightContainer {
-  min-width: 400px;
+  /* min-width: 400px; */
 }
 
 .leftContainer {
-  height: 100%;
-  width: 50%;
+  /* height: 100%;
+  width: 50%; */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -67,8 +67,8 @@
   flex-direction: column;
   padding-right: 15px;
   padding-left: 10px;
-  height: 100%;
-  width: 50%;
+  /* height: 100%;
+  width: 50%; */
 }
 
 .cacheControls {
@@ -83,19 +83,15 @@
 }
 
 #response {
-  min-width: 95%;
-  min-height: 50rem;
-  max-height: 50rem !important;
+  /* min-width: 95%; */
+  /* min-height: 50rem;
+  max-height: 50rem !important; */
   background-color: #474f57;
   overflow-y: scroll;
-  width: 85%;
+  /* width: 85%; */
   border: none;
   margin-top: -1.5em;
-  overflow: hidden;
-  border-radius: 5px;
-  width: 85%;
-  border: none;
-  overflow: hidden;
+  /* overflow: hidden; */
   border-radius: 5px;
 }
 
@@ -103,7 +99,7 @@
   border: none;
   text-align: center;
   min-height: 40px;
-  max-height: 40px;
+  /* max-height: 40px; */
   font-size: 0.85rem;
 }
 
@@ -114,7 +110,7 @@
 
 #queryInput {
   font-size: 0.9rem;
-  width: 100%;
+  /* width: 100%; */
   background-color: #474f57;
   padding: 10px;
   color: white;

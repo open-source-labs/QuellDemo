@@ -6,7 +6,7 @@
 #logo {
   display: block;
   margin: auto;
-  width: 40%;
+  /* width: 40%; */
   padding: 2%;
 }
 
@@ -31,8 +31,8 @@ h2 {
   font-size: 13px;
   margin-bottom: 5px;
   aspect-ratio: inherit;
-  min-height: 320;
-  max-height: 320;
+  /* min-height: 320;
+  max-height: 320; */
 }
 
 #team {
@@ -45,16 +45,16 @@ h2 {
 }
 
 .profilePic {
-  width: 55%;
+  /* width: 55%; */
   padding: 8px;
-  max-width: 400px;
+  /* max-width: 400px; */
   margin-bottom: 3%;
   margin-top: 2%;
 }
 
 .profilePic img {
   margin-bottom: 4%;
-  max-width: 200px;
+  /* max-width: 200px; */
 }
 
 .name {

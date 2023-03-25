@@ -1,6 +1,6 @@
 .container {
-  min-height: 60px;
-  max-height: 60px;
+  /* min-height: 60px;
+  max-height: 60px; */
   margin-bottom: 0;
   display: flex;
   align-items: center;

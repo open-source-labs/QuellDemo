@@ -508,7 +508,7 @@ const CacheControls = ({
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '60%',
+            // width: '60%',
           }}
         >
           <Limit
@@ -638,7 +638,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <label>Max Depth: </label>
           <input
             style={{
-              width: '20%',
+              // width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
               color: '#FFF',
@@ -656,7 +656,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <label>Max Cost:</label>
           <input
             style={{
-              width: '20%',
+              // width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
               color: '#FFF',
@@ -674,7 +674,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <label>Requests /s:</label>
           <input
             style={{
-              width: '20%',
+              // width: '20%',
               margin: '0px, 0px, 0px, 20%',
               backgroundColor: '#999',
               color: '#FFF',

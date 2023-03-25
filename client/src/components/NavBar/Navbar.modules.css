@@ -20,10 +20,10 @@
 }
 
 .navLink {
-  min-width: 85px;
-  min-height: 40px;
-  max-height: 40px;
-  max-width: 90px;
+  /* min-width: 85px; */
+  /* min-height: 40px; */
+  /* max-height: 40px;
+  max-width: 90px; */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,11 +33,11 @@
 }
 
 .dropDownLink {
-  width: 100%;
+  /* width: 100%; */
 }
 
 #dropDownMenu {
-  width: 200px;
+  /* width: 200px; */
 }
 
 .teamButton {
