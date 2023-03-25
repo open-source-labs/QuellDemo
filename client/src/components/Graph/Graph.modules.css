@@ -1,10 +1,12 @@
 .container {
+  min-height: 20em;
+  max-width: 95%;
   /* height: 70em; */
   /* width: 90%; */
   display: flex;
   /* align-items: space-between; */
   justify-content: space-between;
-  align-content: space-between;
+  align-items: space-between;
   border-top: 1px solid black;
   border-bottom: 1px solid black;
 }

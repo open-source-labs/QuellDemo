@@ -7,7 +7,7 @@ import { memo } from 'react';
 const About = memo(() => {
   return (
     <div id="about" className={styles.about}>
-      {/* <div id="scroll-about"></div> */}
+      <div id="scroll-about"></div>
       <div className={styles.bannerContainer}>
         <img src={quellBanner} alt="quell-banner" id={styles.quellBanner} />
       </div>

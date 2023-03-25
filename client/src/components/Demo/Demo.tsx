@@ -55,7 +55,8 @@ const Demo = memo(() => {
   // if (isToggled) {
   return (
     <div className={styles.section}>
-      <div id="scroll-demo" className="scrollpoint">
+      <div id={styles.demoHeader} className="scrollpoint">
+        <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
@@ -105,15 +106,15 @@ const Demo = memo(() => {
             queryTypes={queryTypes}
           />
         </div>
+        {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
+        {responseTimes.map((el, i) => {
+          return <SuccessfulQuery key={i} />;
+        })}
+        {errorAlerts.map((el, i) => {
+          console.log('ERROR HERE >>>>> ', el);
+          return <BadQuery errorMessage={el} key={i} />;
+        })}
       </div>
-      {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
-      {responseTimes.map((el, i) => {
-        return <SuccessfulQuery key={i} />;
-      })}
-      {errorAlerts.map((el, i) => {
-        console.log('ERROR HERE >>>>> ', el);
-        return <BadQuery errorMessage={el} key={i} />;
-      })}
     </div>
   );
 });
@@ -274,8 +275,7 @@ function QueryDemo({
       />
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
       <h3>See your query results: </h3>
-      {/* <div id={styles.results}> */}
-      <div id={styles.responseContainer}>
+      <div id={styles.response}>
         <TextField
           id={styles.queryText}
           multiline={true}
@@ -285,7 +285,6 @@ function QueryDemo({
           value={response}
         ></TextField>
       </div>
-      {/* </div> */}
       <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
     </div>
   );
@@ -478,7 +477,7 @@ const CacheControls = ({
           color="secondary"
           variant="contained"
         >
-          Clear {isToggled ? 'Client' : 'Server'} Cache
+          Clear {isToggled ? 'Server' : 'Client'} Cache
         </Button>
         <Button
           onClick={resetGraph}

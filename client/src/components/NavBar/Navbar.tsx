@@ -1,3 +1,5 @@
+import { StyledEngineProvider } from '@mui/material/styles';
+
 import styles from './NavBar.modules.css';
 import { Dispatch, useEffect, useState, SetStateAction } from 'react';
 import {
@@ -15,7 +17,6 @@ import {
   Hidden,
   Link,
 } from '@mui/material';
-import { StyledEngineProvider } from '@mui/material/styles';
 import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
 import {
   Menu as MenuIcon,
@@ -29,6 +30,26 @@ interface Navbar {
   toggleRenderTeam: Dispatch<SetStateAction<boolean>>;
   teamComp: boolean;
 }
+
+interface NavLink {
+  id: string;
+  href: string;
+  text: string;
+}
+
+const buttons = {
+  about: { id: 'about', href: '#scroll-about', text: 'About' },
+  demo: {
+    id: 'demo',
+    href: '#scroll-demo',
+    text: 'Demo',
+  },
+  docs: {
+    id: 'docs',
+    href: 'https://github.com/open-source-labs/Quell#quell',
+    text: 'Docs',
+  },
+};
 
 export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
   const [rendered, setRendered] = useState<boolean>(false);
@@ -63,19 +84,16 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
     );
   };
 
-  //BUTTON HELPER COMPONENTS
-  const AboutButton = () => {
+  const NavButton = ({ id, href, text }: NavLink) => {
     const [hover, setHover] = useState<boolean>(false);
-
     return (
       <Button
+        id={id}
         onClick={() => {
           teamComp ? toggleRenderTeam(false) : null;
         }}
-        href="#scroll-about"
-        className={
-          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
-        }
+        href={href}
+        className={styles.navLink}
         color="secondary"
         variant="contained"
       >
@@ -87,45 +105,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
           unmountOnExit
         >
           <Typography sx={{ position: 'relative' }} variant="button">
-            About
-          </Typography>
-        </Slide>
-        <Slide
-          direction="up"
-          timeout={{ enter: 400, exit: 100 }}
-          in={hover}
-          mountOnEnter
-          unmountOnExit
-        >
-          <Groups2 />
-        </Slide>
-      </Button>
-    );
-  };
-
-  const DemoButton = () => {
-    const [hover, setHover] = useState<boolean>(false);
-    return (
-      <Button
-        onClick={() => {
-          teamComp ? toggleRenderTeam(false) : null;
-        }}
-        href="#scroll-demo"
-        className={
-          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
-        }
-        color="secondary"
-        variant="contained"
-      >
-        <Slide
-          direction="down"
-          timeout={{ enter: 400, exit: 350 }}
-          in={!hover}
-          mountOnEnter
-          unmountOnExit
-        >
-          <Typography sx={{ position: 'relative' }} variant="button">
-            Demo
+            {text}
           </Typography>
         </Slide>
         <Slide
@@ -141,59 +121,45 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
     );
   };
 
-  const DocsButton = () => {
-    const [hover, setHover] = useState<boolean>(false);
-    return (
-      <Link
-        sx={{ textDecoration: 'none' }}
-        target="_blank"
-        href="https://github.com/open-source-labs/Quell#quell"
-        rel="noreferrer"
-      >
-        <Button
-          className={
-            Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
-          }
-          color="secondary"
-          variant="contained"
-        >
-          <Slide
-            direction="down"
-            timeout={{ enter: 200, exit: 250 }}
-            in={!hover}
-            mountOnEnter
-            unmountOnExit
-          >
-            <Typography variant="button">Docs</Typography>
-          </Slide>
-          <Slide
-            direction="up"
-            timeout={{ enter: 200, exit: 100 }}
-            in={hover}
-            mountOnEnter
-            unmountOnExit
-          >
-            <MenuBook />
-          </Slide>
-        </Button>
-      </Link>
-    );
-  };
-
   const TeamToggle = () => {
+    const [hover, setHover] = useState<boolean>(false);
+
     return (
-      <button
-        className={
-          Boolean(anchorElNav) ? styles.dropDownLink : styles.teamButton
-        }
+      <Button
+        className={styles.navLink}
+        color="secondary"
+        variant="contained"
         onClick={() => {
           toggleRenderTeam(!teamComp);
         }}
       >
-        {teamComp ? 'HOME' : 'TEAM'}
-      </button>
+        <Slide
+          direction="down"
+          timeout={{ enter: 400, exit: 350 }}
+          in={!hover}
+          mountOnEnter
+          unmountOnExit
+        >
+          <Typography sx={{ position: 'relative' }} variant="button">
+            {teamComp ? 'HOME' : 'TEAM'}
+          </Typography>
+        </Slide>
+        <Slide
+          direction="up"
+          timeout={{ enter: 400, exit: 100 }}
+          in={hover}
+          mountOnEnter
+          unmountOnExit
+        >
+          <Code sx={{ position: 'relative' }} />
+        </Slide>
+      </Button>
     );
   };
+
+  const navButtons = Object.values(buttons).map((button) => {
+    return <NavButton id={button.id} href={button.href} text={button.text} />;
+  });
 
   return (
     <StyledEngineProvider injectFirst>
@@ -201,28 +167,24 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         id={rendered ? styles.renderedNav : ''}
         className={styles.navBar}
         color="primary"
-        // position="sticky"
+        position="sticky"
         elevation={5}
       >
-        {/* For Quell Bird Logo */}
         <BirdLogo />
-        {/* Navmenu buttons */}
         <Stack
-          id="horizontalMenu"
+          id={styles.horizontalMenu}
           sx={{ display: { xs: 'none', md: 'flex' } }}
           direction="row"
           justifyContent="center"
           divider={<Divider color="grey" orientation="vertical" flexItem />}
           spacing={2}
         >
-          <AboutButton />
-          <DemoButton />
-          <DocsButton />
+          {navButtons}
         </Stack>
         <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
           <TeamToggle />
         </Box>
-        <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
+        <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
           <IconButton
             size="large"
             aria-controls="menu-appbar"
@@ -251,13 +213,25 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
             }}
           >
             <MenuItem onClick={handleCloseNavMenu}>
-              <AboutButton />
+              <NavButton
+                id={buttons['about'].id}
+                href={buttons['about'].href}
+                text={buttons['about'].text}
+              />
             </MenuItem>
             <MenuItem onClick={handleCloseNavMenu}>
-              <DemoButton />
+              <NavButton
+                id={buttons['demo'].id}
+                href={buttons['demo'].href}
+                text={buttons['demo'].text}
+              />
             </MenuItem>
             <MenuItem onClick={handleCloseNavMenu}>
-              <DocsButton />
+              <NavButton
+                id={buttons['docs'].id}
+                href={buttons['docs'].href}
+                text={buttons['docs'].text}
+              />
             </MenuItem>
             <MenuItem onClick={handleCloseNavMenu}>
               <TeamToggle />

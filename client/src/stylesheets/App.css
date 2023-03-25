@@ -65,11 +65,11 @@ body {
   opacity: 0;
 }
 
-#sticky-nav {
+/* #sticky-nav {
   position: sticky;
   margin: 20px;
   transition: all 0.5s linear;
-}
+} */
 
 #rendered {
   opacity: 1;
@@ -83,21 +83,16 @@ body {
 }
 
 /* this div is only to set a point on the HTML so we can scroll on click to the demo container */
-#scroll-demo {
-  /* position: relative; */
-  /* width: 100%; */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  /* margin-top: 50px; */
-}
 
 #scroll-about {
   /* position: absolute; */
-  top: 12vh;
-  left: 100vh;
+  /* top: 12vh;
+  left: 100vh; */
   visibility: hidden;
+}
+
+#scroll-demo {
+  height: 60px;
 }
 
 ::placeholder {

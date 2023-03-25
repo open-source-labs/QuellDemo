@@ -18,7 +18,6 @@ const Team = memo(() => {
   }, []);
 
   //scrolls back to top
-  // TODO - is this needed
   useEffect(() => {
     if (window.location.href.includes('scroll-demo')) {
       window.scrollTo(0, 0);
