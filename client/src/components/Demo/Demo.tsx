@@ -272,7 +272,6 @@ function QueryDemo({
         setQueryChoice={setQueryChoice}
         submitQuery={isToggled ? submitServerQuery : submitClientQuery}
       />
-      {/* <Button onClick={resetGraph} sx={{textAlign: 'center', minHeight: '40px', maxHeight:"40px", fontSize: '.85rem' }} size='medium' color='secondary' variant='contained'>Reset Graph</Button> */}
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
       <h3>See your query results: </h3>
       {/* <div id={styles.results}> */}
@@ -414,26 +413,16 @@ const DemoControls = ({
   submitQuery,
 }: DemoControls) => {
   return (
-    <div className="dropDownContainer">
+    <div className={styles.dropDownContainer}>
       <h3>Select a query to test: </h3>
-      <Box
-        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-      >
-        <QuerySelect
-          setQueryChoice={setQueryChoice}
-          selectedQuery={selectedQuery}
-        />
-      </Box>
+      <QuerySelect
+        setQueryChoice={setQueryChoice}
+        selectedQuery={selectedQuery}
+      />
       {/* SUBMIT QUERY BUTTON */}
       <Button
         endIcon={<ForwardRoundedIcon />}
-        sx={{
-          marginBottom: '12px',
-          border: 'none',
-          maxHeight: 35,
-          minWidth: 100,
-          maxWidth: 160,
-        }}
+        id={styles.submitQuery}
         onClick={() => submitQuery()}
         size="medium"
         color="secondary"
@@ -595,12 +584,12 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   };
 
   return (
-    <Box sx={{ minWidth: 250, marginLeft: 2 }}>
+    <Box className={styles.queryMenu}>
       <FormControl fullWidth>
         <InputLabel id="demo-simple-select-label">Query</InputLabel>
         <Select
           labelId="demo-simple-select-label"
-          id="demo-simple-select"
+          id={styles.demoSelect}
           value={selectedQuery}
           defaultValue={selectedQuery}
           label="Query"
@@ -633,16 +622,11 @@ const StyledDiv = styled('div')(({ theme }) => ({
 function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
   return (
     <div>
-      <StyledDiv style={{ marginBottom: '10px' }}>
+      <StyledDiv className={styles.limits}>
         <form>
           <label>Max Depth: </label>
           <input
-            style={{
-              // width: '20%',
-              margin: '0px, 0px, 0px, 20%',
-              backgroundColor: '#999',
-              color: '#FFF',
-            }}
+            className={styles.limitsInput}
             type="number"
             placeholder="10"
             onChange={(e) => {
@@ -651,16 +635,11 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           />
         </form>
       </StyledDiv>
-      <StyledDiv style={{ marginBottom: '10px' }}>
+      <StyledDiv className={styles.limits}>
         <form>
           <label>Max Cost:</label>
           <input
-            style={{
-              // width: '20%',
-              margin: '0px, 0px, 0px, 20%',
-              backgroundColor: '#999',
-              color: '#FFF',
-            }}
+            className={styles.limitsInput}
             type="number"
             placeholder="50"
             onChange={(e) => {
@@ -669,16 +648,11 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           />
         </form>
       </StyledDiv>
-      <StyledDiv>
+      <StyledDiv className={styles.limits}>
         <form>
           <label>Requests /s:</label>
           <input
-            style={{
-              // width: '20%',
-              margin: '0px, 0px, 0px, 20%',
-              backgroundColor: '#999',
-              color: '#FFF',
-            }}
+            className={styles.limitsInput}
             type="number"
             placeholder="22"
             onChange={(e) => {

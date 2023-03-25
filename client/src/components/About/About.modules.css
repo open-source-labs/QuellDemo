@@ -2,14 +2,19 @@
   /* margin-top: 4%; */
   /* height: 100%;
   width: 90%; */
-  gap: 50px;
+  gap: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .bannerContainer {
-  /* width: 100%; */
+  display: flex;
+  justify-content: center;
+}
+
+#quellBanner {
+  max-width: 80%;
 }
 
 .contentContainer {

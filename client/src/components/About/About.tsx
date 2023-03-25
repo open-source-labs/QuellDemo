@@ -9,7 +9,7 @@ const About = memo(() => {
     <div id="about" className={styles.about}>
       {/* <div id="scroll-about"></div> */}
       <div className={styles.bannerContainer}>
-        <img src={quellBanner} alt="quell-banner" id="quell-banner" />
+        <img src={quellBanner} alt="quell-banner" id={styles.quellBanner} />
       </div>
       <div className={styles.contentContainer}>
         <div>
