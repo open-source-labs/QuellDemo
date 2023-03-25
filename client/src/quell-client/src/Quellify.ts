@@ -109,6 +109,7 @@ async function Quellify(
   if (operationType === 'unQuellable') {
     // All returns in an async function return promises by default, therefore we are returning a promise that will resolve from perFormFetch
     const parsedData: JSONValue = await performFetch(postFetch);
+    console.log('ParsedData:',parsedData);
     return parsedData;
   } else if (operationType === 'mutation') {
     // assign mutationType

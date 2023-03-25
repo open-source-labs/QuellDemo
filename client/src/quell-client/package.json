@@ -10,9 +10,6 @@
     "node": ">=14.17.5",
     "npm": ">=8.1.0"
   },
-  "browser": {
-    "fs": false
-  },
   "author": "Quell",
   "license": "MIT",
   "repository": {
@@ -28,14 +25,26 @@
     "graphQL",
     "cache",
     "caching",
-    "redis",
-    "batching",
     "client-side",
-    "server-side",
-    "apollo",
     "quell"
   ],
   "contributors": [
+    {
+      "name": "Alexander Martinez",
+      "url": "https://github.com/alexmartinez123"
+    },
+    {
+      "name": "Cera Barrow",
+      "url": "https://github.com/cerab"
+    },
+    {
+      "name": "Jackie He",
+      "url": "https://github.com/Jckhe"
+    },
+    {
+      "name": "Zoe Harper",
+      "url": "https://github.com/ContraireZoe"
+    },
     {
       "name": "Alexander Martinez",
       "url": "https://github.com/alexmartinez123"
@@ -147,7 +156,6 @@
   ],
   "homepage": "http://quellql.io",
   "dependencies": {
-    "@types/lokijs": "^1.5.7",
     "graphql": "^16.6.0",
     "lokijs": "^1.5.12"
   },
