@@ -1855,6 +1855,7 @@ export class QuellCache implements QuellCache {
   clearCache(req: Request, res: Response, next: NextFunction) {
     console.log('Clearing Redis Cache');
     this.redisCache.flushAll();
+    idCache = {}
     return next();
   }
 
