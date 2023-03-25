@@ -1648,6 +1648,7 @@ var QuellCache = /** @class */ (function () {
     QuellCache.prototype.clearCache = function (req, res, next) {
         console.log('Clearing Redis Cache');
         this.redisCache.flushAll();
+        idCache = {};
         return next();
     };
     /**
