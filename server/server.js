@@ -10,7 +10,7 @@ const quellCache = new QuellCache({
   cacheExpiration: 3600,
   redisPort: 13680,
   redisHost: 'redis-13680.c8.us-east-1-3.ec2.cloud.redislabs.com',
-  redisPassword: '6uVbPwQU1rWm9cScHQU8YasjZ2lHeO8q'
+  redisPassword: '6uVbPwQU1rWm9cScHQU8YasjZ2lHeO8q',
 });
 
 app.use(express.json());
@@ -20,7 +20,7 @@ app.use(cors());
 
 mongoose
   .connect(
-    'mongodb+srv://quell:STpdV4dfTcoJRkma@quell.7dwxu2b.mongodb.net/?retryWrites=true&w=majority',
+    'mongodb+srv://quell:quell@quell.k3lr7lq.mongodb.net/?retryWrites=true&w=majority',
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log('Connected to MongoDB'))
@@ -50,7 +50,7 @@ app.use(
   quellCache.getRedisInfo({
     getStats: false,
     getKeys: true,
-    getValues: true
+    getValues: true,
   }),
   (req, res) => {
     return res.status(200).send(res.locals);
@@ -65,7 +65,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' }
+    message: { err: 'An error occurred' },
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj.log);

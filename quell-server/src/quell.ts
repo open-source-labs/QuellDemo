@@ -1654,8 +1654,9 @@ export class QuellCache implements QuellCache {
             fieldKey.toLowerCase()
           );
           if (fieldKeyValueRaw !== null && fieldKeyValueRaw !== undefined) {
-            const fieldKeyValue: ResponseDataType =
-              JSON.parse(fieldKeyValueRaw as string);
+            const fieldKeyValue: ResponseDataType = JSON.parse(
+              fieldKeyValueRaw as string
+            );
 
             const fieldsToUpdateBy: string[] = [];
             const updatedFieldKeyValue: ResponseDataType = fieldKeyValue;
@@ -1855,6 +1856,7 @@ export class QuellCache implements QuellCache {
   clearCache(req: Request, res: Response, next: NextFunction) {
     console.log('Clearing Redis Cache');
     this.redisCache.flushAll();
+    idCache = {};
     return next();
   }
 

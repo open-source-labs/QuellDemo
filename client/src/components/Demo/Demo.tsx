@@ -36,9 +36,9 @@ const Demo = memo(() => {
   const [selectedQuery, setQueryChoice] = useState<string>('2depth');
   const [query, setQuery] = useState<string>(querySamples[selectedQuery]);
   const [queryTypes, addQueryTypes] = useState<string[]>([]);
-  const [maxDepth, setDepth] = useState<string>('10');
-  const [maxCost, setCost] = useState<string>('50');
-  const [ipRate, setIPRate] = useState<number | string>(22);
+  const [maxDepth, setDepth] = useState<number>(10);
+  const [maxCost, setCost] = useState<number>(50);
+  const [ipRate, setIPRate] = useState<number>(22);
   const [isToggled, setIsToggled] = useState<boolean>(false);
   // const [response, setResponse] = useState<string>('');
   const [cacheHit, setCacheHit] = useState<number>(0);
@@ -51,7 +51,6 @@ const Demo = memo(() => {
     console.log(isToggled);
   }
 
-  console.log('isToggled is , isToggled');
   // Server
   // if (isToggled) {
   return (
@@ -67,7 +66,6 @@ const Demo = memo(() => {
         </Box>
       </div>
       <div className={styles.container}>
-        {/* This div is to set a point slightly above the demo container for a natural scroll motion / point */}
         <QueryDemo
           maxDepth={maxDepth}
           maxCost={maxCost}
@@ -108,14 +106,16 @@ const Demo = memo(() => {
           />
           <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
         </div>
-        {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
-        {responseTimes.map((el, i) => {
-          return <SuccessfulQuery key={i} />;
-        })}
-        {errorAlerts.map((el, i) => {
-          console.log('ERROR HERE >>>>> ', el);
-          return <BadQuery errorMessage={el} key={i} />;
-        })}
+        <>
+          {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
+          {responseTimes.map((el, i) => {
+            return <SuccessfulQuery key={i} />;
+          })}
+          {errorAlerts.map((el, i) => {
+            console.log('ERROR HERE >>>>> ', el);
+            return <BadQuery errorMessage={el} key={i} />;
+          })}
+        </>
       </div>
     </div>
   );
@@ -211,7 +211,16 @@ function QueryDemo({
   const [response, setResponse] = useState<string>('');
 
   function submitClientQuery() {
-    // console.log("Checking Query in Submit Query: ", typeof query)
+    console.log('Checking Query in Submit Query: ', typeof query);
+    console.log(selectedQuery);
+    console.log(setQueryChoice);
+    console.log(`maxDepth is ${maxDepth} `);
+    console.log(`maxCost is ${maxCost}`);
+    console.log(`ipRate is ${ipRate}`);
+    console.log(typeof ipRate);
+    console.log(typeof maxDepth);
+    console.log(typeof maxCost);
+
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
@@ -236,6 +245,13 @@ function QueryDemo({
 
   function submitServerQuery() {
     console.log('Checking Query in Submit Query Server: ', typeof query);
+    console.log('Checking Query in Submit Query: ', typeof query);
+    console.log(`maxDepth is ${maxDepth} `);
+    console.log(`maxCost is ${maxCost}`);
+    console.log(`ipRate is ${ipRate}`);
+    console.log(typeof ipRate);
+    console.log(typeof maxDepth);
+    console.log(typeof maxCost);
     clearLokiCache();
     const startTime = new Date().getTime();
     const fetchOptions = {
@@ -252,7 +268,7 @@ function QueryDemo({
     fetch('/api/graphql', fetchOptions)
       .then((res) => res.json())
       .then((res) => {
-        // console.log('RES LOCALS >>>>> ', res);
+        console.log('RES LOCALS >>>>> ', res);
         resError = res;
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
@@ -419,7 +435,6 @@ const DemoControls = ({
         setQueryChoice={setQueryChoice}
         selectedQuery={selectedQuery}
       />
-      {/* SUBMIT QUERY BUTTON */}
       <Button
         endIcon={<ForwardRoundedIcon />}
         id={styles.submitQuery}
@@ -630,7 +645,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
             type="number"
             placeholder="10"
             onChange={(e) => {
-              setDepth(e.target.value);
+              setDepth(Number(e.target.value));
             }}
           />
         </form>
@@ -643,7 +658,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
             type="number"
             placeholder="50"
             onChange={(e) => {
-              setCost(e.target.value);
+              setCost(Number(e.target.value));
             }}
           />
         </form>
@@ -656,7 +671,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
             type="number"
             placeholder="22"
             onChange={(e) => {
-              setIPRate(+e.target.value);
+              setIPRate(+Number(e.target.value));
             }}
           />
         </form>
@@ -680,9 +695,9 @@ interface QueryDemoProps {
   setQuery: React.Dispatch<React.SetStateAction<string>>;
   queryTypes: string[];
   addQueryTypes: React.Dispatch<React.SetStateAction<any[]>>;
-  maxDepth: string;
-  maxCost: string;
-  ipRate: string | number;
+  maxDepth: number;
+  maxCost: number;
+  ipRate: number;
   cacheHit: number;
   cacheMiss: number;
   setCacheHit: Dispatch<SetStateAction<number>>;
@@ -691,9 +706,9 @@ interface QueryDemoProps {
 }
 
 interface CacheControlProps {
-  setDepth: (val: string) => void;
-  setCost: (val: string) => void;
-  setIPRate: (val: number | string) => void;
+  setDepth: (val: number) => void;
+  setCost: (val: number) => void;
+  setIPRate: (val: number) => void;
   addResponseTimes: React.Dispatch<React.SetStateAction<any[]>>;
   cacheHit: number;
   cacheMiss: number;

@@ -109,7 +109,6 @@ async function Quellify(
   if (operationType === 'unQuellable') {
     // All returns in an async function return promises by default, therefore we are returning a promise that will resolve from perFormFetch
     const parsedData: JSONValue = await performFetch(postFetch);
-    console.log('ParsedData:',parsedData);
     return parsedData;
   } else if (operationType === 'mutation') {
     // assign mutationType
@@ -166,6 +165,7 @@ async function Quellify(
     // if the request is a query
     // check IDCache with query, if query returns the $loki ID, find the results for searching the LokiDBCache
     // lokiCache to see if this call has a $loki associated with it. if so, retrieve and return it
+    console.log('inside query block');
     if (IDCache[query]) {
       // grab the $loki ID from the IDCache
 
@@ -175,17 +175,22 @@ async function Quellify(
       const results: LokiGetType = lokiCache.get(queryID);
 
       // second element is boolean for whether data can be found in lokiCache
-      return results;
+      return [results, true];
     } else {
       // if this query has not been made already, execute fetch request with query
       const parsedData: JSONObject = await performFetch(postFetch);
       // add new data to lokiCache
-      if (parsedData && parsedData.data) {
-        const addedEntry = lokiCache.insert(parsedData.data);
-        // add query $loki ID to IDcache at query key
-        IDCache[query] = addedEntry.$loki;
-        // return data
-        return addedEntry;
+      if (parsedData !== null && parsedData.queryResponse) {
+        if ((parsedData.queryResponse as JSONObject).data) {
+          const addedEntry = lokiCache.insert(
+            (parsedData.queryResponse as JSONObject).data
+          );
+          console.log('addedEntry: ', addedEntry);
+          // add query $loki ID to IDcache at query key
+          IDCache[query] = addedEntry.$loki;
+          // return data
+          return [addedEntry, false];
+        }
       }
     }
   }
