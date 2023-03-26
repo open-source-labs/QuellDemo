@@ -14,11 +14,11 @@
 }
 
 #quellBanner {
-  max-width: 80%;
+  width: 80%;
+  max-width: 20em;
 }
 
 .contentContainer {
-  /* width: 50%; */
   flex-direction: column;
   display: flex;
   font-size: 1.2rem;
@@ -33,7 +33,11 @@
 }
 
 h1 {
-  font-size: 2.25em;
+  font-size: 2.25rem;
+}
+
+h2 {
+  font-size: 1.3rem;
 }
 
 h1,
@@ -94,7 +98,7 @@ h2 {
   margin-left: 2px;
   margin-top: 5px;
   font-size: 1.2rem;
-  z-index: 500;
+  /* z-index: 500; */
 }
 
 #getStarted:hover {
@@ -113,30 +117,56 @@ h2 {
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
+@media (min-width: 768px) {
+  .about {
+    flex-direction: row;
+    gap: 0;
+    padding: 0 2em;
+  }
+
+  .bannerContainer {
+    width: 40%;
+  }
+  .contentContainer {
+    width: 60%;
+    text-align: left;
+  }
+
+  .bannerContainer {
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+
+  #quellBanner {
+    min-width: 90%;
+  }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
-  /* .about {
-    margin-top: 4%;
-    height: 100vh;
-    width: 90%;
-    gap: 50px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  } */
+@media (min-width: 992px) {
+  .about {
+    padding: 2em 6em;
+  }
+
+  .contentContainer {
+    width: 65%;
+  }
 
   .bannerContainer {
-    /* width: 40%; */
+    width: 35%;
   }
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
+@media (min-width: 1200px) {
+  .about {
+    padding: 2em 8em;
+  }
 }
 
 /* For 27-in screens */
 @media screen and (min-width: 1820px) {
+  .about {
+    padding: 2em 10em;
+  }
 }

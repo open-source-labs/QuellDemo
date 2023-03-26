@@ -173,7 +173,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         <BirdLogo />
         <Stack
           id={styles.horizontalMenu}
-          sx={{ display: { xs: 'none', md: 'flex' } }}
+          sx={{ display: { xs: 'none', sm: 'flex' } }}
           direction="row"
           justifyContent="center"
           divider={<Divider color="grey" orientation="vertical" flexItem />}
@@ -181,10 +181,13 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         >
           {navButtons}
         </Stack>
-        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+        <Box sx={{ display: { xs: 'none', sm: 'flex' } }}>
           <TeamToggle />
         </Box>
-        <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+        <Box
+          id={styles.verticalMenu}
+          sx={{ display: { xs: 'flex', sm: 'none' } }}
+        >
           <IconButton
             size="large"
             aria-controls="menu-appbar"
@@ -209,7 +212,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
             open={Boolean(anchorElNav)}
             onClose={handleCloseNavMenu}
             sx={{
-              display: { xs: 'block', md: 'none' },
+              display: { xs: 'block', sm: 'none' },
             }}
           >
             <MenuItem onClick={handleCloseNavMenu}>

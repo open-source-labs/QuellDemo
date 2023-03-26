@@ -54,7 +54,7 @@ const Demo = memo(() => {
   // Server
   // if (isToggled) {
   return (
-    <div className={styles.section}>
+    <div id="demo" className={styles.section}>
       <div id={styles.demoHeader} className="scrollpoint">
         <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
@@ -105,6 +105,7 @@ const Demo = memo(() => {
             selectedQuery={selectedQuery}
             queryTypes={queryTypes}
           />
+          <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
         </div>
         {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
         {responseTimes.map((el, i) => {
@@ -285,7 +286,6 @@ function QueryDemo({
           value={response}
         ></TextField>
       </div>
-      <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
     </div>
   );
 }

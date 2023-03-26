@@ -21,11 +21,7 @@ const About = memo(() => {
         </div>
         <div id={styles.featuresContainer}>
           <div className={styles.featureList}>
-            <EggOutlinedIcon
-              className={styles.eggIcon}
-              fontSize="large"
-              color="primary"
-            />
+            <EggOutlinedIcon className={styles.eggIcon} color="primary" />
             <div id="featureItem">
               <h3 className={styles.featureHeading}>
                 Fast + Accurate Caching for GraphQL Developers
@@ -37,11 +33,7 @@ const About = memo(() => {
             </div>
           </div>
           <div className={styles.featureList}>
-            <EggOutlinedIcon
-              className={styles.eggIcon}
-              fontSize="large"
-              color="primary"
-            />
+            <EggOutlinedIcon className={styles.eggIcon} color="primary" />
             <div id="featureItem">
               <h3 className={styles.featureHeading}>
                 Built-In Utilities for Security
@@ -54,11 +46,7 @@ const About = memo(() => {
             </div>
           </div>
           <div className={styles.featureList}>
-            <EggOutlinedIcon
-              className={styles.eggIcon}
-              fontSize="large"
-              color="primary"
-            />
+            <EggOutlinedIcon className={styles.eggIcon} color="primary" />
             <div id="featureItem">
               <h3 className={styles.featureHeading}>
                 Simple and Easy Installation + Detailed Documentation
@@ -71,11 +59,7 @@ const About = memo(() => {
             </div>
           </div>
           <div className={styles.featureList}>
-            <EggOutlinedIcon
-              className={styles.eggIcon}
-              fontSize="large"
-              color="primary"
-            />
+            <EggOutlinedIcon className={styles.eggIcon} color="primary" />
             <div id="featureItem">
               <h3 className={styles.featureHeading}>
                 Query Monitoring + Cache View Devtool
@@ -94,11 +78,7 @@ const About = memo(() => {
             </div>
           </div>
           <div className={styles.featureList}>
-            <EggOutlinedIcon
-              className={styles.eggIcon}
-              fontSize="large"
-              color="primary"
-            />
+            <EggOutlinedIcon className={styles.eggIcon} color="primary" />
             <div id="featureItem">
               <h3 className={styles.featureHeading}>Open Source</h3>
               <span className={styles.featureContent}>

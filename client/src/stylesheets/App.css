@@ -52,8 +52,9 @@ body {
 }
 
 #root {
+  width: 100%;
   /* height: 100%; */
-  max-width: 100%;
+  /* max-width: 100%; */
 }
 
 .main {
@@ -88,7 +89,6 @@ body {
   /* position: absolute; */
   /* top: 12vh;
   left: 100vh; */
-  visibility: hidden;
 }
 
 #scroll-demo {
@@ -124,6 +124,8 @@ input::-webkit-inner-spin-button {
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) {
+  #scroll-about {
+  }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */

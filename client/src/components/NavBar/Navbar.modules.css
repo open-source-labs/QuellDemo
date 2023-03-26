@@ -18,6 +18,10 @@
   display: none;
 }
 
+#verticalMenu {
+  display: flex;
+}
+
 /*
   display: flex;
   flex-direction: column;
@@ -67,11 +71,6 @@
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
 @media only screen and (min-width: 600px) {
-  #horizontalMenu {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-  }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
