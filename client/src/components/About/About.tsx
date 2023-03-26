@@ -109,11 +109,7 @@ const About = memo(() => {
           </div>
           <div className={styles.featureList} id={styles.callToAction}>
             <div id={styles.getStarted}>
-              <ArrowForwardRoundedIcon
-                id={styles.arrow}
-                fontSize="large"
-                fontSize="large"
-              />
+              <ArrowForwardRoundedIcon id={styles.arrow} fontSize="large" />
               <a
                 id={styles.getStartedText}
                 href="https://github.com/open-source-labs/Quell"

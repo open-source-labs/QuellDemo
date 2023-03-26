@@ -11,15 +11,9 @@
   transition: transform 0.15s linear;
 }
 
-/* up to here */
-
-* {
-}
-
 html {
   margin: auto;
   max-width: 100%;
-  /* height: 100vh; */
   scroll-behavior: smooth;
   font-family: 'sofia-light';
 }
@@ -45,31 +39,20 @@ body {
   flex-direction: column;
   align-items: center;
   max-width: 100%;
-  /* width: 100%;
-  height: 100%; */
   margin: 0;
 }
 
 #root {
   width: 100%;
-  /* height: 100%; */
-  /* max-width: 100%; */
 }
 
 .main {
   scroll-snap-align: start;
-  /* width: 100%; */
   display: flex;
   flex-direction: column;
   align-items: center;
   opacity: 0;
 }
-
-/* #sticky-nav {
-  position: sticky;
-  margin: 20px;
-  transition: all 0.5s linear;
-} */
 
 #rendered {
   opacity: 1;
@@ -83,15 +66,16 @@ body {
 }
 
 /* this div is only to set a point on the HTML so we can scroll on click to the demo container */
-
 #scroll-about {
-  /* position: absolute; */
-  /* top: 12vh;
-  left: 100vh; */
+  position: absolute;
+  top: 5vh;
+  left: 100vh;
+  visibility: hidden;
 }
 
 #scroll-demo {
   height: 60px;
+  visibility: hidden;
 }
 
 ::placeholder {
@@ -112,98 +96,3 @@ input::-webkit-inner-spin-button {
   align-items: center;
   gap: 10px;
 }
-
-.MuiAlert-message {
-  /* overflow: hidden !important; */
-}
-
-/* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {
-}
-
-/* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
-  #scroll-about {
-  }
-}
-
-/* Large devices (laptops/desktops, 992px and up) */
-/*
-@media only screen and (min-width: 992px) {
-  Button {
-    font-size: small;
-  }
-
-  .dropDownContainer {
-    flex-direction: column;
-    padding-bottom: 2.5rem;
-  }
-
-  /* .demoContainer {
-    margin: 150px auto 120px;
-    max-width: 80%;
-    max-height: 1400px;
-    min-height: 500px !important;
-  } */
-
-/*#scroll-demo {
-  top: 8.5rem;
- } 
-
-  .demoRight {
-    min-height: 1150px;
-    /* display: flex;
-    /* align-items: space-between; */
-/* justify-content: space-between;
-    align-content: space-between;  */
-/*
-  }
-
-  #responseContainer {
-    height: 400px !important;
-  }
-}
-
-/* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
-}
-
-/* For 27-in screens */
-/*
-@media screen and (min-width: 1820px) {
-  .demoContainer {
-    max-width: 75%;
-    /* max-height: 950px; */
-/*margin: 320px auto 120px;
-/*
-  }
-
-  #responseContainer {
-    min-height: 300px;
-  }
-
-  /* #scroll-demo {
-    top: 17.5rem;
-    right: 1.75rem;
-  } */
-
-/* .demoLeft {
-    display: flex;
-    flex-direction: row;
-  } */
-/*
-  .demoRight {
-    min-height: 950px;
-  }
-
-  .graphContainer {
-    height: 55em;
-    width: 90%;
-  }
-
-  .monaco-editor-container {
-    height: 400%;
-  }
-}
-
-*/

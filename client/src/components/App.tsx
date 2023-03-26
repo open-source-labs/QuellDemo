@@ -1,4 +1,3 @@
-import { StyledEngineProvider } from '@mui/material/styles';
 import '../stylesheets/App.css';
 import React, { useState, useEffect, Suspense } from 'react';
 import { Navbar } from './NavBar/Navbar';
@@ -22,7 +21,6 @@ function App() {
 
   return (
     <>
-      {/* <StyledEngineProvider injectFirst> */}
       <Navbar teamComp={teamComp} toggleRenderTeam={toggleRenderTeam} />
       {/* conditionally renders between the team page and the main page. */}
       <Suspense fallback={<div>Loading..</div>}>
@@ -33,7 +31,6 @@ function App() {
         {!teamComp && <Demo />}
       </div>
       <Footer />
-      {/* </StyledEngineProvider> */}
     </>
   );
 }

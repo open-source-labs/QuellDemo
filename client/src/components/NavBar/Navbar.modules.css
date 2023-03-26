@@ -14,45 +14,6 @@
   position: sticky;
 }
 
-#horizontalMenu {
-  /* display: none; */
-}
-
-#verticalMenu {
-  /* display: flex; */
-}
-
-/*
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: none;
-  box-shadow: none;
-  */
-
-.navLink {
-  width: 100%;
-  background-color: #474f57;
-  color: white;
-  float: left;
-  display: block;
-  text-align: center;
-  min-width: 20px;
-  /* min-width: 85px; */
-  /* min-height: 40px; */
-  /* max-height: 40px;
-  max-width: 90px; */
-
-  /* overflow: hidden; */
-}
-
-.dropDownLink {
-}
-
-#dropDownMenu {
-  /* width: 200px; */
-}
-
 .teamButton {
   color: white;
   background-color: #474f57;

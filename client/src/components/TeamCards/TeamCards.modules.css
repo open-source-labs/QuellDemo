@@ -29,10 +29,7 @@ h2 {
   border-bottom-left-radius: 35%;
   border-bottom-right-radius: 40%;
   font-size: 13px;
-  /* margin-bottom: 5px; */
   aspect-ratio: inherit;
-  /* min-height: 320;
-  max-height: 320; */
 }
 
 #team {

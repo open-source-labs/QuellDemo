@@ -5,10 +5,8 @@
   display: flex;
   flex-direction: column;
   justify-content: end;
-  /* z-index: 100; */
   left: 50%;
   height: 70%;
-  /* width: 20vh; */
   margin-bottom: 0.1vh;
 }
 

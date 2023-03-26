@@ -1,8 +1,6 @@
 import styles from './HitMiss.modules.css';
-import React from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function HitMiss({ cacheMiss, cacheHit }: HitMissProps) {

@@ -1,5 +1,4 @@
 import styles from './TeamCards.modules.css';
-
 import React, { useState, useEffect, memo } from 'react';
 import Linkedin from '/client/src/assets/images/icons/QUELL-icons-linkedin.svg';
 import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
