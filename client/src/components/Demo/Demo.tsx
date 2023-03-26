@@ -147,11 +147,13 @@ function QueryDemo({
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
         addQueryTypes([...queryTypes, queryType]);
-        setResponse(JSON.stringify(res[0], null, 2));
-        if (res[1] === false) {
-          setCacheMiss(cacheMiss + 1);
-        } else if (res[1] === true) {
-          setCacheHit(cacheHit + 1);
+        if (Array.isArray(res)) {
+          setResponse(JSON.stringify(res[0], null, 2));
+          if (res[1] === false) {
+            setCacheMiss(cacheMiss + 1);
+          } else if (res[1] === true) {
+            setCacheHit(cacheHit + 1);
+          }
         }
       })
       .catch((err) => {
