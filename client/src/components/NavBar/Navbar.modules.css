@@ -15,11 +15,11 @@
 }
 
 #horizontalMenu {
-  display: none;
+  /* display: none; */
 }
 
 #verticalMenu {
-  display: flex;
+  /* display: flex; */
 }
 
 /*

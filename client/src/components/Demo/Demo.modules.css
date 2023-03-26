@@ -149,13 +149,14 @@
   }
   .container {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-start;
     padding: 2em;
     justify-content: space-around;
   }
   .leftContainer,
   .rightContainer {
-    max-width: 48%;
+    max-width: 45%;
     padding: 0.5em;
   }
 }
@@ -164,7 +165,7 @@
 @media (min-width: 992px) {
   .section {
     padding: 2rem 4rem;
-    width: 80vw;
+    width: 85vw;
   }
   .container {
     width: 100%;
