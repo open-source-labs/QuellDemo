@@ -51,6 +51,7 @@ const Demo = memo(() => {
     console.log(isToggled);
   }
 
+  console.log('isToggled is , isToggled');
   // Server
   // if (isToggled) {
   return (
