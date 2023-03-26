@@ -20,7 +20,7 @@ app.use(cors());
 
 mongoose
   .connect(
-    'mongodb+srv://quell:STpdV4dfTcoJRkma@quell.7dwxu2b.mongodb.net/?retryWrites=true&w=majority',
+    'mongodb+srv://quell:quell@quell.k3lr7lq.mongodb.net/?retryWrites=true&w=majority',
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log('Connected to MongoDB'))
