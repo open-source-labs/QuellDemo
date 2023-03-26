@@ -121,7 +121,7 @@ h2 {
   .about {
     flex-direction: row;
     gap: 0;
-    padding: 0 2em;
+    padding: 2em;
   }
 
   .bannerContainer {
