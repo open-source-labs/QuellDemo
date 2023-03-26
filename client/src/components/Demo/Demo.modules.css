@@ -94,6 +94,7 @@
   border-radius: 5px;
   overflow-y: scroll;
   border: none;
+  color: white;
   /* overflow: hidden; */
   /* max-height: 50rem; */
 }
@@ -108,16 +109,18 @@
 
 #queryText {
   border: 1px solid white;
+  color: white;
   border-style: inset;
+  font-family: Monaco;
+  font-size: 0.8rem;
 }
 
 #queryInput {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   min-width: 100%;
   background-color: #474f57;
   /* text-align: center; */
   /* padding: 10px; */
-  color: white;
   font-family: Monaco;
 }
 
@@ -144,7 +147,7 @@
 /* Medium devices (landscape tablets, 768px and up) */
 @media (min-width: 768px) {
   .section {
-    width: 95%;
+    width: 90%;
     padding: 0 2em;
   }
   .container {

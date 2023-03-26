@@ -9,7 +9,7 @@ const Footer = memo(() => {
     <div className={styles.container}>
       <img className="bird-icon" src={quellBirdIcon} />
       <p className={styles.text}>{'\u00A9'}2023 Quell | MIT License</p>
-      <div id="links">
+      <div id={styles.links}>
         <a href="https://github.com/open-source-labs/Quell">
           <GitHubIcon className={styles.githubIcon} />
         </a>

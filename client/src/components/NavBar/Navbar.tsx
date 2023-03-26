@@ -25,6 +25,7 @@ import {
   MenuBook,
   Groups2,
 } from '@mui/icons-material';
+import { trusted } from 'mongoose';
 
 interface Navbar {
   toggleRenderTeam: Dispatch<SetStateAction<boolean>>;
@@ -92,6 +93,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         onClick={() => {
           teamComp ? toggleRenderTeam(false) : null;
         }}
+        disableElevation={true}
         href={href}
         className={styles.navLink}
         color="secondary"
@@ -129,6 +131,7 @@ export function Navbar({ teamComp, toggleRenderTeam }: Navbar) {
         className={styles.navLink}
         color="secondary"
         variant="contained"
+        disableElevation={true}
         onClick={() => {
           toggleRenderTeam(!teamComp);
         }}

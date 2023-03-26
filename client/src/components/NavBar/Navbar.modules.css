@@ -37,10 +37,7 @@
   float: left;
   display: block;
   text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 17px;
-
+  min-width: 20px;
   /* min-width: 85px; */
   /* min-height: 40px; */
   /* max-height: 40px;
