@@ -1,4 +1,4 @@
-<p align="center"><img src="./assets/QUELL-nested-LG@0.75x.png" width='500' style="margin-top: 10px; margin-bottom: -10px;"></p>
+<p align="center"><img src="./assets/quell-logo-no-padding.png" width='500' style="margin-top: 10px; margin-bottom: -10px;"></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/open-source-labs/Quell/blob/master/LICENSE)
 ![AppVeyor](https://img.shields.io/badge/build-passing-brightgreen.svg)
