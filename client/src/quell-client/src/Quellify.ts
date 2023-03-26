@@ -102,6 +102,7 @@ async function Quellify(
   // Create AST based on the input query using the parse method available in the graphQL library (further reading: https://en.wikipedia.org/wiki/Abstract_syntax_tree)
   const AST: DocumentNode = parse(query);
 
+
   // find operationType, proto using determineType
   const { operationType, proto } = determineType(AST);
 
