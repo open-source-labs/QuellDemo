@@ -28,9 +28,7 @@ import type {
   QueryFields,
   MergedResponse,
   DataResponse,
-  Data,
-  ItemFromCacheType,
-  IdCacheType
+  Data
 } from '../types';
 /**
  * createQueryStr traverses over a supplied query Object and uses the fields on there to create a query string reflecting the data,
