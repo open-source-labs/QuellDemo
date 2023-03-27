@@ -1,0 +1,184 @@
+.section {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#header {
+  font-size: 4rem;
+  margin: 0;
+}
+
+.container {
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  flex-flow: wrap;
+  align-items: center;
+  border-radius: 10px;
+  box-shadow: 0px 15px 50px 0px rgba(0, 0, 0);
+  background-color: #dedede;
+  border: 2.25px solid #bbb;
+  justify-content: space-between;
+  overflow: hidden;
+  scroll-snap-align: y mandatory;
+  scroll-behavior: smooth;
+  padding: 10px;
+  gap: 10px;
+  margin: 2% 0;
+}
+
+#demoHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropDownContainer {
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+#submitQuery {
+  border: none;
+}
+
+#demoSelect {
+  min-width: 90%;
+}
+
+.leftContainer,
+.rightContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  justify-items: center;
+}
+
+.cacheControls {
+  height: 10%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+  color: rgb(53, 49, 49);
+  font-weight: bolder;
+}
+
+#response {
+  height: 300px;
+  width: 100%;
+  background-color: #474f57;
+  border-radius: 5px;
+  overflow-y: scroll;
+  border: none;
+  color: white;
+}
+
+.button {
+  border: none;
+  text-align: center;
+  min-height: 40px;
+  font-size: 0.85rem;
+}
+
+#queryText {
+  border: 1px solid white;
+  color: white;
+  border-style: inset;
+  font-family: Monaco;
+  font-size: 0.8rem;
+}
+
+#queryInput {
+  font-size: 0.8rem;
+  min-width: 100%;
+  background-color: #474f57;
+  font-family: Monaco;
+}
+
+.queryMenu {
+  min-width: 90%;
+  text-align: center;
+}
+
+.limits {
+  margin-bottom: 10px;
+}
+
+.limitsInput {
+  width: 20%;
+  margin: 0px, 0px, 0px, 20%;
+  background-color: #999;
+  color: #fff;
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media (min-width: 600px) {
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media (min-width: 768px) {
+  .section {
+    width: 90%;
+    padding: 0 2em;
+  }
+  .container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 2em;
+    justify-content: space-around;
+  }
+  .leftContainer,
+  .rightContainer {
+    max-width: 45%;
+    padding: 0.5em;
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media (min-width: 992px) {
+  .section {
+    padding: 2rem 4rem;
+    width: 85vw;
+  }
+  .container {
+    width: 100%;
+  }
+  .leftContainer,
+  .rightContainer {
+    max-width: 45%;
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .section {
+    padding: 2em 6em;
+  }
+  .container {
+    width: 100%;
+    padding: 4em;
+  }
+  .leftContainer,
+  .rightContainer {
+    max-width: 40%;
+  }
+}
+
+/* For 27-in screens */
+@media screen and (min-width: 1820px) {
+  .section {
+    padding: 2 em 10em;
+  }
+}

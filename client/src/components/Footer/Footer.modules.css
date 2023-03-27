@@ -1,0 +1,27 @@
+.container {
+  height: 60px;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #474f57;
+  color: #d6d6d6;
+  padding: 0px 15px;
+}
+
+#links {
+  display: flex;
+  gap: 10px;
+}
+
+.text {
+  font-size: 18px;
+}
+
+.githubIcon {
+  color: black;
+}
+
+.mediumIcon {
+  max-height: 25px;
+}

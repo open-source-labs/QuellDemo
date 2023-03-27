@@ -5,7 +5,7 @@ const {
   GraphQLList,
   GraphQLID,
   buildSchema,
-  GraphQLError
+  GraphQLError,
 } = require('graphql');
 const Songs = require('../models/songsModel.js');
 const Artist = require('../models/artistsModel.js');
@@ -29,9 +29,9 @@ const ArtistType = new GraphQLObjectType({
       async resolve(parent, args) {
         const albumList = await Album.find({ artist: parent.name });
         return albumList;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 
 const AlbumType = new GraphQLObjectType({
@@ -45,9 +45,9 @@ const AlbumType = new GraphQLObjectType({
       async resolve(parent, args) {
         const songList = await Songs.find({ album: parent.name });
         return songList;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 
 const AttractionsType = new GraphQLObjectType({
@@ -62,9 +62,9 @@ const AttractionsType = new GraphQLObjectType({
         const city = await Cities.findOne({ city: parent.city });
         const country = await Countries.findOne({ country: city.country });
         return country;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 
 const CityType = new GraphQLObjectType({
@@ -78,9 +78,9 @@ const CityType = new GraphQLObjectType({
       async resolve(parent, args) {
         const attractions = await Attractions.find({ city: parent.name });
         return attractions;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 
 const CountryType = new GraphQLObjectType({
@@ -93,9 +93,9 @@ const CountryType = new GraphQLObjectType({
       async resolve(parent, args) {
         const citiesList = await Cities.find({ country: parent.name });
         return citiesList;
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 
 const SongType = new GraphQLObjectType({
@@ -103,8 +103,8 @@ const SongType = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLID },
     name: { type: GraphQLString },
-    artist: { type: ArtistType }
-  })
+    artist: { type: ArtistType },
+  }),
 });
 
 const RootQuery = new GraphQLObjectType({
@@ -116,7 +116,7 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const song = Songs.findOne({ name: args.name });
         return song;
-      }
+      },
     },
     album: {
       type: AlbumType,
@@ -124,7 +124,7 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const album = Album.findOne({ name: args.name });
         return album;
-      }
+      },
     },
     artist: {
       type: ArtistType,
@@ -132,7 +132,7 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const artist = await Artist.findOne({ name: args.name });
         return artist;
-      }
+      },
     },
     country: {
       type: CountryType,
@@ -140,7 +140,7 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const country = await Countries.findOne({ name: args.name });
         return country;
-      }
+      },
     },
     city: {
       type: CityType,
@@ -148,7 +148,7 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const city = await Cities.findOne({ name: args.name });
         return city;
-      }
+      },
     },
     attractions: {
       type: AttractionsType,
@@ -156,9 +156,9 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent, args) {
         const attractions = await Attractions.findOne({ name: args.name });
         return attractions;
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 const RootMutations = new GraphQLObjectType({
@@ -169,16 +169,16 @@ const RootMutations = new GraphQLObjectType({
       args: {
         name: { type: GraphQLString },
         album: { type: GraphQLString },
-        artist: { type: GraphQLString }
+        artist: { type: GraphQLString },
       },
       async resolve(parent, args) {
         const song = await Songs.create({
           name: args.name,
           album: args.album,
-          artist: args.artist
+          artist: args.artist,
         });
         return song;
-      }
+      },
     },
     addAttraction: {
       type: AttractionsType,
@@ -188,7 +188,7 @@ const RootMutations = new GraphQLObjectType({
         if (checkCity) {
           const newAttraction = await Attractions.create({
             name: args.name,
-            city: args.city
+            city: args.city,
           });
           return newAttraction;
         } else {
@@ -196,11 +196,11 @@ const RootMutations = new GraphQLObjectType({
             `City not found in database, add city and country first.`,
             {
               code: 'COST_LIMIT_EXCEEDED',
-              http: { status: 406 }
+              http: { status: 406 },
             }
           );
         }
-      }
+      },
     },
     addCity: {
       type: CityType,
@@ -210,11 +210,11 @@ const RootMutations = new GraphQLObjectType({
         if (checkCountry) {
           const newCity = await Cities.create({
             name: args.name,
-            country: args.country
+            country: args.country,
           });
           return newCity;
         }
-      }
+      },
     },
     deleteCity: {
       type: CityType,
@@ -224,7 +224,7 @@ const RootMutations = new GraphQLObjectType({
         if (findCity) {
           await Cities.deleteOne({ name: args.name });
         }
-      }
+      },
     },
     addCountry: {
       type: CountryType,
@@ -232,13 +232,13 @@ const RootMutations = new GraphQLObjectType({
       async resolve(parent, args) {
         const country = await Countries.create({ name: args.name });
         return country;
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 module.exports = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,
-  types: [ArtistType, AlbumType, SongType]
+  types: [ArtistType, AlbumType, SongType],
 });

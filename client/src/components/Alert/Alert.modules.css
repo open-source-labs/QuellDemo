@@ -1,0 +1,20 @@
+#container {
+  position: fixed;
+  bottom: 3vh;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  left: 50%;
+  height: 70%;
+  margin-bottom: 0.1vh;
+}
+
+.alert {
+  border: 0.5;
+  height: 45;
+  display: flex;
+  align-items: center;
+  width: 175;
+  position: fixed;
+}

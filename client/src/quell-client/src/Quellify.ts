@@ -183,7 +183,9 @@ async function Quellify(
       // add new data to lokiCache
       if (parsedData !== null && parsedData.queryResponse) {
         if ((parsedData.queryResponse as JSONObject).data) {
-          const addedEntry = lokiCache.insert((parsedData.queryResponse as JSONObject).data);
+          const addedEntry = lokiCache.insert(
+            (parsedData.queryResponse as JSONObject).data
+          );
           console.log('addedEntry: ', addedEntry);
           // add query $loki ID to IDcache at query key
           IDCache[query] = addedEntry.$loki;

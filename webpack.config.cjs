@@ -6,14 +6,13 @@ module.exports = {
   mode: 'production',
   output: {
     path: path.join(__dirname, '/dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
   },
 
   plugins: [
     new HTMLWebpackPlugin({
-      template: './client/src/index.html'
-      // favicon: `./client/src/favicon.ico`,
-    })
+      template: './client/src/index.html',
+    }),
   ],
 
   module: {
@@ -24,9 +23,9 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/env', '@babel/react']
-          }
-        }
+            presets: ['@babel/env', '@babel/react'],
+          },
+        },
       },
       {
         test: /\.tsx?$/,
@@ -37,41 +36,41 @@ module.exports = {
             presets: [
               '@babel/preset-env',
               ['@babel/preset-react', { runtime: 'automatic' }],
-              '@babel/preset-typescript'
-            ]
-          }
-        }
+              '@babel/preset-typescript',
+            ],
+          },
+        },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.(jpe?g|png|gif|svg|ico)$/i,
-        use: ['file-loader']
-      }
-    ]
+        use: ['file-loader'],
+      },
+    ],
   },
   devServer: {
     static: {
       publicPath: '/dist',
-      directory: path.resolve(__dirname, 'dist')
+      directory: path.resolve(__dirname, 'dist'),
     },
     proxy: {
       '/api': 'http://localhost:3000',
       '/api/graphql': 'http://localhost:3000',
       '/api/clearCache': 'http://localhost:3000/',
-      '/api/redis': 'http://localhost:3000/'
+      '/api/redis': 'http://localhost:3000/',
     },
-    client: { overlay: false }
+    client: { overlay: false },
   },
   performance: {
-    hints: false
+    hints: false,
   },
   resolve: {
     fallback: {
-      fs: false
+      fs: false,
     },
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.react.js']
-  }
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.react.js'],
+  },
 };
