@@ -242,7 +242,7 @@ export class QuellCache implements QuellCache {
         log: 'Error: no GraphQL query found on request body',
         status: 400,
         message: {
-          err: 'GraphQL query Error: Check server log for more details.'
+          err: 'Error in quellCache.query: Check server log for more details.'
         }
       };
       return next(err);
@@ -1587,7 +1587,7 @@ export class QuellCache implements QuellCache {
             log: `Error inside catch block of getRedisValues, ${error}`,
             status: 400,
             message: {
-              error:
+              err:
                 'Error in redis - getRedisValues. Check server log for more details.'
             }
           };
@@ -1656,7 +1656,7 @@ export class QuellCache implements QuellCache {
           log: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.`,
           status: 413,
           message: {
-            err: 'Error in middleware function: determineDepth. Check server log for more details.'
+            err: 'Error in QuellCache.determineDepth. Check server log for more details.'
           }
         };
         res.locals.queryErr = err;
@@ -1701,7 +1701,7 @@ export class QuellCache implements QuellCache {
         log: 'Invalid request, no query found in req.body',
         status: 400,
         message: {
-          err: 'Error in middleware function: costLimit. Check server log for more details.'
+          err: 'Error in QuellCache.costLimit. Check server log for more details.'
         }
       };
       return next(err);
@@ -1709,11 +1709,20 @@ export class QuellCache implements QuellCache {
     // assign graphQL query string to variable queryString
     const queryString: string = req.body.query;
     // create AST
-    const AST: DocumentNode = parse(queryString);
+    // Create the abstract syntax tree with graphql-js parser.
+    // If depthLimit was included before costLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+    const AST: DocumentNode = res.locals.AST
+      ? res.locals.AST
+      : parse(queryString);
 
     // create response prototype, and operation type, and fragments object
     // the response prototype is used as a template for most operations in quell including caching, building modified requests, and more
-    const { proto, operationType, frags } = parseAST(AST);
+    const {
+      proto,
+      operationType,
+      frags
+    }: { proto: ProtoObjType; operationType: string; frags: FragsType } =
+      res.locals.parsedAST ?? parseAST(AST);
     // check for fragments
     const prototype =
       Object.keys(frags).length > 0
@@ -1738,7 +1747,7 @@ export class QuellCache implements QuellCache {
           log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`,
           status: 413,
           message: {
-            err: 'Error in middleware function: determineCost. Check server log for more details.'
+            err: 'Error in costLimit.determineCost(helper). Check server log for more details.'
           }
         };
         res.locals.queryErr = err;
@@ -1777,7 +1786,7 @@ export class QuellCache implements QuellCache {
           log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`,
           status: 413,
           message: {
-            err: 'Error in middleware function: determineDepthCost. Check server log for more details.'
+            err: 'Error in costLimit.determineDepthCost(helper). Check server log for more details.'
           }
         };
         res.locals.queryErr = err;
