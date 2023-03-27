@@ -30,10 +30,42 @@ import SarahC from '../assets/images/profile_pics/QUELL-headshot w border-SarahC
 import HannahS from '../assets/images/profile_pics/QUELL-headshot w border-HannahS.png';
 import KatieS from '../assets/images/profile_pics/QUELL-headshot w border-KatieS.png';
 import Garik from '../assets/images/profile_pics/QUELL-headshot w border-GarikA.png';
+import AngeloC from '../assets/images/profile_pics/QUELL-headshot w border-Angelo.png';
+import EmilyH from '../assets/images/profile_pics/QUELL-headshot w border-EmilyH.png';
+import KeelyT from '../assets/images/profile_pics/QUELL-headshot w border-Keely.png';
+import YusufB from '../assets/images/profile_pics/QUELL-headshot w border-Yusuf.png';
 
 /* 
   Reusable component to generate each team member
 */
+const ANGELOC = {
+  name: 'Angelo Chengcuenca',
+  src: AngeloC,
+  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
+  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
+  github: 'https://github.com/amchengcuenca',
+};
+const EMILYH = {
+  name: 'Emily Hoang',
+  src: EmilyH,
+  bio: "Emily is a dedicated full-stack developer with a strong background in JavaScript, React, and Node.js. She is dedicated to building efficient and innovative applications that improve users' lives. In her free time, Emily enjoys traveling around the world, listening to audiobooks, and exploring new restaurants and cuisines.",
+  linkedin: 'https://www.linkedin.com/in/emilyhoang',
+  github: 'https://www.github.com/emilythoang',
+};
+const KEELYT = {
+  name: 'Keely Timms',
+  src: KeelyT,
+  bio: "Keely Timms is a versatile full-stack developer who excels in React, SQL, and TypeScript. With a keen eye for detail and a passion for solving complex problems, she enjoys building applications that can make a positive impact on the world. When she's not coding, Keely can be found snowboarding, baking, or playing with her two cats, Oscar and Keety.",
+  linkedin: 'https://www.linkedin.com/in/keelyt/',
+  github: 'https://github.com/keelyt',
+};
+const YUSUFB = {
+  name: 'Yusuf Bhaiyat',
+  src: YusufB,
+  bio: "Yusuf Bhaiyat is a full-stack developer with a strong background in React and Node.js He is dedicated to building efficient and innovative applications that improve users' lives. Yusuf is an active member of the tech community, frequently attending hackathons and meetups to learn and collaborate with other professionals. In his free time, he loves to travel and immerse himself in new cultures and experiences.",
+  linkedin: 'https://www.linkedin.com/in/yusufbhaiyat/',
+  github: 'https://github.com/yusuf-bha',
+};
 const KATIES = {
   name: 'Katie Sandfort',
   src: KatieS,
@@ -259,6 +291,10 @@ const JUSTINJAEGAR = {
   github: 'https://github.com/justinjaeger',
 };
 export const TeamArr = [
+  ANGELOC,
+  EMILYH,
+  KEELYT,
+  YUSUFB,
   KATIES,
   HANNAHS,
   SARAHCYNN,
