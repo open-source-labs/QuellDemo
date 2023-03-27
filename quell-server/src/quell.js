@@ -112,6 +112,15 @@ var QuellCache = /** @class */ (function () {
         this.getRedisValues = this.getRedisValues.bind(this);
         this.redisCache.connect().then(function () {
             console.log('Connected to redisCache');
+        })["catch"](function (error) {
+            var err = {
+                log: "Error when trying to connect to redisCache, ".concat(error),
+                status: 400,
+                message: {
+                    err: 'Could not connect to redisCache. Check server log for more details.'
+                }
+            };
+            console.log(err);
         });
     }
     /**
@@ -129,7 +138,7 @@ var QuellCache = /** @class */ (function () {
     QuellCache.prototype.rateLimiter = function (req, res, next) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var ipRateLimit, ipAddress, currentTimeSeconds, redisIpTimeKey, redisRunQueue, redisResponse, numRequestsString, numRequests, error_1;
+            var ipRateLimit, ipAddress, currentTimeSeconds, redisIpTimeKey, err, redisRunQueue, redisResponse, numRequestsString, numRequests, err, error_1, err;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -139,10 +148,14 @@ var QuellCache = /** @class */ (function () {
                         redisIpTimeKey = "".concat(ipAddress, ":").concat(currentTimeSeconds);
                         // Return an error if no query is found in the request.
                         if (!req.body.query) {
-                            return [2 /*return*/, next({
-                                    status: 400,
-                                    log: 'Error: no GraphQL query found on request body'
-                                })];
+                            err = {
+                                log: 'Error: no GraphQL query found on request body, inside rateLimiter',
+                                status: 400,
+                                message: {
+                                    err: 'Error in rateLimiter: Bad Request. Check server log for more details.'
+                                }
+                            };
+                            return [2 /*return*/, next(err)];
                         }
                         _d.label = 1;
                     case 1:
@@ -159,19 +172,27 @@ var QuellCache = /** @class */ (function () {
                         numRequests = parseInt(numRequestsString, 10);
                         // If the number of requests is greater than the IP rate limit, throw an error.
                         if (numRequests > ipRateLimit) {
-                            return [2 /*return*/, next({
-                                    status: 429,
-                                    log: "Redis cache error: Express error handler caught too many requests from this IP address (".concat(ipAddress, "): limit is: ").concat(ipRateLimit, " requests per second")
-                                })];
+                            err = {
+                                log: "Redis cache error: Express error handler caught too many requests from this IP address (".concat(ipAddress, "): limit is: ").concat(ipRateLimit, " requests per second, inside rateLimiter"),
+                                status: 429,
+                                message: {
+                                    err: 'Error in rateLimiter middleware. Check server log for more details.'
+                                }
+                            };
+                            return [2 /*return*/, next(err)];
                         }
                         console.log("IP ".concat(ipAddress, " made a request. Limit is: ").concat(ipRateLimit, " requests per second. Result: OK."));
                         return [2 /*return*/, next()];
                     case 3:
                         error_1 = _d.sent();
-                        return [2 /*return*/, next({
-                                status: 500,
-                                log: "Redis cache error: ".concat(error_1)
-                            })];
+                        err = {
+                            log: "Catch block in rateLimiter middleware, ".concat(error_1),
+                            status: 500,
+                            message: {
+                                err: 'IPRate Limiting Error. Check server log for more details.'
+                            }
+                        };
+                        return [2 /*return*/, next(err)];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -193,14 +214,21 @@ var QuellCache = /** @class */ (function () {
     QuellCache.prototype.query = function (req, res, next) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var queryString, AST, _b, proto, operationType, frags, redisValue, mutationQueryObject_1, mutationName_1, mutationType_1, mutation, prototype_1, prototypeKeys, cacheResponse_1, mergedResponse_1, queryObject, newQueryString;
+            var err, queryString, AST, _b, proto, operationType, frags, redisValue, mutationQueryObject_1, mutationName_1, mutationType_1, mutation, prototype_1, prototypeKeys, cacheResponse_1, mergedResponse_1, queryObject, newQueryString;
             var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         // handle request without query
                         if (!req.body.query) {
-                            return [2 /*return*/, next({ log: 'Error: no GraphQL query found on request body' })];
+                            err = {
+                                log: 'Error: no GraphQL query found on request body',
+                                status: 400,
+                                message: {
+                                    err: 'GraphQL query Error: Check server log for more details.'
+                                }
+                            };
+                            return [2 /*return*/, next(err)];
                         }
                         queryString = req.body.query;
                         AST = res.locals.AST
@@ -213,7 +241,14 @@ var QuellCache = /** @class */ (function () {
                             res.locals.queryResponse = queryResult;
                             return next();
                         })["catch"](function (error) {
-                            return next("graphql library error: ".concat(error));
+                            var err = {
+                                log: "Error inside catch block of operationType === unQuellable of query, ".concat(error),
+                                status: 400,
+                                message: {
+                                    err: 'GraphQL query Error: Check server log for more details.'
+                                }
+                            };
+                            return next(err);
                         });
                         return [3 /*break*/, 6];
                     case 1:
@@ -223,7 +258,14 @@ var QuellCache = /** @class */ (function () {
                             res.locals.queryResponse = queryResult;
                             return next();
                         })["catch"](function (error) {
-                            return next({ log: 'graphql library error: ', error: error });
+                            var err = {
+                                log: "Error inside catch block of operationType === noID of query, ".concat(error),
+                                status: 400,
+                                message: {
+                                    err: 'GraphQL query Error: Check server log for more details.'
+                                }
+                            };
+                            return next(err);
                         });
                         return [4 /*yield*/, this.getFromRedis(queryString)];
                     case 2:
@@ -242,7 +284,14 @@ var QuellCache = /** @class */ (function () {
                                 _this.writeToCache(queryString, queryResult);
                                 return next();
                             })["catch"](function (error) {
-                                return next("graphql library error: ".concat(error));
+                                var err = {
+                                    log: "Error inside catch block of operationType === noID of query, graphQL query failed, ".concat(error),
+                                    status: 400,
+                                    message: {
+                                        err: 'GraphQL query Error: Check server log for more details.'
+                                    }
+                                };
+                                return next(err);
                             });
                         }
                         return [3 /*break*/, 6];
@@ -280,7 +329,14 @@ var QuellCache = /** @class */ (function () {
                             }
                             return next();
                         })["catch"](function (error) {
-                            return next("graphql library error: ".concat(error));
+                            var err = {
+                                log: "Error inside catch block of operationType === mutation of query, ".concat(error),
+                                status: 400,
+                                message: {
+                                    err: 'GraphQL query (mutation) Error: Check server log for more details.'
+                                }
+                            };
+                            return next(err);
                         });
                         return [3 /*break*/, 6];
                     case 4:
@@ -327,7 +383,14 @@ var QuellCache = /** @class */ (function () {
                                     }
                                 });
                             }); })["catch"](function (error) {
-                                return next({ log: 'graphql library error: ', error: error });
+                                var err = {
+                                    log: "Error inside catch block of operationType === query of query, ".concat(error),
+                                    status: 400,
+                                    message: {
+                                        err: 'GraphQL query Error: Check server log for more details.'
+                                    }
+                                };
+                                return next(err);
                             });
                         }
                         else {
@@ -376,7 +439,7 @@ var QuellCache = /** @class */ (function () {
      */
     QuellCache.prototype.getFromRedis = function (key) {
         return __awaiter(this, void 0, void 0, function () {
-            var lowerKey, redisResult, err_1;
+            var lowerKey, redisResult, error_2, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -389,8 +452,15 @@ var QuellCache = /** @class */ (function () {
                         redisResult = _a.sent();
                         return [2 /*return*/, redisResult];
                     case 2:
-                        err_1 = _a.sent();
-                        console.log('err in getFromRedis: ', err_1);
+                        error_2 = _a.sent();
+                        err = {
+                            log: "Error in QuellCache trying to getFromRedis, ".concat(error_2),
+                            status: 400,
+                            message: {
+                                err: 'Error in getFromRedis. Check server log for more details.'
+                            }
+                        };
+                        console.log('err in getFromRedis: ', err);
                         return [3 /*break*/, 3];
                     case 3: return [2 /*return*/];
                 }
@@ -455,7 +525,7 @@ var QuellCache = /** @class */ (function () {
                                         if (!Array.isArray(itemFromCache[typeKey])) return [3 /*break*/, 7];
                                         redisRunQueue = this_1.redisCache.multi();
                                         _loop_2 = function (i) {
-                                            var getCommandCallback_1, currTypeKey_1, cacheResponseRaw, err_2, cacheResponseRaw, err_3;
+                                            var getCommandCallback_1, currTypeKey_1, cacheResponseRaw, error_3, err, cacheResponseRaw, error_4, err;
                                             return __generator(this, function (_m) {
                                                 switch (_m.label) {
                                                     case 0:
@@ -513,8 +583,15 @@ var QuellCache = /** @class */ (function () {
                                                         });
                                                         return [3 /*break*/, 4];
                                                     case 3:
-                                                        err_2 = _m.sent();
-                                                        console.log("Error in buildFromCache: ".concat(err_2));
+                                                        error_3 = _m.sent();
+                                                        err = {
+                                                            log: "Error inside 1st-catch block of buildFromCache, ".concat(error_3),
+                                                            status: 400,
+                                                            message: {
+                                                                err: 'Error in buildFromCache. Check server log for more details.'
+                                                            }
+                                                        };
+                                                        console.log(err);
                                                         return [3 /*break*/, 4];
                                                     case 4:
                                                         redisRunQueue = this_1.redisCache.multi();
@@ -533,8 +610,15 @@ var QuellCache = /** @class */ (function () {
                                                         });
                                                         return [3 /*break*/, 9];
                                                     case 8:
-                                                        err_3 = _m.sent();
-                                                        console.log("Error in buildFromCache: ".concat(err_3));
+                                                        error_4 = _m.sent();
+                                                        err = {
+                                                            log: "Error inside 2nd-catch block of buildFromCache, ".concat(error_4),
+                                                            status: 400,
+                                                            message: {
+                                                                err: 'Error in buildFromCache. Check server log for more details.'
+                                                            }
+                                                        };
+                                                        console.log(err);
                                                         return [3 /*break*/, 9];
                                                     case 9: return [2 /*return*/];
                                                 }
@@ -888,7 +972,7 @@ var QuellCache = /** @class */ (function () {
      */
     QuellCache.prototype.deleteCacheById = function (key) {
         return __awaiter(this, void 0, void 0, function () {
-            var err_4;
+            var error_5, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -898,8 +982,15 @@ var QuellCache = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 3];
                     case 2:
-                        err_4 = _a.sent();
-                        console.log('err in deleteCacheById: ', err_4);
+                        error_5 = _a.sent();
+                        err = {
+                            log: "Error inside deleteCacheById function, ".concat(error_5),
+                            status: 400,
+                            message: {
+                                err: 'Error in redis - deleteCacheById, Check server log for more details.'
+                            }
+                        };
+                        console.log(err);
                         return [3 /*break*/, 3];
                     case 3: return [2 /*return*/];
                 }
@@ -1336,13 +1427,27 @@ var QuellCache = /** @class */ (function () {
                     };
                     res.locals.redisStats = output;
                     return next();
-                })["catch"](function (err) {
+                })["catch"](function (error) {
+                    var err = {
+                        log: "Error inside catch block of getting info within getStatsFromRedis, ".concat(error),
+                        status: 400,
+                        message: {
+                            err: 'Error in redis - getStatsFromRedis. Check server log for more details.'
+                        }
+                    };
                     return next(err);
                 });
             };
             getStats();
         }
-        catch (err) {
+        catch (error) {
+            var err = {
+                log: "Error inside catch block of getStatsFromRedis, ".concat(error),
+                status: 400,
+                message: {
+                    err: 'Error in redis - getStatsFromRedis. Check server log for more details.'
+                }
+            };
             return next(err);
         }
     };
@@ -1358,7 +1463,14 @@ var QuellCache = /** @class */ (function () {
             .then(function (response) {
             res.locals.redisKeys = response;
             return next();
-        })["catch"](function (err) {
+        })["catch"](function (error) {
+            var err = {
+                log: "Error inside catch block of getRedisKeys, keys potentially undefined, ".concat(error),
+                status: 400,
+                message: {
+                    err: 'Error in redis - getRedisKeys. Check server log for more details.'
+                }
+            };
             return next(err);
         });
     };
@@ -1375,7 +1487,14 @@ var QuellCache = /** @class */ (function () {
                 .then(function (response) {
                 res.locals.redisValues = response;
                 return next();
-            })["catch"](function (err) {
+            })["catch"](function (error) {
+                var err = {
+                    log: "Error inside catch block of getRedisValues, ".concat(error),
+                    status: 400,
+                    message: {
+                        error: 'Error in redis - getRedisValues. Check server log for more details.'
+                    }
+                };
                 return next(err);
             });
         }
@@ -1408,7 +1527,9 @@ var QuellCache = /** @class */ (function () {
                 var err = {
                     log: 'Invalid request, no query found in req.body',
                     status: 400,
-                    message: { err: 'Error in depthLimit' }
+                    message: {
+                        err: 'Error in middleware function: depthLimit. Check server log for more details.'
+                    }
                 };
                 return next(err);
             }
@@ -1436,7 +1557,9 @@ var QuellCache = /** @class */ (function () {
                 var err = {
                     log: "Depth limit exceeded, tried to send query with the depth of ".concat(currentDepth, "."),
                     status: 413,
-                    message: { err: 'Error in determineDepth' }
+                    message: {
+                        err: 'Error in middleware function: determineDepth. Check server log for more details.'
+                    }
                 };
                 res.locals.queryErr = err;
                 return next(err);
@@ -1477,7 +1600,9 @@ var QuellCache = /** @class */ (function () {
             var err = {
                 log: 'Invalid request, no query found in req.body',
                 status: 400,
-                message: { err: 'Error in costLimit' }
+                message: {
+                    err: 'Error in middleware function: costLimit. Check server log for more details.'
+                }
             };
             return next(err);
         }
@@ -1507,7 +1632,9 @@ var QuellCache = /** @class */ (function () {
                 var err = {
                     log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
                     status: 413,
-                    message: { err: 'Error in determineCost' }
+                    message: {
+                        err: 'Error in middleware function: determineCost. Check server log for more details.'
+                    }
                 };
                 res.locals.queryErr = err;
                 return next(err);
@@ -1539,7 +1666,9 @@ var QuellCache = /** @class */ (function () {
                 var err = {
                     log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
                     status: 413,
-                    message: { err: 'Error in determineDepthCost' }
+                    message: {
+                        err: 'Error in middleware function: determineDepthCost. Check server log for more details.'
+                    }
                 };
                 res.locals.queryErr = err;
                 return next(err);
