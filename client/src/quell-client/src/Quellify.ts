@@ -10,6 +10,7 @@ import type {
   FetchObjType,
   JSONObject,
   JSONValue,
+  ClientErrorType
 } from './types';
 const lokidb: Loki = new Loki('client-cache');
 let lokiCache: Collection = lokidb.addCollection('loki-client-cache', {
@@ -64,20 +65,6 @@ async function Quellify(
   query: string,
   costOptions: CostParamsType
 ) {
-  // const performFetch = async (): Promise<JSONValue> => {
-  //   const fetchOptions: FetchObjType = {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify({ query, costOptions })
-  //   };
-  //   const serverResponse: Response = await fetch(endPoint, fetchOptions);
-  //   const parsedData: JSONObject = await serverResponse.json();
-  //   const result: JSONValue = parsedData.queryResponse;
-  //   return result;
-  // };
-
   const postFetch: FetchObjType = {
     method: 'POST',
     headers: {
@@ -94,9 +81,20 @@ async function Quellify(
   };
 
   const performFetch = async <T>(fetchConfig?: FetchObjType): Promise<T> => {
-    return fetch(endPoint, fetchConfig).then<T>((response) => {
-      return response.json();
-    });
+    try {
+      const response = await fetch(endPoint, fetchConfig);
+      return await response.json();
+    } catch (error) {
+      const err: ClientErrorType = {
+        log: `Error when trying to perform fetch to graphQL endpoint: ${error}.`,
+        status: 400,
+        message: {
+          err: 'Error in performFetch. Check server log for more details.'
+        }
+      };
+      console.log('Error when performing Fetch: ', err);
+      throw error;
+    }
   };
 
   // Create AST based on the input query using the parse method available in the graphQL library (further reading: https://en.wikipedia.org/wiki/Abstract_syntax_tree)
@@ -133,19 +131,6 @@ async function Quellify(
       mutationType.includes('delete') ||
       mutationType.includes('remove')
     ) {
-      // assign delete request method
-      // const fetchOptions: FetchObjType = {
-      //   method: 'DELETE',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ query, costOptions })
-      // };
-      // execute initial query
-      // const serverResponse: Response = await fetch(endPoint, fetchOptions);
-      // const parsedData: JSONObject = await serverResponse.json();
-      // const result: JSONValue = parsedData.queryResponse;
-      // clear caches
       const parsedData: JSONObject = await performFetch(deleteFetch);
       const result: JSONValue = parsedData.queryResponse;
       clearCache();

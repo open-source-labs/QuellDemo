@@ -3,7 +3,6 @@ import { parse } from 'graphql/language/parser';
 import { graphql } from 'graphql';
 import type { RedisClientType } from 'redis';
 import { createClient } from 'redis';
-
 import {
   getFieldsMap,
   updateProtoWithFragment,
@@ -121,6 +120,16 @@ export class QuellCache implements QuellCache {
     this.getRedisValues = this.getRedisValues.bind(this);
     this.redisCache.connect().then((): void => {
       console.log('Connected to redisCache');
+    })
+    .catch((error) => {
+      const err: ServerErrorType = {
+        log: `Error when trying to connect to redisCache, ${error}`,
+        status: 400,
+        message: {
+          err: 'Could not connect to redisCache. Check server log for more details.'
+        }
+      };
+      console.log(err);
     });
   }
 
@@ -153,10 +162,14 @@ export class QuellCache implements QuellCache {
 
     // Return an error if no query is found in the request.
     if (!req.body.query) {
-      return next({
-        status: 400, // Bad Request
-        log: 'Error: no GraphQL query found on request body',
-      });
+      const err: ServerErrorType = {
+        log: 'Error: no GraphQL query found on request body, inside rateLimiter',
+        status: 400,
+        message: {
+          err: 'Error in rateLimiter: Bad Request. Check server log for more details.'
+        }
+      };
+      return next(err);
     }
 
     try {
@@ -182,10 +195,14 @@ export class QuellCache implements QuellCache {
 
       // If the number of requests is greater than the IP rate limit, throw an error.
       if (numRequests > ipRateLimit) {
-        return next({
-          status: 429, // Too Many Requests
-          log: `Redis cache error: Express error handler caught too many requests from this IP address (${ipAddress}): limit is: ${ipRateLimit} requests per second`,
-        });
+        const err: ServerErrorType = {
+          log: `Redis cache error: Express error handler caught too many requests from this IP address (${ipAddress}): limit is: ${ipRateLimit} requests per second, inside rateLimiter`,
+          status: 429,
+          message: {
+            err: 'Error in rateLimiter middleware. Check server log for more details.'
+          }
+        };
+        return next(err);
       }
 
       console.log(
@@ -194,10 +211,14 @@ export class QuellCache implements QuellCache {
 
       return next();
     } catch (error) {
-      return next({
-        status: 500, // Internal Server Error
-        log: `Redis cache error: ${error}`,
-      });
+      const err: ServerErrorType = {
+        log: `Catch block in rateLimiter middleware, ${error}`,
+        status: 500,
+        message: {
+          err: 'IPRate Limiting Error. Check server log for more details.'
+        }
+      };
+      return next(err);
     }
   }
 
@@ -217,7 +238,14 @@ export class QuellCache implements QuellCache {
   async query(req: Request, res: Response, next: NextFunction): Promise<void> {
     // handle request without query
     if (!req.body.query) {
-      return next({ log: 'Error: no GraphQL query found on request body' });
+      const err: ServerErrorType = {
+        log: 'Error: no GraphQL query found on request body',
+        status: 400,
+        message: {
+          err: 'Error in quellCache.query: Check server log for more details.'
+        }
+      };
+      return next(err);
     }
 
     // Retrieve GraphQL query string from request body.
@@ -252,7 +280,14 @@ export class QuellCache implements QuellCache {
           return next();
         })
         .catch((error: Error): void => {
-          return next(`graphql library error: ${error}`);
+          const err: ServerErrorType = {
+            log: `Error inside catch block of operationType === unQuellable of query, ${error}`,
+            status: 400,
+            message: {
+              err: 'GraphQL query Error: Check server log for more details.'
+            }
+          };
+          return next(err);
         });
 
       /*
@@ -266,7 +301,14 @@ export class QuellCache implements QuellCache {
           return next();
         })
         .catch((error: Error): void => {
-          return next({ log: 'graphql library error: ', error });
+          const err: ServerErrorType = {
+            log: `Error inside catch block of operationType === noID of query, ${error}`,
+            status: 400,
+            message: {
+              err: 'GraphQL query Error: Check server log for more details.'
+            }
+          };
+          return next(err);
         });
 
       // Check Redis for the query string.
@@ -288,7 +330,14 @@ export class QuellCache implements QuellCache {
             return next();
           })
           .catch((error: Error): void => {
-            return next(`graphql library error: ${error}`);
+            const err: ServerErrorType = {
+              log: `Error inside catch block of operationType === noID of query, graphQL query failed, ${error}`,
+              status: 400,
+              message: {
+                err: 'GraphQL query Error: Check server log for more details.'
+              }
+            };
+            return next(err);
           });
       }
       /*
@@ -338,7 +387,14 @@ export class QuellCache implements QuellCache {
           return next();
         })
         .catch((error: Error): void => {
-          return next(`graphql library error: ${error}`);
+          const err: ServerErrorType = {
+            log: `Error inside catch block of operationType === mutation of query, ${error}`,
+            status: 400,
+            message: {
+              err: 'GraphQL query (mutation) Error: Check server log for more details.'
+            }
+          };
+          return next(err);
         });
     } else {
       /*
@@ -420,7 +476,14 @@ export class QuellCache implements QuellCache {
             return next();
           })
           .catch((error: Error): void => {
-            return next({ log: 'graphql library error: ', error });
+            const err: ServerErrorType = {
+              log: `Error inside catch block of operationType === query of query, ${error}`,
+              status: 400,
+              message: {
+                err: 'GraphQL query Error: Check server log for more details.'
+              }
+            };
+            return next(err);
           });
       } else {
         // If the query object is empty, there is nothing left to query and we can send the information from cache.
@@ -470,7 +533,14 @@ export class QuellCache implements QuellCache {
       const lowerKey: string = key.toLowerCase();
       const redisResult: string | null = await this.redisCache.get(lowerKey);
       return redisResult;
-    } catch (err) {
+    } catch (error) {
+      const err: ServerErrorType = {
+        log: `Error in QuellCache trying to getFromRedis, ${error}`,
+        status: 400,
+        message: {
+          err: 'Error in getFromRedis. Check server log for more details.'
+        }
+      };
       console.log('err in getFromRedis: ', err);
     }
   }
@@ -612,8 +682,15 @@ export class QuellCache implements QuellCache {
                 cacheResponseRaw.forEach((cacheResponse) =>
                   getCommandCallback(JSON.stringify(cacheResponse))
                 );
-              } catch (err: Error | unknown) {
-                console.log(`Error in buildFromCache: ${err}`);
+              } catch (error: Error | unknown) {
+                const err: ServerErrorType = {
+                  log: `Error inside 1st-catch block of buildFromCache, ${error}`,
+                  status: 400,
+                  message: {
+                    err: 'Error in buildFromCache. Check server log for more details.'
+                  }
+                };
+                console.log(err);
               }
               redisRunQueue = this.redisCache.multi();
             }
@@ -627,8 +704,15 @@ export class QuellCache implements QuellCache {
               cacheResponseRaw.forEach((cacheResponse) =>
                 getCommandCallback(JSON.stringify(cacheResponse))
               );
-            } catch (err: Error | unknown) {
-              console.log(`Error in buildFromCache: ${err}`);
+            } catch (error: Error | unknown) {
+              const err: ServerErrorType = {
+                log: `Error inside 2nd-catch block of buildFromCache, ${error}`,
+                status: 400,
+                message: {
+                  err: 'Error in buildFromCache. Check server log for more details.'
+                }
+              };
+              console.log(err);
             }
           }
         }
@@ -972,8 +1056,15 @@ export class QuellCache implements QuellCache {
   async deleteCacheById(key: string) {
     try {
       await this.redisCache.del(key);
-    } catch (err) {
-      console.log('err in deleteCacheById: ', err);
+    } catch (error) {
+      const err: ServerErrorType = {
+        log: `Error inside deleteCacheById function, ${error}`,
+        status: 400,
+        message: {
+          err: 'Error in redis - deleteCacheById, Check server log for more details.'
+        }
+      };
+      console.log(err);
     }
   }
 
@@ -1427,13 +1518,27 @@ export class QuellCache implements QuellCache {
             res.locals.redisStats = output;
             return next();
           })
-          .catch((err: ServerErrorType) => {
+          .catch((error: ServerErrorType) => {
+            const err: ServerErrorType = {
+              log: `Error inside catch block of getting info within getStatsFromRedis, ${error}`,
+              status: 400,
+              message: {
+                err: 'Error in redis - getStatsFromRedis. Check server log for more details.'
+              }
+            };
             return next(err);
           });
       };
 
       getStats();
-    } catch (err) {
+    } catch (error) {
+      const err: ServerErrorType = {
+        log: `Error inside catch block of getStatsFromRedis, ${error}`,
+        status: 400,
+        message: {
+          err: 'Error in redis - getStatsFromRedis. Check server log for more details.'
+        }
+      };
       return next(err);
     }
   }
@@ -1451,7 +1556,14 @@ export class QuellCache implements QuellCache {
         res.locals.redisKeys = response;
         return next();
       })
-      .catch((err: ServerErrorType) => {
+      .catch((error: ServerErrorType) => {
+        const err: ServerErrorType = {
+          log: `Error inside catch block of getRedisKeys, keys potentially undefined, ${error}`,
+          status: 400,
+          message: {
+            err: 'Error in redis - getRedisKeys. Check server log for more details.'
+          }
+        };
         return next(err);
       });
   }
@@ -1470,7 +1582,15 @@ export class QuellCache implements QuellCache {
           res.locals.redisValues = response;
           return next();
         })
-        .catch((err: ServerErrorType) => {
+        .catch((error: ServerErrorType) => {
+          const err: ServerErrorType = {
+            log: `Error inside catch block of getRedisValues, ${error}`,
+            status: 400,
+            message: {
+              err:
+                'Error in redis - getRedisValues. Check server log for more details.'
+            }
+          };
           return next(err);
         });
     } else {
@@ -1502,7 +1622,9 @@ export class QuellCache implements QuellCache {
         const err: ServerErrorType = {
           log: 'Invalid request, no query found in req.body',
           status: 400,
-          message: { err: 'Error in depthLimit' },
+          message: {
+            err: 'Error in middleware function: depthLimit. Check server log for more details.'
+          }
         };
         return next(err);
       }
@@ -1533,7 +1655,9 @@ export class QuellCache implements QuellCache {
         const err: ServerErrorType = {
           log: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.`,
           status: 413,
-          message: { err: 'Error in determineDepth' },
+          message: {
+            err: 'Error in QuellCache.determineDepth. Check server log for more details.'
+          }
         };
         res.locals.queryErr = err;
         return next(err);
@@ -1576,18 +1700,29 @@ export class QuellCache implements QuellCache {
       const err: ServerErrorType = {
         log: 'Invalid request, no query found in req.body',
         status: 400,
-        message: { err: 'Error in costLimit' },
+        message: {
+          err: 'Error in QuellCache.costLimit. Check server log for more details.'
+        }
       };
       return next(err);
     }
     // assign graphQL query string to variable queryString
     const queryString: string = req.body.query;
     // create AST
-    const AST: DocumentNode = parse(queryString);
+    // Create the abstract syntax tree with graphql-js parser.
+    // If depthLimit was included before costLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+    const AST: DocumentNode = res.locals.AST
+      ? res.locals.AST
+      : parse(queryString);
 
     // create response prototype, and operation type, and fragments object
     // the response prototype is used as a template for most operations in quell including caching, building modified requests, and more
-    const { proto, operationType, frags } = parseAST(AST);
+    const {
+      proto,
+      operationType,
+      frags
+    }: { proto: ProtoObjType; operationType: string; frags: FragsType } =
+      res.locals.parsedAST ?? parseAST(AST);
     // check for fragments
     const prototype =
       Object.keys(frags).length > 0
@@ -1611,7 +1746,9 @@ export class QuellCache implements QuellCache {
         const err: ServerErrorType = {
           log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`,
           status: 413,
-          message: { err: 'Error in determineCost' },
+          message: {
+            err: 'Error in costLimit.determineCost(helper). Check server log for more details.'
+          }
         };
         res.locals.queryErr = err;
         return next(err);
@@ -1648,7 +1785,9 @@ export class QuellCache implements QuellCache {
         const err: ServerErrorType = {
           log: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`,
           status: 413,
-          message: { err: 'Error in determineDepthCost' },
+          message: {
+            err: 'Error in costLimit.determineDepthCost(helper). Check server log for more details.'
+          }
         };
         res.locals.queryErr = err;
         return next(err);
