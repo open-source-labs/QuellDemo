@@ -45,6 +45,11 @@ const Demo = memo(() => {
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
+    // Clear both cache on the toggle event
+    clearLokiCache();
+    fetch('/api/clearCache').then((res) =>
+      console.log('Cleared Server Cache!')
+    );
     setIsToggled(event.target.checked);
   }
 
@@ -168,7 +173,6 @@ function QueryDemo({
   }
 
   function submitServerQuery() {
-    clearLokiCache();
     const startTime = new Date().getTime();
     const fetchOptions = {
       method: 'POST',
