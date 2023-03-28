@@ -26,7 +26,7 @@ import type {
   InterfaceTypeExtensionNode,
   UnionTypeExtensionNode,
   EnumTypeExtensionNode,
-  InputObjectTypeExtensionNode,
+  InputObjectTypeExtensionNode
 } from 'graphql';
 
 export interface ProtoObjType {
@@ -96,13 +96,13 @@ export interface FieldsObjectType {
 }
 
 export interface CostParamsType {
-  maxCost?: number;
-  mutationCost?: number;
-  objectCost?: number;
-  scalarCost?: number;
-  depthCostFactor?: number;
-  maxDepth?: number;
-  ipRate?: number;
+  maxCost: number;
+  mutationCost: number;
+  objectCost: number;
+  scalarCost: number;
+  depthCostFactor: number;
+  maxDepth: number;
+  ipRate: number;
 }
 
 export interface IDLokiCacheType {
