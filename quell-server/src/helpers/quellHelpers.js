@@ -72,7 +72,7 @@ function createQueryStr(queryObject, operationType) {
      * Helper function that iterates through arguments object for current field and creates
      * an argument string to attach to the query string.
      * @param {QueryFields} fields - Object whose arguments will be attached to the query string.
-     * @returns {string} - Argument string to be attached to the query string.
+     * @returns {string} Argument string to be attached to the query string.
      */
     function getArgs(fields) {
         var argString = '';
@@ -89,7 +89,7 @@ function createQueryStr(queryObject, operationType) {
     /**
      * Helper function that formats the field's alias, if it exists, for the query string.
      * @param {QueryFields} fields - Object whose alias will be attached to the query string.
-     * @returns {string} - Alias string to be attached to the query string.
+     * @returns {string} Alias string to be attached to the query string.
      */
     function getAliasType(fields) {
         return fields.__alias ? ": ".concat(fields.__type) : '';
@@ -119,7 +119,7 @@ function createQueryObj(map) {
      * Takes in a fields object and returns only the values needed from the server.
      * @param {Object} fields - Object containing true or false values that determines what should be
      * retrieved from the server.
-     * @returns {Object} - Filtered object of only queries without a value or an empty object.
+     * @returns {Object} Filtered object of only queries without a value or an empty object.
      */
     function reducer(fields) {
         // Create a filter object to store values needed from server.

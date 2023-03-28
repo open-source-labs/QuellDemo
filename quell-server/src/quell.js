@@ -429,7 +429,7 @@ var QuellCache = /** @class */ (function () {
     /**
      * Reads from Redis cache and returns a promise (Redis v4 natively returns a promise).
      * @param {string} key - The key for Redis lookup.
-     * @returns {Promise} - A promise representing the value from the redis cache with the provided key.
+     * @returns {Promise} A promise representing the value from the redis cache with the provided key.
      */
     QuellCache.prototype.getFromRedis = function (key) {
         return __awaiter(this, void 0, void 0, function () {
