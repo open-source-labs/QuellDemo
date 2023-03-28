@@ -66,7 +66,7 @@ Quellify('/graphQL', sampleQuery, costOptions)
   .then( /* use parsed response */ );
 ```
 
-Note: Quell will return a promise that resolves into a JS object containing your data in the same form as a typical GraphQL response `{ data: // response }`
+Note: Quell will return a promise that resolves into an array with two elements. The first element will be a JS object containing your data; this is in the same form as the response found on the 'data' key of a typical GraphQL response `{ data: // response }`. The second element will be a boolean indicating whether or not the data was found in the client-side cache.
 
 That's it! You're now caching your GraphQL queries in the LokiJS client-side cache storage.
 
