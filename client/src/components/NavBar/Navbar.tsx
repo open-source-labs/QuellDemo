@@ -1,5 +1,5 @@
 import { StyledEngineProvider } from '@mui/material/styles';
-import styles from './NavBar.modules.css';
+import styles from './Navbar.modules.css';
 import { Dispatch, useEffect, useState, SetStateAction } from 'react';
 import {
   Button,
