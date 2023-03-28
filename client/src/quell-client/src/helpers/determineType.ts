@@ -29,8 +29,6 @@ export default function determineType(AST: ASTNode): {
   operationType: string;
   proto: ProtoObjType;
 } {
-  console.log('Parsing Abstract Syntax Tree to determine type of operation');
-
   // initialize prototype as empty object
   // information from AST is distilled into the prototype for easy access during caching, rebuilding query strings, etc.
   const proto: ProtoObjType = {};

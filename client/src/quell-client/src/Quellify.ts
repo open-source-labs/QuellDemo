@@ -151,7 +151,6 @@ async function Quellify(
     // if the request is a query
     // check IDCache with query, if query returns the $loki ID, find the results for searching the LokiDBCache
     // lokiCache to see if this call has a $loki associated with it. if so, retrieve and return it
-    console.log('inside query block');
     if (IDCache[query]) {
       // grab the $loki ID from the IDCache
 
