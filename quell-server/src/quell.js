@@ -52,6 +52,11 @@ var parser_1 = require("graphql/language/parser");
 var graphql_1 = require("graphql");
 var redis_1 = require("redis");
 var quellHelpers_1 = require("./helpers/quellHelpers");
+/*
+ * Note: This file is identical to the main quell-server file, except that the
+ * rateLimiter, depthLimit, and costLimit have been modified to allow the limits
+ * to be set in the request body to allow for demoing these features.
+*/
 var defaultCostParams = {
     maxCost: 5000,
     mutationCost: 5,
@@ -59,31 +64,41 @@ var defaultCostParams = {
     scalarCost: 1,
     depthCostFactor: 1.5,
     maxDepth: 10,
-    ipRate: 3
+    ipRate: 3 // requests allowed per second
 };
 var idCache = {};
 /**
  * Creates a QuellCache instance that provides middleware for caching between the graphQL endpoint and
  * front-end requests, connects to redis cloud store via user-specified parameters.
- *    - it takes in a schema, redis specifications grouped into an object, cache expiration time in seconds,
- *    and cost parameters as an object
- *    - if there is no cache expiration provided by the user, cacheExpiration defaults to 14 days in seconds,
- *    - if there are no cost parameters provided by the user, costParameters is given the default values
- *    found in defaultCostParameters
- *  @param {Object} schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
- *  mutations, and fields
- *  @param {Number} cacheExpiration - Time in seconds for redis values to be evicted from the cache
- *  @param {Object} costParameters - An object with key-pair values for maxCost, mutationCost, objectCost,
- *  scalarCost, depthCostFactor, maxDepth, ipRate
- *  @param {Number} redisPort - Redis port that Quell uses to facilitate caching
- *  @param {String} redisHost - Redis host URI
- *  @param {String} redisPassword - Redis password to host URI
+ *    - If there is no cache expiration provided by the user, cacheExpiration defaults to 14 days in seconds.
+ *    - If there are no cost parameters provided by the user, costParameters is given the default values.
+ *    - If redisPort, redisHost, and redisPassword are omitted, will use local Redis instance.
+ *     See https://redis.io/docs/getting-started/installation/ for instructions on installing Redis and starting a Redis server.
+ *  @param {ConstructorOptions} options - The options to use for the cache.
+ *  @param {GraphQLSchema} options.schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
+ *  mutations, and fields.
+ *  @param {number} [options.cacheExpiration=1209600] - Time in seconds for redis values to be evicted from the cache. Defaults to 14 days.
+ *  @param {CostParamsType} [options.costParameters=defaultCostParams] - The cost parameters to use for caching. Defaults to:
+ *    - maxCost: 5000 (maximum cost allowed before a request is rejected)
+ *    - mutationCost: 5 (cost of a mutation)
+ *    - objectCost: 2 (cost of retrieving an object)
+ *    - scalarCost: 1 (cost of retrieving a scalar)
+ *    - depthCostFactor: 1.5 (multiplicative cost of each depth level)
+ *    - maxDepth: 10 (depth limit parameter)
+ *    - ipRate: 3 (requests allowed per second)
+ *  @param {number} options.redisPort - (optional) The Redis port to connect to.
+ *  @param {string} options.redisHost - (optional) The Redis host URI to connect to.
+ *  @param {string} options.redisPassword - (optional) The Redis password to the host URI.
+ *  @example // Omit redisPort, redisHost, and redisPassword to use a local Redis instance.
+ *  const quellCache = new QuellCache({
+ *    schema: schema,
+ *    cacheExpiration: 3600, // 1 hour in seconds
+ *    });
  */
-// default host is localhost, default expiry time is 14 days in milliseconds
 var QuellCache = /** @class */ (function () {
     function QuellCache(_a) {
-        var schema = _a.schema, _b = _a.cacheExpiration, cacheExpiration = _b === void 0 ? 1209600 : _b, // default expiry time is 14 days in milliseconds;
-        _c = _a.costParameters, // default expiry time is 14 days in milliseconds;
+        var schema = _a.schema, _b = _a.cacheExpiration, cacheExpiration = _b === void 0 ? 1209600 : _b, // Default expiry time is 14 days in seconds
+        _c = _a.costParameters, // Default expiry time is 14 days in seconds
         costParameters = _c === void 0 ? defaultCostParams : _c, redisPort = _a.redisPort, redisHost = _a.redisHost, redisPassword = _a.redisPassword;
         this.idCache = idCache;
         this.schema = schema;
@@ -110,7 +125,9 @@ var QuellCache = /** @class */ (function () {
         this.getRedisInfo = this.getRedisInfo.bind(this);
         this.getRedisKeys = this.getRedisKeys.bind(this);
         this.getRedisValues = this.getRedisValues.bind(this);
-        this.redisCache.connect().then(function () {
+        this.redisCache
+            .connect()
+            .then(function () {
             console.log('Connected to redisCache');
         })["catch"](function (error) {
             var err = {
@@ -124,16 +141,12 @@ var QuellCache = /** @class */ (function () {
         });
     }
     /**
-     * A redis-based IP rate limiter method. It:
-     *    - receives the ipRate in requests per second from the request object on the front-end,
-     *    - if there is no ipRate set on front-end, it'll default to the value in the defaultCostParameters,
-     *    - creates a key using the IP address and current time in seconds,
-     *    - increments the value at this key for each new call received,
-     *    - if the value of calls is greater than the ipRate limit, it will not process the query,
-     *    - keys are set to expire after 1 second
-     *  @param {Object} req - Express request object, including request body with GraphQL query string
-     *  @param {Object} res - Express response object, will carry query response to next middleware
-     *  @param {Function} next - Express next middleware function, invoked when QuellCache completes its work
+     * A redis-based IP rate limiter middleware function that limits the number of requests per second based on IP address using Redis.
+     *  @param {Request} req - Express request object, including request body with GraphQL query string.
+     *  @param {Response} res - Express response object, will carry query response to next middleware.
+     *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
+     *  @returns {void} Passes an error to Express if no query was included in the request or if the number of requests by the current IP
+     *  exceeds the IP rate limit.
      */
     QuellCache.prototype.rateLimiter = function (req, res, next) {
         var _a, _b, _c;
@@ -146,7 +159,7 @@ var QuellCache = /** @class */ (function () {
                         ipAddress = req.ip;
                         currentTimeSeconds = Math.floor(Date.now() / 1000);
                         redisIpTimeKey = "".concat(ipAddress, ":").concat(currentTimeSeconds);
-                        // Return an error if no query is found in the request.
+                        // Return an error if no query is found on the request.
                         if (!req.body.query) {
                             err = {
                                 log: 'Error: no GraphQL query found on request body, inside rateLimiter',
@@ -207,9 +220,9 @@ var QuellCache = /** @class */ (function () {
      *    - joins the cached and uncached responses,
      *    - decomposes and caches the joined query, and
      *    - attaches the joined response to the response object before passing control to the next middleware.
-     *  @param {Object} req - Express request object, including request body with GraphQL query string
-     *  @param {Object} res - Express response object, will carry query response to next middleware
-     *  @param {Function} next - Express next middleware function, invoked when QuellCache completes its work
+     *  @param {Request} req - Express request object, including request body with GraphQL query string.
+     *  @param {Response} res - Express response object, will carry query response to next middleware.
+     *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
      */
     QuellCache.prototype.query = function (req, res, next) {
         var _a;
@@ -219,13 +232,13 @@ var QuellCache = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        // handle request without query
+                        // Return an error if no query is found on the request.
                         if (!req.body.query) {
                             err = {
                                 log: 'Error: no GraphQL query found on request body',
                                 status: 400,
                                 message: {
-                                    err: 'GraphQL query Error: Check server log for more details.'
+                                    err: 'Error in quellCache.query: Check server log for more details.'
                                 }
                             };
                             return [2 /*return*/, next(err)];
@@ -236,6 +249,10 @@ var QuellCache = /** @class */ (function () {
                             : (0, parser_1.parse)(queryString);
                         _b = (_a = res.locals.parsedAST) !== null && _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST), proto = _b.proto, operationType = _b.operationType, frags = _b.frags;
                         if (!(operationType === 'unQuellable')) return [3 /*break*/, 1];
+                        /*
+                         * If the operation is unQuellable (cannot be cached), execute the operation,
+                         * add the result to the response, and return.
+                         */
                         (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
@@ -253,6 +270,12 @@ var QuellCache = /** @class */ (function () {
                         return [3 /*break*/, 6];
                     case 1:
                         if (!(operationType === 'noID')) return [3 /*break*/, 3];
+                        /*
+                         * If ID was not included in the query, it will not be included in the cache. Execute the GraphQL
+                         * operation without writing the result to cache and return.
+                         */
+                        // FIXME: Can possibly modify query to ALWAYS have an ID but not necessarily return it back to client
+                        // unless they also queried for it.
                         (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
@@ -270,8 +293,8 @@ var QuellCache = /** @class */ (function () {
                         return [4 /*yield*/, this.getFromRedis(queryString)];
                     case 2:
                         redisValue = _c.sent();
-                        // If the query string is found in Redis, add the result to the response and return.
                         if (redisValue != null) {
+                            // If the query string is found in Redis, add the result to the response and return.
                             redisValue = JSON.parse(redisValue);
                             res.locals.queriesResponse = redisValue;
                             return [2 /*return*/, next()];
@@ -297,10 +320,8 @@ var QuellCache = /** @class */ (function () {
                         return [3 /*break*/, 6];
                     case 3:
                         if (!(operationType === 'mutation')) return [3 /*break*/, 4];
-                        /*
-                         * Currently clearing the cache on mutation because it is stale.
-                         * We should instead be updating the cache following a mutation.
-                         */
+                        // TODO: If the operation is a mutation, we are currently clearing the cache because it is stale.
+                        // The goal would be to instead have a normalized cache and update the cache following a mutation.
                         this.redisCache.flushAll();
                         idCache = {};
                         mutationName_1 = '';
@@ -316,8 +337,6 @@ var QuellCache = /** @class */ (function () {
                                 break;
                             }
                         }
-                        //Can possibly modify query to ALWAYS have an ID but not necessarily return it back to client
-                        // unless they also queried for it.
                         // Execute the operation and add the result to the response.
                         (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
                             .then(function (databaseResponse) {
@@ -408,34 +427,9 @@ var QuellCache = /** @class */ (function () {
         });
     };
     /**
-     * UpdateIdCache:
-     *    - stores keys in a nested object under parent name
-     *    - if the key is a duplication, they are stored in an array
-     *  @param {String} objKey - Object key; key to be cached without ID string
-     *  @param {String} keyWithID - Key to be cached with ID string attatched; redis data is stored under this key
-     *  @param {String} currName - The parent object name
-     */
-    QuellCache.prototype.updateIdCache = function (objKey, keyWithID, currName) {
-        // BUG: Add check - If any of the arguments are missing, return immediately.
-        // Currently, if currName is undefined, this function is adding 'undefined' as a
-        // key in the idCache.
-        // if the parent object is not yet defined
-        if (!idCache[currName]) {
-            idCache[currName] = {};
-            idCache[currName][objKey] = keyWithID;
-            return;
-        }
-        // if parent obj is defined, but this is the first child key
-        else if (!idCache[currName][objKey]) {
-            idCache[currName][objKey] = [];
-        }
-        // update ID cache under key of currName in an array
-        idCache[currName][objKey].push(keyWithID);
-    };
-    /**
-     * getFromRedis reads from Redis cache and returns a promise (Redis v4 natively returns a promise).
-     * @param {String} key - the key for Redis lookup
-     * @returns {Promise} A promise representing the value from the redis cache with the provided key
+     * Reads from Redis cache and returns a promise (Redis v4 natively returns a promise).
+     * @param {string} key - The key for Redis lookup.
+     * @returns {Promise} A promise representing the value from the redis cache with the provided key.
      */
     QuellCache.prototype.getFromRedis = function (key) {
         return __awaiter(this, void 0, void 0, function () {
@@ -468,14 +462,15 @@ var QuellCache = /** @class */ (function () {
         });
     };
     /**
-     * buildFromCache finds any requested information in the cache and assembles it on the cacheResponse
-     * uses the prototype as a template for cacheResponse, marks any data not found in the cache on the prototype for future retrieval from database
-     * @param {Object} prototype - unique id under which the cached data will be stored
-     * @param {Array} prototypeKeys - keys in the prototype
-     * @param {Object} itemFromCache - item to be cached
-     * @param {boolean} firstRun - boolean indicated if this is the first run
-     * @param {boolean|string} subID - used to pass id to recursive calls
-     * @returns {Object} cacheResponse, mutates prototype
+     * Finds any requested information in the cache and assembles it on the cacheResponse.
+     * Uses the prototype as a template for cacheResponse and marks any data not found in the cache
+     * on the prototype for future retrieval from database.
+     * @param {Object} prototype - Unique id under which the cached data will be stored.
+     * @param {Array} prototypeKeys - Keys in the prototype.
+     * @param {Object} itemFromCache - Item to be cached.
+     * @param {boolean} firstRun - Boolean indicated if this is the first run.
+     * @param {boolean|string} subID - Used to pass id to recursive calls.
+     * @returns {Object} cacheResponse, mutates prototype.
      */
     QuellCache.prototype.buildFromCache = function (prototype, prototypeKeys, itemFromCache, firstRun, subID) {
         var _a, _b;
@@ -494,20 +489,22 @@ var QuellCache = /** @class */ (function () {
                                 switch (_l.label) {
                                     case 0:
                                         if (!prototypeKeys.includes(typeKey)) return [3 /*break*/, 2];
-                                        cacheID = this_1.generateCacheID(prototype[typeKey]);
-                                        keyName = void 0;
+                                        cacheID = void 0;
                                         if (typeof subID === 'string') {
+                                            // Use the subID argument if it is a string (used for recursive calls within buildFromCache).
                                             cacheID = subID;
                                         }
-                                        // let cacheID: string = subID || this.generateCacheID(prototype[typeKey]);
-                                        // value won't always be at .name on the args object
+                                        else {
+                                            cacheID = this_1.generateCacheID(prototype[typeKey]);
+                                        }
+                                        keyName = void 0;
+                                        // Value won't always be at .name on the args object
                                         if (((_a = prototype[typeKey]) === null || _a === void 0 ? void 0 : _a.__args) === null) {
                                             keyName = undefined;
                                         }
                                         else {
                                             keyName = Object.values((_b = prototype[typeKey]) === null || _b === void 0 ? void 0 : _b.__args)[0];
                                         }
-                                        // is this also redundent
                                         if (idCache[keyName] && idCache[keyName][cacheID]) {
                                             cacheID = idCache[keyName][cacheID];
                                         }
@@ -535,19 +532,18 @@ var QuellCache = /** @class */ (function () {
                                                             if (cacheResponse) {
                                                                 var interimCache = JSON.parse(cacheResponse);
                                                                 var _loop_3 = function (property) {
-                                                                    // if property exists, set on tempObj
+                                                                    // If property exists, set on tempObj
                                                                     if (Object.prototype.hasOwnProperty.call(interimCache, property) &&
                                                                         !property.includes('__')) {
                                                                         tempObj[property] = interimCache[property];
                                                                     }
-                                                                    // if prototype is nested at this field, recurse
+                                                                    // If prototype is nested at this field, recurse
                                                                     else if (!property.includes('__') &&
                                                                         typeof prototype[typeKey][property] ===
                                                                             'object') {
-                                                                        // same as return type for buildfromcache
                                                                         _this.buildFromCache(prototype[typeKey][property], prototypeKeys, {}, false, "".concat(currTypeKey_1, "--").concat(property)).then(function (tempData) { return (tempObj[property] = tempData.data); });
                                                                     }
-                                                                    // if cache does not have property, set to false on prototype so that it is sent to graphQL
+                                                                    // If cache does not have property, set to false on prototype so that it is sent to GraphQL
                                                                     else if (!property.includes('__') &&
                                                                         typeof prototype[typeKey][property] !==
                                                                             'object') {
@@ -559,7 +555,7 @@ var QuellCache = /** @class */ (function () {
                                                                 }
                                                                 itemFromCache[typeKey][i] = tempObj;
                                                             }
-                                                            // if there is nothing in the cache for this key, then toggle all fields to false so it is fetched later
+                                                            // If there is nothing in the cache for this key, toggle all fields to false so they will be fetched later.
                                                             else {
                                                                 for (var property in prototype[typeKey]) {
                                                                     if (!property.includes('__') &&
@@ -597,7 +593,7 @@ var QuellCache = /** @class */ (function () {
                                                         redisRunQueue = this_1.redisCache.multi();
                                                         _m.label = 5;
                                                     case 5:
-                                                        // Otherwise, add a get command for the current type key to the queue.
+                                                        // Add a get command for the current type key to the queue.
                                                         redisRunQueue.get(currTypeKey_1.toLowerCase());
                                                         _m.label = 6;
                                                     case 6:
@@ -638,7 +634,7 @@ var QuellCache = /** @class */ (function () {
                                     case 6: return [3 /*break*/, 17];
                                     case 7:
                                         if (!(firstRun === false)) return [3 /*break*/, 12];
-                                        // if this field is NOT in the cache, then set this field's value to false
+                                        // If this field is not in the cache, then set this field's value to false.
                                         if ((itemFromCache === null ||
                                             !Object.prototype.hasOwnProperty.call(itemFromCache, typeKey)) &&
                                             typeof prototype[typeKey] !== 'object' &&
@@ -675,7 +671,7 @@ var QuellCache = /** @class */ (function () {
                                         _j = _h[_k];
                                         if (!(_j in _g)) return [3 /*break*/, 16];
                                         field = _j;
-                                        // if field is not found in cache then toggle to false
+                                        // If field is not found in cache then toggle to false
                                         if (itemFromCache[typeKey] &&
                                             !Object.prototype.hasOwnProperty.call(itemFromCache[typeKey], field) &&
                                             !field.includes('__') &&
@@ -722,18 +718,123 @@ var QuellCache = /** @class */ (function () {
                         _i++;
                         return [3 /*break*/, 1];
                     case 4: 
-                    // return itemFromCache on a data property to resemble graphQL response format
+                    // Return itemFromCache on a data property to resemble GraphQL response format.
                     return [2 /*return*/, { data: itemFromCache }];
                 }
             });
         });
     };
     /**
-     * helper function
-     * generateCacheID creates cacheIDs based on information from the prototype
-     * format of 'field--ID'
-     * @param {String} key - unique id under which the cached data will be stored
-     * @param {Object} item - item to be cached
+     * Traverses over response data and formats it appropriately so that it can be stored in the cache.
+     * @param {Object} responseData - Data we received from an external source of data such as a database or API.
+     * @param {Object} map - Map of queries to their desired data types, used to ensure accurate and consistent caching.
+     * @param {Object} protoField - Slice of the prototype currently being used as a template and reference for the responseData to send information to the cache.
+     * @param {string} currName - Parent object name, used to pass into updateIDCache.
+     */
+    QuellCache.prototype.normalizeForCache = function (responseData, map, protoField, currName) {
+        if (map === void 0) { map = {}; }
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, _b, _c, _i, resultName, currField, currProto, i, el, dataType, fieldStore, cacheID, _d, _e, _f, _g, key, responseDataAtCacheID, cacheIDForIDCache;
+            var _h, _j, _k, _l;
+            return __generator(this, function (_m) {
+                switch (_m.label) {
+                    case 0:
+                        _a = responseData;
+                        _b = [];
+                        for (_c in _a)
+                            _b.push(_c);
+                        _i = 0;
+                        _m.label = 1;
+                    case 1:
+                        if (!(_i < _b.length)) return [3 /*break*/, 12];
+                        _c = _b[_i];
+                        if (!(_c in _a)) return [3 /*break*/, 11];
+                        resultName = _c;
+                        currField = responseData[resultName];
+                        currProto = protoField[resultName];
+                        if (!Array.isArray(currField)) return [3 /*break*/, 6];
+                        i = 0;
+                        _m.label = 2;
+                    case 2:
+                        if (!(i < currField.length)) return [3 /*break*/, 5];
+                        el = currField[i];
+                        dataType = map[resultName];
+                        if (!(typeof el === 'object' && typeof dataType === 'string')) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.normalizeForCache((_h = {}, _h[dataType] = el, _h), map, (_j = {},
+                                _j[dataType] = currProto,
+                                _j), currName)];
+                    case 3:
+                        _m.sent();
+                        _m.label = 4;
+                    case 4:
+                        i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [3 /*break*/, 11];
+                    case 6:
+                        if (!(typeof currField === 'object')) return [3 /*break*/, 11];
+                        fieldStore = {};
+                        cacheID = Object.prototype.hasOwnProperty.call(map, currProto.__type)
+                            ? map[currProto.__type]
+                            : currProto.__type;
+                        cacheID += currProto.__id ? "--".concat(currProto.__id) : '';
+                        _d = currField;
+                        _e = [];
+                        for (_f in _d)
+                            _e.push(_f);
+                        _g = 0;
+                        _m.label = 7;
+                    case 7:
+                        if (!(_g < _e.length)) return [3 /*break*/, 10];
+                        _f = _e[_g];
+                        if (!(_f in _d)) return [3 /*break*/, 9];
+                        key = _f;
+                        // If prototype has no ID, check field keys for ID (mostly for arrays)
+                        if (!currProto.__id &&
+                            (key === 'id' || key === '_id' || key === 'ID' || key === 'Id')) {
+                            // If currname is undefined, assign to responseData at cacheid to lower case at name
+                            if (responseData[cacheID.toLowerCase()]) {
+                                responseDataAtCacheID = responseData[cacheID.toLowerCase()];
+                                if (typeof responseDataAtCacheID !== 'string' &&
+                                    !Array.isArray(responseDataAtCacheID)) {
+                                    if (typeof responseDataAtCacheID.name === 'string') {
+                                        currName = responseDataAtCacheID.name;
+                                    }
+                                }
+                            }
+                            cacheIDForIDCache = cacheID;
+                            cacheID += "--".concat(currField[key]);
+                            // call IdCache here idCache(cacheIDForIDCache, cacheID)
+                            this.updateIdCache(cacheIDForIDCache, cacheID, currName);
+                        }
+                        fieldStore[key] = currField[key];
+                        if (!(typeof currField[key] === 'object')) return [3 /*break*/, 9];
+                        if (!(protoField[resultName] !== null)) return [3 /*break*/, 9];
+                        return [4 /*yield*/, this.normalizeForCache((_k = {}, _k[key] = currField[key], _k), map, (_l = {},
+                                _l[key] = protoField[resultName][key],
+                                _l), currName)];
+                    case 8:
+                        _m.sent();
+                        _m.label = 9;
+                    case 9:
+                        _g++;
+                        return [3 /*break*/, 7];
+                    case 10:
+                        // Store "current object" on cache in JSON format
+                        this.writeToCache(cacheID, fieldStore);
+                        _m.label = 11;
+                    case 11:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 12: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Helper function that creates cacheIDs based on information from the prototype in the
+     * format of 'field--ID'.
+     * @param {string} key - Unique id under which the cached data will be stored.
+     * @param {Object} item - Item to be cached.
      */
     QuellCache.prototype.generateCacheID = function (queryProto) {
         var cacheID = queryProto.__id
@@ -742,10 +843,10 @@ var QuellCache = /** @class */ (function () {
         return cacheID;
     };
     /**
-     * writeToCache writes a value to the cache unless the key indicates that the item is uncacheable. Note: writeToCache will JSON.stringify the input item
-     * writeTochache will set expiration time for each item written to cache
-     * @param {String} key - unique id under which the cached data will be stored
-     * @param {Object} item - item to be cached
+     * Stringifies and writes an item to the cache unless the key indicates that the item is uncacheable.
+     * Sets the expiration time for each item written to cache to the expiration time set on server connection.
+     * @param {string} key - Unique id under which the cached data will be stored.
+     * @param {Object} item - Item to be cached.
      */
     QuellCache.prototype.writeToCache = function (key, item) {
         var lowerKey = key.toLowerCase();
@@ -755,13 +856,39 @@ var QuellCache = /** @class */ (function () {
         }
     };
     /**
-     * updateCacheByMutation updates the Redis cache when the operation is a mutation.
+     * Stores keys in a nested object under parent name.
+     * If the key is a duplication, it is stored in an array.
+     *  @param {string} objKey - Object key; key to be cached without ID string.
+     *  @param {string} keyWithID - Key to be cached with ID string attached; Redis data is stored under this key.
+     *  @param {string} currName - The parent object name.
+     */
+    QuellCache.prototype.updateIdCache = function (objKey, keyWithID, currName) {
+        // BUG: Add check - If any of the arguments are missing, return immediately.
+        // Currently, if currName is undefined, this function is adding 'undefined' as a
+        // key in the idCache.
+        if (!idCache[currName]) {
+            // If the parent object is not yet defined in the idCache, create the object and add the new key.
+            idCache[currName] = {};
+            idCache[currName][objKey] = keyWithID;
+            return;
+        }
+        else if (!idCache[currName][objKey]) {
+            // If parent object is defined in the idCache, but this is the first child ID, create the
+            // array that the ID will be added to.
+            idCache[currName][objKey] = [];
+        }
+        // Add the ID to the array in the idCache.
+        idCache[currName][objKey].push(keyWithID);
+    };
+    /**
+     * Updates the Redis cache when the operation is a mutation.
      * - For update and delete mutations, checks if the mutation query includes an id.
-     * If so, it will update the cache at that id. If not, it will iterate through the cache to find the appropriate fields to update/delete.
-     * @param {Object} dbRespDataRaw - raw response from the database returned following mutation
-     * @param {String} mutationName - name of the mutation (e.g. addItem)
-     * @param {String} mutationType - type of mutation (add, update, delete)
-     * @param {Object} mutationQueryObject - arguments and values for the mutation
+     * If so, it will update the cache at that id. If not, it will iterate through the cache
+     * to find the appropriate fields to update/delete.
+     * @param {Object} dbRespDataRaw - Raw response from the database returned following mutation.
+     * @param {string} mutationName - Name of the mutation (e.g. addItem).
+     * @param {string} mutationType - Type of mutation (add, update, delete).
+     * @param {Object} mutationQueryObject - Arguments and values for the mutation.
      */
     QuellCache.prototype.updateCacheByMutation = function (dbRespDataRaw, mutationName, mutationType, mutationQueryObject) {
         var _a;
@@ -777,7 +904,7 @@ var QuellCache = /** @class */ (function () {
                             // TODO: Need to modify this logic if ID is not being requested back during
                             // mutation query.
                             // dbRespDataRaw.data[mutationName] will always return the value at the mutationName
-                            // in the form of an object
+                            // in the form of an object.
                             dbRespId = (_a = dbRespDataRaw.data[mutationName]) === null || _a === void 0 ? void 0 : _a.id;
                             dbRespData = JSON.parse(JSON.stringify(dbRespDataRaw.data[mutationName]));
                         }
@@ -801,7 +928,7 @@ var QuellCache = /** @class */ (function () {
                                             cachedFieldKeysListRaw !== undefined) {
                                             cachedFieldKeysList_1 = JSON.parse(cachedFieldKeysListRaw);
                                             fieldKeysToRemove.forEach(function (fieldKey) {
-                                                // index position of field key to remove from list of field keys
+                                                // Index position of field key to remove from list of field keys
                                                 var removalFieldKeyIdx = cachedFieldKeysList_1.indexOf(fieldKey);
                                                 if (removalFieldKeyIdx !== -1) {
                                                     cachedFieldKeysList_1.splice(removalFieldKeyIdx, 1);
@@ -881,7 +1008,7 @@ var QuellCache = /** @class */ (function () {
                                         // list of field keys stored on redis
                                         if (cachedFieldKeysListRaw !== null) {
                                             cachedFieldKeysList = JSON.parse(cachedFieldKeysListRaw);
-                                            // iterate through field key field key values in redis, and compare to user
+                                            // Iterate through field key field key values in Redis, and compare to user
                                             // specified mutation args to determine which fields are used to update by
                                             // and which fields need to be updated.
                                             cachedFieldKeysList.forEach(function (fieldKey) { return __awaiter(_this, void 0, void 0, function () {
@@ -895,15 +1022,11 @@ var QuellCache = /** @class */ (function () {
                                                                 fieldKeyValue_1 = JSON.parse(fieldKeyValueRaw);
                                                                 fieldsToUpdateBy_1 = [];
                                                                 updatedFieldKeyValue_1 = fieldKeyValue_1;
-                                                                // arg in forEach method is a string such as name
-                                                                // argVal is the actual value 'San Diego'
-                                                                // how would this work if it's a mutation query with arguments?
                                                                 Object.entries(mutationQueryObject.__args).forEach(function (_a) {
                                                                     var arg = _a[0], argVal = _a[1];
                                                                     if (arg in fieldKeyValue_1 && fieldKeyValue_1[arg] === argVal) {
-                                                                        // foreign keys are not fields to update by
+                                                                        // Foreign keys are not fields to update by
                                                                         if (arg.toLowerCase().includes('id') === false) {
-                                                                            // arg.toLowerCase
                                                                             fieldsToUpdateBy_1.push(arg);
                                                                         }
                                                                     }
@@ -930,26 +1053,25 @@ var QuellCache = /** @class */ (function () {
                     case 1:
                         redisKey = _b.sent();
                         if (redisKey) {
-                            // key was found in redis server cache so mutation is either update or delete mutation
-                            // if user specifies dbRespId as an arg in mutation, then we only need to update/delete a single cache entry by dbRespId
+                            // If the key was found in the Redis server cache, the mutation is either update or delete mutation.
                             if (mutationQueryObject.__id) {
+                                // If the user specifies dbRespId as an argument in the mutation, then we only need to
+                                // update/delete a single cache entry by dbRespId.
                                 if (mutationName.substring(0, 3) === 'del') {
-                                    // if the first 3 letters of the mutationName are 'del' then mutation is a delete mutation
-                                    // users have to prefix their delete mutations with 'del' so that quell can distinguish between delete/update mutations
-                                    // toLowerCase on both mutation types
+                                    // If the first 3 letters of the mutationName are 'del' then the mutation is a delete mutation.
+                                    // Users have to prefix their delete mutations with 'del' so that quell can distinguish between delete/update mutations.
                                     this.deleteCacheById("".concat(mutationType.toLowerCase(), "--").concat(mutationQueryObject.__id));
                                     removeFromFieldKeysList(["".concat(mutationType, "--").concat(dbRespId)]);
                                 }
                                 else {
-                                    // update mutation for single dbRespId
+                                    // Update mutation for single dbRespId
                                     this.writeToCache("".concat(mutationType.toLowerCase(), "--").concat(mutationQueryObject.__id), dbRespData);
                                 }
                             }
                             else {
                                 removalFieldKeysList = [];
-                                // TODO - look into what this is being used for if anything
                                 if (mutationName.substring(0, 3) === 'del') {
-                                    // mutation is delete mutation
+                                    // Mutation is delete mutation
                                     deleteApprFieldKeys();
                                 }
                                 else {
@@ -958,7 +1080,7 @@ var QuellCache = /** @class */ (function () {
                             }
                         }
                         else {
-                            // key was not found in redis server cache so mutation is an add mutation
+                            // If the key was not found in the Redis server cache, the mutation is an add mutation.
                             this.writeToCache(hypotheticalRedisKey, dbRespData);
                         }
                         return [2 /*return*/];
@@ -967,8 +1089,8 @@ var QuellCache = /** @class */ (function () {
         });
     };
     /**
-     * deleteCacheById removes key-value from the cache unless the key indicates that the item is not available.
-     * @param {String} key - unique id under which the cached data is stored that needs to be removed
+     * Removes key-value from the cache unless the key indicates that the item is not available.
+     * @param {string} key - Unique id under which the cached data is stored that needs to be removed.
      */
     QuellCache.prototype.deleteCacheById = function (key) {
         return __awaiter(this, void 0, void 0, function () {
@@ -998,117 +1120,11 @@ var QuellCache = /** @class */ (function () {
         });
     };
     /**
-     * normalizeForCache traverses over response data and formats it appropriately so we can store it in the cache.
-     * @param {Object} responseData - data we received from an external source of data such as a database or API
-     * @param {Object} map - a map of queries to their desired data types, used to ensure accurate and consistent caching
-     * @param {Object} protoField - a slice of the prototype currently being used as a template and reference for the responseData to send information to the cache
-     * @param {String} currName - parent object name, used to pass into updateIDCache
-     */
-    QuellCache.prototype.normalizeForCache = function (responseData, map, protoField, currName) {
-        if (map === void 0) { map = {}; }
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _c, _i, resultName, currField, currProto, i, el, dataType, fieldStore, cacheID, _d, _e, _f, _g, key, responseDataAtCacheID, cacheIDForIDCache;
-            var _h, _j, _k, _l;
-            return __generator(this, function (_m) {
-                switch (_m.label) {
-                    case 0:
-                        _a = responseData;
-                        _b = [];
-                        for (_c in _a)
-                            _b.push(_c);
-                        _i = 0;
-                        _m.label = 1;
-                    case 1:
-                        if (!(_i < _b.length)) return [3 /*break*/, 12];
-                        _c = _b[_i];
-                        if (!(_c in _a)) return [3 /*break*/, 11];
-                        resultName = _c;
-                        currField = responseData[resultName];
-                        currProto = protoField[resultName];
-                        if (!Array.isArray(currField)) return [3 /*break*/, 6];
-                        i = 0;
-                        _m.label = 2;
-                    case 2:
-                        if (!(i < currField.length)) return [3 /*break*/, 5];
-                        el = currField[i];
-                        dataType = map[resultName];
-                        if (!(typeof el === 'object' && typeof dataType === 'string')) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.normalizeForCache((_h = {}, _h[dataType] = el, _h), map, (_j = {},
-                                _j[dataType] = currProto,
-                                _j), currName)];
-                    case 3:
-                        _m.sent();
-                        _m.label = 4;
-                    case 4:
-                        i++;
-                        return [3 /*break*/, 2];
-                    case 5: return [3 /*break*/, 11];
-                    case 6:
-                        if (!(typeof currField === 'object')) return [3 /*break*/, 11];
-                        fieldStore = {};
-                        cacheID = Object.prototype.hasOwnProperty.call(map, currProto.__type)
-                            ? map[currProto.__type]
-                            : currProto.__type;
-                        cacheID += currProto.__id ? "--".concat(currProto.__id) : '';
-                        _d = currField;
-                        _e = [];
-                        for (_f in _d)
-                            _e.push(_f);
-                        _g = 0;
-                        _m.label = 7;
-                    case 7:
-                        if (!(_g < _e.length)) return [3 /*break*/, 10];
-                        _f = _e[_g];
-                        if (!(_f in _d)) return [3 /*break*/, 9];
-                        key = _f;
-                        // if prototype has no ID, check field keys for ID (mostly for arrays)
-                        if (!currProto.__id &&
-                            (key === 'id' || key === '_id' || key === 'ID' || key === 'Id')) {
-                            // if currname is undefined, assign to responseData at cacheid to lower case at name
-                            if (responseData[cacheID.toLowerCase()]) {
-                                responseDataAtCacheID = responseData[cacheID.toLowerCase()];
-                                if (typeof responseDataAtCacheID !== 'string' &&
-                                    !Array.isArray(responseDataAtCacheID)) {
-                                    if (typeof responseDataAtCacheID.name === 'string') {
-                                        currName = responseDataAtCacheID.name;
-                                    }
-                                }
-                            }
-                            cacheIDForIDCache = cacheID;
-                            cacheID += "--".concat(currField[key]);
-                            // call idcache here idCache(cacheIDForIDCache, cacheID)
-                            this.updateIdCache(cacheIDForIDCache, cacheID, currName);
-                        }
-                        fieldStore[key] = currField[key];
-                        if (!(typeof currField[key] === 'object')) return [3 /*break*/, 9];
-                        if (!(protoField[resultName] !== null)) return [3 /*break*/, 9];
-                        return [4 /*yield*/, this.normalizeForCache((_k = {}, _k[key] = currField[key], _k), map, (_l = {},
-                                _l[key] = protoField[resultName][key],
-                                _l), currName)];
-                    case 8:
-                        _m.sent();
-                        _m.label = 9;
-                    case 9:
-                        _g++;
-                        return [3 /*break*/, 7];
-                    case 10:
-                        // store "current object" on cache in JSON format
-                        this.writeToCache(cacheID, fieldStore);
-                        _m.label = 11;
-                    case 11:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 12: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * clearCache flushes the Redis cache. To clear the cache from the client, establish an endpoint that
+     * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
      * passes the request and response objects to an instance of QuellCache.clearCache.
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     * @param {Function} next - Express next middleware function
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
      */
     QuellCache.prototype.clearCache = function (req, res, next) {
         console.log('Clearing Redis Cache');
@@ -1117,19 +1133,18 @@ var QuellCache = /** @class */ (function () {
         return next();
     };
     /**
-     * The getRedisInfo returns a chain of middleware based on what information
-     * (if any) the user would like to request from the specified redisCache. It
-     * requires an appropriately configured Express route and saves the specified stats
-     * to res.locals, for instance:
+     * Returns a chain of middleware based on what information (if any) the user would
+     * like to request from the specified redisCache. It requires an appropriately
+     * configured Express route and saves the specified stats to res.locals, for instance:
      * @example
      *  app.use('/redis', ...quellCache.getRedisInfo({
      *    getStats: true,
      *    getKeys: true,
      *    getValues: true
      *  }));
-     * @param {Object} options - three properties with boolean values:
+     * @param {Object} options - Three properties with boolean values:
      *                           getStats, getKeys, getValues
-     * @returns {Array} An array of middleware functions that retrieves specified Redis info
+     * @returns {Array} An array of middleware functions that retrieves specified Redis info.
      */
     QuellCache.prototype.getRedisInfo = function (options) {
         if (options === void 0) { options = {
@@ -1140,10 +1155,10 @@ var QuellCache = /** @class */ (function () {
         console.log('Getting Redis Info');
         var middleware = [];
         /**
-         * getOptions is a helper function within the getRedisInfo function that returns
-         * what redis data should be retrieved based off the passed in options
-         * @param {Object} opts - Options object containing a boolean value for getStats, getKeys, and getValues
-         * @returns {string} a string that indicates which data should be retrieved from redis instance
+         * Helper function within the getRedisInfo function that returns
+         * what redis data should be retrieved based on the passed in options.
+         * @param {Object} opts - Options object containing a boolean value for getStats, getKeys, and getValues.
+         * @returns {string} String that indicates which data should be retrieved from Redis instance.
          */
         var getOptions = function (opts) {
             var getStats = opts.getStats, getKeys = opts.getKeys, getValues = opts.getValues;
@@ -1178,44 +1193,43 @@ var QuellCache = /** @class */ (function () {
         return middleware;
     };
     /**
-     * getStatsFromRedis gets information and statistics about the server and adds them to the response.
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     * @param {Function} next - Express next middleware function
+     * Gets information and statistics about the server and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
      */
     QuellCache.prototype.getStatsFromRedis = function (req, res, next) {
         var _this = this;
         try {
             var getStats = function () {
-                // redisCache.info returns information and statistics about the server as an array of field:value
+                // redisCache.info returns information and statistics about the server as an array of field:value.
                 _this.redisCache
                     .info()
                     .then(function (response) {
                     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
                     var dataLines = response.split('\r\n');
-                    // dataLines is an array of strings
                     var output = {
                         // SERVER
                         server: [
-                            // redis version
+                            // Redis version
                             {
                                 name: 'Redis version',
                                 value: (_a = dataLines
                                     .find(function (line) { return line.match(/redis_version/); })) === null || _a === void 0 ? void 0 : _a.split(':')[1]
                             },
-                            // redis build id
+                            // Redis build id
                             {
                                 name: 'Redis build id',
                                 value: (_b = dataLines
                                     .find(function (line) { return line.match(/redis_build_id/); })) === null || _b === void 0 ? void 0 : _b.split(':')[1]
                             },
-                            // redis mode
+                            // Redis mode
                             {
                                 name: 'Redis mode',
                                 value: (_c = dataLines
                                     .find(function (line) { return line.match(/redis_mode/); })) === null || _c === void 0 ? void 0 : _c.split(':')[1]
                             },
-                            // os hosting redis system
+                            // OS hosting Redis system
                             {
                                 name: 'Host operating system',
                                 value: (_d = dataLines
@@ -1227,87 +1241,87 @@ var QuellCache = /** @class */ (function () {
                                 value: (_e = dataLines
                                     .find(function (line) { return line.match(/tcp_port/); })) === null || _e === void 0 ? void 0 : _e.split(':')[1]
                             },
-                            // server time
+                            // Server time
                             // {
                             //   name: 'System time',
                             //   value: dataLines
                             //     .find((line) => line.match(/server_time_in_usec/))
                             //     .split(':')[1],
                             // },
-                            // num of seconds since Redis server start
+                            // Number of seconds since Redis server start
                             {
                                 name: 'Server uptime (seconds)',
                                 value: (_f = dataLines
                                     .find(function (line) { return line.match(/uptime_in_seconds/); })) === null || _f === void 0 ? void 0 : _f.split(':')[1]
                             },
-                            // num of days since Redis server start
+                            // Number of days since Redis server start
                             {
                                 name: 'Server uptime (days)',
                                 value: (_g = dataLines
                                     .find(function (line) { return line.match(/uptime_in_days/); })) === null || _g === void 0 ? void 0 : _g.split(':')[1]
                             },
-                            // path to server's executable
+                            // Path to server's executable
                             // {
                             //   name: 'Path to executable',
                             //   value: dataLines
                             //     .find((line) => line.match(/executable/))
                             //     .split(':')[1],
                             // },
-                            // path to server's configuration file
+                            // Path to server's configuration file
                             {
                                 name: 'Path to configuration file',
                                 value: (_h = dataLines
                                     .find(function (line) { return line.match(/config_file/); })) === null || _h === void 0 ? void 0 : _h.split(':')[1]
-                            },
+                            }
                         ],
                         // CLIENT
                         client: [
-                            // number of connected clients
+                            // Number of connected clients
                             {
                                 name: 'Connected clients',
                                 value: (_j = dataLines
                                     .find(function (line) { return line.match(/connected_clients/); })) === null || _j === void 0 ? void 0 : _j.split(':')[1]
                             },
-                            // number of sockets used by cluster bus
+                            // Number of sockets used by cluster bus
                             {
                                 name: 'Cluster connections',
                                 value: (_k = dataLines
                                     .find(function (line) { return line.match(/cluster_connections/); })) === null || _k === void 0 ? void 0 : _k.split(':')[1]
                             },
-                            // max clients
+                            // Max clients
                             {
                                 name: 'Max clients',
                                 value: (_l = dataLines
                                     .find(function (line) { return line.match(/maxclients/); })) === null || _l === void 0 ? void 0 : _l.split(':')[1]
                             },
-                            // number of clients being tracked
+                            // Number of clients being tracked
                             // {
                             //   name: 'Tracked clients',
                             //   value: dataLines
                             //     .find((line) => line.match(/tracking_clients/))
                             //     .split(':')[1],
                             // },
-                            // blocked clients
+                            // Blocked clients
                             {
                                 name: 'Blocked clients',
                                 value: (_m = dataLines
                                     .find(function (line) { return line.match(/blocked_clients/); })) === null || _m === void 0 ? void 0 : _m.split(':')[1]
-                            },
+                            }
                         ],
                         // MEMORY
                         memory: [
-                            // total allocated memory
+                            // Total allocated memory
                             {
                                 name: 'Total allocated memory',
                                 value: (_o = dataLines
                                     .find(function (line) { return line.match(/used_memory_human/); })) === null || _o === void 0 ? void 0 : _o.split(':')[1]
                             },
-                            // peak memory consumed
+                            // Peak memory consumed
                             {
                                 name: 'Peak memory consumed',
                                 value: (_p = dataLines
                                     .find(function (line) { return line.match(/used_memory_peak_human/); })) === null || _p === void 0 ? void 0 : _p.split(':')[1]
-                            },
+                            }
                             // % of peak out of total
                             // {
                             //   name: 'Peak memory used % total',
@@ -1315,28 +1329,28 @@ var QuellCache = /** @class */ (function () {
                             //     .find((line) => line.match(/used_memory_peak_perc/))
                             //     .split(':')[1],
                             // },
-                            // initial amount of memory consumed at startup
+                            // Initial amount of memory consumed at startup
                             // {
                             //   name: 'Memory consumed at startup',
                             //   value: dataLines
                             //     .find((line) => line.match(/used_memory_startup/))
                             //     .split(':')[1],
                             // },
-                            // size of dataset
+                            // Size of dataset
                             // {
                             //   name: 'Dataset size (bytes)',
                             //   value: dataLines
                             //     .find((line) => line.match(/used_memory_dataset/))
                             //     .split(':')[1],
                             // },
-                            // percent of data out of net mem usage
+                            // Percent of data out of net memory usage
                             // {
                             //   name: 'Dataset memory % total',
                             //   value: dataLines
                             //     .find((line) => line.match(/used_memory_dataset_perc/))
                             //     .split(':')[1],
                             // },
-                            // total system memory
+                            // Total system memory
                             // {
                             //   name: 'Total system memory',
                             //   value: dataLines
@@ -1346,83 +1360,83 @@ var QuellCache = /** @class */ (function () {
                         ],
                         // STATS
                         stats: [
-                            // total number of connections accepted by server
+                            // Total number of connections accepted by server
                             {
                                 name: 'Total connections',
                                 value: (_q = dataLines
                                     .find(function (line) { return line.match(/total_connections_received/); })) === null || _q === void 0 ? void 0 : _q.split(':')[1]
                             },
-                            // total number of commands processed by server
+                            // Total number of commands processed by server
                             {
                                 name: 'Total commands',
                                 value: (_r = dataLines
                                     .find(function (line) { return line.match(/total_commands_processed/); })) === null || _r === void 0 ? void 0 : _r.split(':')[1]
                             },
-                            // number of commands processed per second
+                            // Number of commands processed per second
                             {
                                 name: 'Commands processed per second',
                                 value: (_s = dataLines
                                     .find(function (line) { return line.match(/instantaneous_ops_per_sec/); })) === null || _s === void 0 ? void 0 : _s.split(':')[1]
                             },
-                            // total number of keys being tracked
+                            // Total number of keys being tracked
                             // {
                             //   name: 'Tracked keys',
                             //   value: dataLines
                             //     .find((line) => line.match(/tracking_total_keys/))
                             //     .split(':')[1],
                             // },
-                            // total number of items being tracked(sum of clients number for each key)
+                            // Total number of items being tracked(sum of clients number for each key)
                             // {
                             //   name: 'Tracked items',
                             //   value: dataLines
                             //     .find((line) => line.match(/tracking_total_items/))
                             //     .split(':')[1],
                             // },
-                            // total number of read events processed
+                            // Total number of read events processed
                             // {
                             //   name: 'Reads processed',
                             //   value: dataLines
                             //     .find((line) => line.match(/total_reads_processed/))
                             //     .split(':')[1],
                             // },
-                            // total number of write events processed
+                            // Total number of write events processed
                             // {
                             //   name: 'Writes processed',
                             //   value: dataLines
                             //     .find((line) => line.match(/total_writes_processed/))
                             //     .split(':')[1],
                             // },
-                            // total number of error replies
+                            // Total number of error replies
                             {
                                 name: 'Error replies',
                                 value: (_t = dataLines
                                     .find(function (line) { return line.match(/total_error_replies/); })) === null || _t === void 0 ? void 0 : _t.split(':')[1]
                             },
-                            // total number of bytes read from network
+                            // Total number of bytes read from network
                             {
                                 name: 'Bytes read from network',
                                 value: (_u = dataLines
                                     .find(function (line) { return line.match(/total_net_input_bytes/); })) === null || _u === void 0 ? void 0 : _u.split(':')[1]
                             },
-                            // networks read rate per second
+                            // Networks read rate per second
                             {
                                 name: 'Network read rate (Kb/s)',
                                 value: (_v = dataLines
                                     .find(function (line) { return line.match(/instantaneous_input_kbps/); })) === null || _v === void 0 ? void 0 : _v.split(':')[1]
                             },
-                            // total number of bytes written to network
+                            // Total number of bytes written to network
                             // {
                             //   name: 'Bytes written to network',
                             //   value: dataLines
                             //     .find((line) => line.match(/total_net_output_bytes/))
                             //     .split(':')[1],
                             // },
-                            // networks write rate per second
+                            // Networks write rate per second
                             {
                                 name: 'Network write rate (Kb/s)',
                                 value: (_w = dataLines
                                     .find(function (line) { return line.match(/instantaneous_output_kbps/); })) === null || _w === void 0 ? void 0 : _w.split(':')[1]
-                            },
+                            }
                         ]
                     };
                     res.locals.redisStats = output;
@@ -1452,10 +1466,10 @@ var QuellCache = /** @class */ (function () {
         }
     };
     /**
-     * getRedisKeys gets the key names from the redis cache and adds them to the response.
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     * @param {Function} next - Express next middleware function
+     * Gets the key names from the Redis cache and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
      */
     QuellCache.prototype.getRedisKeys = function (req, res, next) {
         this.redisCache
@@ -1475,10 +1489,10 @@ var QuellCache = /** @class */ (function () {
         });
     };
     /**
-     * getRedisValues gets the values associated with the redis cache keys and adds them to the response.
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     * @param {Function} next - Express next middleware function
+     * Gets the values associated with the Redis cache keys and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
      */
     QuellCache.prototype.getRedisValues = function (req, res, next) {
         if (res.locals.redisKeys.length !== 0) {
@@ -1492,7 +1506,7 @@ var QuellCache = /** @class */ (function () {
                     log: "Error inside catch block of getRedisValues, ".concat(error),
                     status: 400,
                     message: {
-                        error: 'Error in redis - getRedisValues. Check server log for more details.'
+                        err: 'Error in redis - getRedisValues. Check server log for more details.'
                     }
                 };
                 return next(err);
@@ -1504,25 +1518,29 @@ var QuellCache = /** @class */ (function () {
         }
     };
     /**
-     * depthLimit takes in the query, parses it, and identifies the general shape of the request.
-     * depthLimit then checks the depth limit set on server connection and compares it against the current queries depth.
+     * Takes in the query, parses it, and identifies the general shape of the request in order
+     * to compare the query's depth to the depth limit set on server connection.
      *
-     * In the instance of a malicious or overly nested query, depthLimit short-circuits the query before it goes to the database,
-     * sending a status code 400 (bad request) back to the client/requester.
+     * In the instance of a malicious or overly nested query, short-circuits the query before
+     * it goes to the database and passes an error with a status code 413 (content too large).
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      * @param {Function} next - Express next middleware function
+     * @returns {void} Passes an error to Express if no query was included in the request or if the depth exceeds the maximum allowed depth.
      */
     // what parameters should they take? If middleware, good as is, has to take in query obj in request, limit set inside.
     // If function inside whole of Quell, (query, limit), so they are explicitly defined and passed in
     QuellCache.prototype.depthLimit = function (req, res, next) {
-        // get depth max limit from cost parameters
+        var _a;
+        // Get maximum depth limit from the cost parameters set on server connection.
         var maxDepth = this.costParameters.maxDepth;
         // maxDepth can be reassigned to get depth max limit from req.body if user selects depth limit
         if (req.body.costOptions.maxDepth)
             maxDepth = req.body.costOptions.maxDepth;
-        // return error if no query in request.
-        if (!req.body.query) {
+        // Get the GraphQL query string from request body.
+        var queryString = req.body.query;
+        // Pass error to Express if no query is found on the request.
+        if (!queryString) {
             {
                 var err = {
                     log: 'Invalid request, no query found in req.body',
@@ -1534,119 +1552,127 @@ var QuellCache = /** @class */ (function () {
                 return next(err);
             }
         }
-        // assign graphQL query string to variable queryString
-        var queryString = req.body.query;
-        // create AST
-        var AST = (0, parser_1.parse)(queryString);
-        // create response prototype, and operation type, and fragments object
-        // the response prototype is used as a template for most operations in quell including caching, building modified requests, and more
-        var _a = (0, quellHelpers_1.parseAST)(AST), proto = _a.proto, operationType = _a.operationType, frags = _a.frags;
-        // check for fragments
+        // Create the abstract syntax tree with graphql-js parser.
+        // If costLimit was included before depthLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+        var AST = res.locals.AST
+            ? res.locals.AST
+            : (0, parser_1.parse)(queryString);
+        // Create response prototype, operation type, and fragments object.
+        // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
+        var _b = (_a = res.locals.parsedAST) !== null && _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST), proto = _b.proto, operationType = _b.operationType, frags = _b.frags;
+        // Combine fragments on prototype so we can access fragment values in cache.
         var prototype = Object.keys(frags).length > 0
             ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
             : proto;
         /**
-         * determineDepth is a helper function to pass an error if the depth of the proto is greater than the maxDepth.
-         * will be using this function to recursively go deeper into the nested query
-         * @param {Object} proto - the prototype
-         * @param {Number} currentDepth - initialized to 0, increases for each nested level within proto
+         * Recursive helper function that determines if the depth of the prototype object
+         * is greater than the maxDepth.
+         * @param {Object} proto - The prototype object to determine the depth of.
+         * @param {number} [currentDepth=0] - The current depth of the object. Defaults to 0.
+         * @returns {void} Passes an error to Express if the depth of the prototype exceeds the maxDepth.
          */
         var determineDepth = function (proto, currentDepth) {
             if (currentDepth === void 0) { currentDepth = 0; }
             if (currentDepth > maxDepth) {
+                // Pass error to Express if the maximum depth has been exceeded.
                 var err = {
-                    log: "Depth limit exceeded, tried to send query with the depth of ".concat(currentDepth, "."),
+                    log: 'Error in QuellCache.determineDepth: depth limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in middleware function: determineDepth. Check server log for more details.'
+                        err: "Depth limit exceeded, tried to send query with the depth of ".concat(currentDepth, ".")
                     }
                 };
                 res.locals.queryErr = err;
                 return next(err);
             }
-            // for each field
+            // Loop through the fields, recursing and increasing currentDepth by 1 if the field is nested.
             Object.keys(proto).forEach(function (key) {
-                // if the field is nested, recurse, increasing currentDepth by 1
                 if (typeof proto[key] === 'object' && !key.includes('__')) {
                     determineDepth(proto[key], currentDepth + 1);
                 }
             });
         };
-        // call helper function
+        // Call the helper function.
         determineDepth(prototype);
-        // attach to res.locals so query doesn't need to re run these functions again.
+        // Attach the AST and parsed AST to res.locals so that the next middleware doesn't need to determine these again.
         res.locals.AST = AST;
         res.locals.parsedAST = { proto: proto, operationType: operationType, frags: frags };
-        // if (currentDepth > this.limit) return res.status(400).send("Too many nested queries!");
         return next();
     };
     /**
-     * costLimit checks the cost of the query and, in the instance of a malicious or overly nested query,
-     * costLimit short-circuits the query before it goes to the database,
-     * sending a status code 400 (bad request) back to the client/requester.
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     * @param {Function} next - Express next middleware function
+     * Checks the cost of the query. In the instance of a malicious or overly nested query,
+     * short-circuits the query before it goes to the database and passes an error with a
+     * status code 413 (content too large).
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     * @returns {void} Passes an error to Express if no query was included in the request or if the cost exceeds the maximum allowed cost.
      */
     QuellCache.prototype.costLimit = function (req, res, next) {
-        // get default values for costParameters
+        var _a;
+        // Get the cost parameters set on server connection.
         var maxCost = this.costParameters.maxCost;
-        var _a = this.costParameters, mutationCost = _a.mutationCost, objectCost = _a.objectCost, depthCostFactor = _a.depthCostFactor, scalarCost = _a.scalarCost;
+        var _b = this.costParameters, mutationCost = _b.mutationCost, objectCost = _b.objectCost, depthCostFactor = _b.depthCostFactor, scalarCost = _b.scalarCost;
         // maxCost can be reassigned to get maxcost limit from req.body if user selects cost limit
         if (req.body.costOptions.maxCost)
             maxCost = req.body.costOptions.maxCost;
-        // return error if no query in request.
-        if (!req.body.query) {
+        // Get the GraphQL query string from request body.
+        var queryString = req.body.query;
+        // Pass error to Express if no query is found on the request.
+        if (!queryString) {
             var err = {
                 log: 'Invalid request, no query found in req.body',
                 status: 400,
                 message: {
-                    err: 'Error in middleware function: costLimit. Check server log for more details.'
+                    err: 'Error in QuellCache.costLimit. Check server log for more details.'
                 }
             };
             return next(err);
         }
-        // assign graphQL query string to variable queryString
-        var queryString = req.body.query;
-        // create AST
-        var AST = (0, parser_1.parse)(queryString);
-        // create response prototype, and operation type, and fragments object
-        // the response prototype is used as a template for most operations in quell including caching, building modified requests, and more
-        var _b = (0, quellHelpers_1.parseAST)(AST), proto = _b.proto, operationType = _b.operationType, frags = _b.frags;
-        // check for fragments
+        // Create the abstract syntax tree with graphql-js parser.
+        // If depthLimit was included before costLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+        var AST = res.locals.AST
+            ? res.locals.AST
+            : (0, parser_1.parse)(queryString);
+        // Create response prototype, operation type, and fragments object.
+        // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
+        var _c = (_a = res.locals.parsedAST) !== null && _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST), proto = _c.proto, operationType = _c.operationType, frags = _c.frags;
+        // Combine fragments on prototype so we can access fragment values in cache.
         var prototype = Object.keys(frags).length > 0
             ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
             : proto;
+        // Set initial cost to 0.
+        // If the operation is a mutation, add to the cost the mutation cost multiplied by the number of mutations.
         var cost = 0;
-        // mutation check
-        operationType === 'mutation'
-            ? (cost += Object.keys(prototype).length * mutationCost)
-            : null;
+        if (operationType === 'mutation') {
+            cost += Object.keys(prototype).length * mutationCost;
+        }
         /**
-         * helper function to pass an error if the cost of the proto is greater than the maxCost
-         * @param {Object} proto - the prototype
+         * Helper function to pass an error if the cost of the proto is greater than the maximum cost set on server connection.
+         * @param {Object} proto - The prototype object to determine the cost of.
+         * @returns {void} Passes an error to Express if the cost of the prototype exceeds the maxCost.
          */
         var determineCost = function (proto) {
-            // create error if maxCost exceeded
+            // Pass error to Express if the maximum cost has been exceeded.
             if (cost > maxCost) {
                 var err = {
-                    log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
+                    log: 'Error in costLimit.determineCost(helper): cost limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in middleware function: determineCost. Check server log for more details.'
+                        err: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, ".")
                     }
                 };
                 res.locals.queryErr = err;
                 return next(err);
             }
-            // for each field
+            // Loop through the fields on the prototype.
             Object.keys(proto).forEach(function (key) {
-                // if the field is nested, increase the total cost by objectCost and recurse
                 if (typeof proto[key] === 'object' && !key.includes('__')) {
+                    // If the current field is nested, recurse and increase the total cost by objectCost.
                     cost += objectCost;
                     return determineCost(proto[key]);
                 }
-                // if scalar, increase the total cost by scalarCost
+                // If the current field is scalar, increase the total cost by the scalarCost.
                 if (proto[key] === true && !key.includes('__')) {
                     cost += scalarCost;
                 }
@@ -1654,38 +1680,41 @@ var QuellCache = /** @class */ (function () {
         };
         determineCost(prototype);
         /**
-         * helper function to pass an error if the cost of the proto, taking into account depth levels, is greater than the maxCost
-         * essentially multiplies the cost by a depth cost adjustment, which is equal to depthCostFactor raised to the power of the depth
-         * @param {Object} proto - the prototype
-         * @param {Number} totalCost - cost of the proto
+         * Helper function to pass an error if the cost of the proto, taking into account depth levels, is greater than
+         * the maximum cost set on server connection.
+         *
+         * This function essentially multiplies the cost by a depth cost adjustment, which is equal to the
+         * depthCostFactor raised to the power of the depth.
+         * @param {Object} proto - The prototype object to determine the cost of.
+         * @param {number} totalCost - Current cost of the prototype.
+         * @returns {void} Passes an error to Express if the cost of the prototype exceeds the maxCost.
          */
         var determineDepthCost = function (proto, totalCost) {
             if (totalCost === void 0) { totalCost = cost; }
-            // create error if maxCost exceeded
+            // Pass error to Express if the maximum cost has been exceeded.
             if (totalCost > maxCost) {
                 var err = {
-                    log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
+                    log: 'Error in costLimit.determineDepthCost(helper): cost limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in middleware function: determineDepthCost. Check server log for more details.'
+                        err: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, ".")
                     }
                 };
                 res.locals.queryErr = err;
                 return next(err);
             }
-            // for each field
+            // Loop through the fields, recursing and multiplying the current total cost
+            // by the depthCostFactor if the field is nested.
             Object.keys(proto).forEach(function (key) {
-                // if the field is nested, recurse, multiplying the current total cost by the depthCostFactor
                 if (typeof proto[key] === 'object' && !key.includes('__')) {
                     determineDepthCost(proto[key], totalCost * depthCostFactor);
                 }
             });
         };
         determineDepthCost(prototype);
-        // attach to res.locals so query doesn't need to re run these functions again.
+        // Attach the AST and parsed AST to res.locals so that the next middleware doesn't need to determine these again.
         res.locals.AST = AST;
         res.locals.parsedAST = { proto: proto, operationType: operationType, frags: frags };
-        // return next
         return next();
     };
     return QuellCache;

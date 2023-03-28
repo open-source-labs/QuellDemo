@@ -69,7 +69,7 @@ app.use((err, req, res, next) => {
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj.log);
-  return res.status(errorObj.status).json({ message: errorObj.message });
+  return res.status(errorObj.status).json(errorObj.message.err);
 });
 
 app.listen(PORT, () => {

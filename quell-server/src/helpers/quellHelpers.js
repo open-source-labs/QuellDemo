@@ -23,11 +23,11 @@ exports.__esModule = true;
 exports.getFieldsMap = exports.getQueryMap = exports.getMutationMap = exports.updateProtoWithFragment = exports.parseAST = exports.joinResponses = exports.createQueryObj = exports.createQueryStr = void 0;
 var visitor_1 = require("graphql/language/visitor");
 /**
- * createQueryStr traverses over a supplied query Object and uses the fields on there to create a query string reflecting the data,
- * this query string is a modified version of the query string received by Quell that has references to data found within the cache removed
- * so that the final query is reduced in scope and faster
- * @param {Object} queryObject - a modified version of the prototype with only values we want to pass onto the queryString
- * @param {String} operationType - a string indicating the GraphQL operation type- 'query', 'mutation', etc.
+ * Traverses over a supplied query Object and uses the fields on there to create a query string reflecting the data.
+ * This query string is a modified version of the query string received by Quell that has references to data found within the cache removed
+ * so that the final query is faster and reduced in scope.
+ * @param {Object} queryObject - A modified version of the prototype with only values we want to pass onto the queryString.
+ * @param {string} operationType - A string indicating the GraphQL operation type- 'query', 'mutation', etc.
  */
 function createQueryStr(queryObject, operationType) {
     if (Object.keys(queryObject).length === 0)
@@ -43,13 +43,11 @@ function createQueryStr(queryObject, operationType) {
         mainStr += " ".concat(key).concat(getAliasType(queryObject[key])).concat(getArgs(queryObject[key]), " ").concat(openCurly, " ").concat(stringify(queryObject[key])).concat(closeCurly);
     }
     /**
-     * stringify is a helper function that is used to recursively build a graphQL query string from a nested object and
-     * will ignore any __values (ie __alias and __args)
-     * @param {Object} fields - an object whose properties need to be converted to a string to be used for a graphQL query
-     * @returns {string} innerStr - a graphQL query string
+     * Helper function that is used to recursively build a GraphQL query string from a nested object,
+     * ignoring any __values (ie __alias and __args).
+     * @param {QueryFields} fields - An object whose properties need to be converted to a string to be used for a GraphQL query.
+     * @returns {string} innerStr - A graphQL query string.
      */
-    // recurse to build nested query strings
-    // ignore all __values (ie __alias and __args)
     function stringify(fields) {
         // initialize inner string
         var innerStr = '';
@@ -70,7 +68,12 @@ function createQueryStr(queryObject, operationType) {
         }
         return innerStr;
     }
-    // iterates through arguments object for current field and creates arg string to attach to query string
+    /**
+     * Helper function that iterates through arguments object for current field and creates
+     * an argument string to attach to the query string.
+     * @param {QueryFields} fields - Object whose arguments will be attached to the query string.
+     * @returns {string} Argument string to be attached to the query string.
+     */
     function getArgs(fields) {
         var argString = '';
         if (!fields.__args)
@@ -83,20 +86,24 @@ function createQueryStr(queryObject, operationType) {
         // return arg string in parentheses, or if no arguments, return an empty string
         return argString ? "".concat(openParen).concat(argString).concat(closeParen) : '';
     }
-    // if Alias exists, formats alias for query string
+    /**
+     * Helper function that formats the field's alias, if it exists, for the query string.
+     * @param {QueryFields} fields - Object whose alias will be attached to the query string.
+     * @returns {string} Alias string to be attached to the query string.
+     */
     function getAliasType(fields) {
         return fields.__alias ? ": ".concat(fields.__type) : '';
     }
-    // create final query string
+    // Create the final query string.
     var queryStr = openCurly + mainStr + ' ' + closeCurly;
     return operationType ? operationType + ' ' + queryStr : queryStr;
 }
 exports.createQueryStr = createQueryStr;
 /**
- * createQueryObj takes in a map of fields and true/false values (the prototype), and creates a query object containing any values missing from the cache
- * the resulting queryObj is then used as a template to create GQL query strings
- * @param {String} map - map of fields and true/false values from initial request, should be the prototype
- * @returns {Object} queryObject with only values to be requested from GraphQL endpoint
+ * Takes in a map of fields and true/false values (the prototype) and creates a query object containing any values missing from the cache.
+ * The resulting queryObj is then used as a template to create GraphQL query strings.
+ * @param {ProtoObjType} map - Map of fields and true/false values from initial request, should be the prototype.
+ * @returns {Object} queryObject that includes only the values to be requested from GraphQL endpoint.
  */
 function createQueryObj(map) {
     var output = {};
@@ -109,27 +116,26 @@ function createQueryObj(map) {
         }
     }
     /**
-     * reducer takes in a fields object and returns only the values needed from the server
+     * Takes in a fields object and returns only the values needed from the server.
      * @param {Object} fields - Object containing true or false values that determines what should be
      * retrieved from the server.
-     * @returns {Object} Filtered object of only queries without a value or an empty object
+     * @returns {Object} Filtered object of only queries without a value or an empty object.
      */
-    // filter fields object to contain only values needed from server
     function reducer(fields) {
-        // filter stores values needed from server
+        // Create a filter object to store values needed from server.
         var filter = {};
-        // propsFilter for properties such as args, aliases, etc.
+        // Create a propsFilter object for properties such as args, aliases, etc.
         var propsFilter = {};
         for (var key in fields) {
-            // if value is false, place directly on filter
+            // If value is false, place directly on filter
             if (fields[key] === false) {
                 filter[key] = false;
             }
-            // force the id onto the query object
+            // Force the id onto the query object
             if (key === 'id' || key === '_id' || key === 'ID' || key === 'Id') {
                 filter[key] = false;
             }
-            // if value is an object, recurse to determine nested values
+            // If value is an object, recurse to determine nested values
             if (typeof fields[key] === 'object' && !key.includes('__')) {
                 var reduced = reducer(fields[key]);
                 // if reduced object has any values to pass, place on filter
@@ -137,13 +143,13 @@ function createQueryObj(map) {
                     filter[key] = reduced;
                 }
             }
-            // if reserved property such as args or alias, place on propsFilter
+            // If reserved property such as args or alias, place on propsFilter
             if (key.includes('__')) {
                 propsFilter[key] = fields[key];
             }
         }
         var numFields = Object.keys(fields).length;
-        // if the filter has any values to pass, return filter & propsFilter, otherwise return empty object
+        // If the filter has any values to pass, return filter & propsFilter; otherwise return empty object
         return Object.keys(filter).length > 1 && numFields > 5
             ? __assign(__assign({}, filter), propsFilter) : {};
     }
@@ -151,12 +157,12 @@ function createQueryObj(map) {
 }
 exports.createQueryObj = createQueryObj;
 /**
- * joinResponses combines two objects containing results from separate sources and outputs a single object with information from both sources combined,
+ * Combines two objects containing results from separate sources and outputs a single object with information from both sources combined,
  * formatted to be delivered to the client, using the queryProto as a template for how to structure the final response object.
- * @param {Object} cacheResponse - response data from the cache
- * @param {Object} serverResponse - response data from the server or external API
- * @param {Object} queryProto - current slice of the prototype being used as a template for final response object structure
- * @param {Boolean} fromArray - whether or not the current recursive loop came from within an array, should NOT be supplied to function call
+ * @param {Object} cacheResponse - Response data from the cache.
+ * @param {Object} serverResponse - Response data from the server or external API.
+ * @param {Object} queryProto - Current slice of the prototype being used as a template for final response object structure.
+ * @param {boolean} fromArray - Whether or not the current recursive loop came from within an array (should NOT be supplied to function call).
  */
 function joinResponses(cacheResponse, serverResponse, queryProto, fromArray) {
     var _a, _b, _c, _d, _e, _f;
@@ -256,10 +262,10 @@ function joinResponses(cacheResponse, serverResponse, queryProto, fromArray) {
 }
 exports.joinResponses = joinResponses;
 /**
- * parseAST traverses the abstract syntax tree depth-first to create a template for future operations, such as
- * request data from the cache, creating a modified query string for additional information needed, and joining cache and database responses
- * @param {Object} AST - an abstract syntax tree generated by gql library that we will traverse to build our prototype
- * @param {Object} options - a field for user-supplied options, not fully integrated
+ * Traverses the abstract syntax tree depth-first to create a template for future operations, such as
+ * request data from the cache, creating a modified query string for additional information needed, and joining cache and database responses.
+ * @param {Object} AST - An abstract syntax tree generated by GraphQL library that we will traverse to build our prototype.
+ * @param {Object} options - (not fully integrated) A field for user-supplied options.
  * @returns {Object} prototype object
  * @returns {string} operationType
  * @returns {Object} frags object
@@ -309,7 +315,7 @@ function parseAST(AST, options) {
         OperationDefinition: function (node) {
             // Quell cannot cache subscriptions, so we need to return as unQuellable if the type is subscription.
             operationType = node.operation;
-            if (node.operation === 'subscription') {
+            if (operationType === 'subscription') {
                 operationType = 'unQuellable';
                 // Return BREAK to break out of the current traversal branch.
                 return visitor_1.BREAK;
@@ -317,13 +323,14 @@ function parseAST(AST, options) {
         },
         // If the current node is of type FragmentDefinition, this function will be triggered upon entering it.
         FragmentDefinition: function (node) {
-            // Add the fragment name to the stack.
-            stack.push(node.name.value);
             // Get the name of the fragment.
             var fragName = node.name.value;
+            // Add the fragment name to the stack.
+            stack.push(fragName);
             // Add the fragment name as a key in the frags object, initialized to an empty object.
             frags[fragName] = {};
-            // Loop through the selections in the selection set for the current FragmentDefinition node.
+            // Loop through the selections in the selection set for the current FragmentDefinition node
+            // in order to extract the fields in the fragment.
             for (var i = 0; i < node.selectionSet.selections.length; i++) {
                 // Below, we get the 'name' property from the SelectionNode.
                 // However, InlineFragmentNode (one of the possible types for SelectionNode) does
@@ -346,8 +353,8 @@ function parseAST(AST, options) {
                 }
                 // Create an args object that will be populated with the current node's arguments.
                 var argsObj = {};
-                // auxillary object for storing arguments, aliases, field-specific options, and more
-                // query-wide options should be handled on Quell's options object
+                // Auxiliary object for storing arguments, aliases, field-specific options, and more.
+                // Query-wide options should be handled on Quell's options object.
                 var auxObj = {
                     __id: null
                 };
@@ -411,18 +418,13 @@ function parseAST(AST, options) {
                 // Set the '__args' property of the auxiliary object equal to the args
                 auxObj.__args = Object.keys(argsObj).length > 0 ? argsObj : null;
                 // Add auxObj fields to prototype, allowing future access to type, alias, args, etc.
-                /*
-                 * BUG: Should "...argsObj[fieldType]" be removed? Because we verified above that all the values in
-                 * argsObj will be string/boolean/null, argsObj[fieldType] will never be an object, so spreading it will
-                 * not result in key-value pairs. -- Removed argsObj[fieldType] from being spread into fieldArgs
-                 */
                 fieldArgs[fieldType] = __assign({}, auxObj);
                 // Add the field type to stacks to keep track of depth-first parsing path.
                 stack.push(fieldType);
             },
             // If the current node is of type Field, this function will be triggered after visiting it and all of its children.
             leave: function () {
-                // Pop stacks to keep track of depth-first parsing path
+                // Pop stacks to keep track of depth-first parsing path.
                 stack.pop();
             }
         },
@@ -436,7 +438,7 @@ function parseAST(AST, options) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             ancestors) {
                 /*
-                 * Exclude SelectionSet nodes whose parents' are not of the kind
+                 * Exclude SelectionSet nodes whose parents are not of the kind
                  * 'Field' to exclude nodes that do not contain information about
                  *  queried fields.
                  */
@@ -447,6 +449,8 @@ function parseAST(AST, options) {
                     !Array.isArray(parent) && // parent is not readonly ASTNode[]
                     parent.kind === 'Field' // can now safely cast parent to ASTNode
                 ) {
+                    // Create fieldsValues object that will be used to collect fields as
+                    // we loop through the selections.
                     var fieldsValues = {};
                     /*
                      * Create a variable called fragment, initialized to false, to indicate whether the selection set includes a fragment spread.
@@ -471,8 +475,8 @@ function parseAST(AST, options) {
                             (field.kind === 'FragmentSpread' || !field.selectionSet))
                             fieldsValues[field.name.value] = true;
                     }
-                    // if ID was not included on the request then the query will not be included in the cache, but the request will be processed
-                    // AND if current node is NOT a fragment.
+                    // If ID was not included on the request and the current node is not a fragment, then the query
+                    // will not be included in the cache, but the request will be processed.
                     if (!Object.prototype.hasOwnProperty.call(fieldsValues, 'id') &&
                         !Object.prototype.hasOwnProperty.call(fieldsValues, '_id') &&
                         !Object.prototype.hasOwnProperty.call(fieldsValues, 'ID') &&
@@ -482,10 +486,10 @@ function parseAST(AST, options) {
                         // Return BREAK to break out of the current traversal branch.
                         return visitor_1.BREAK;
                     }
-                    // place current fieldArgs object onto fieldsObject so it gets passed along to prototype
-                    // fieldArgs contains arguments, aliases, etc.
+                    // Place current fieldArgs object onto fieldsObject so it gets passed along to prototype.
+                    // The fieldArgs contains arguments, aliases, etc.
                     var fieldsObject_1 = __assign(__assign({}, fieldsValues), fieldArgs[stack[stack.length - 1]]);
-                    // loop through stack to get correct path in proto for temp object;
+                    // Loop through stack to get correct path in proto for temp object
                     stack.reduce(function (prev, curr, index) {
                         // if last item in path, set value
                         if (index + 1 === stack.length)
@@ -496,7 +500,7 @@ function parseAST(AST, options) {
             },
             // If the current node is of type SelectionSet, this function will be triggered upon entering it.
             leave: function () {
-                // pop stacks to keep track of depth-first parsing path
+                // Pop stacks to keep track of depth-first parsing path
                 stack.pop();
             }
         }
@@ -505,10 +509,10 @@ function parseAST(AST, options) {
 }
 exports.parseAST = parseAST;
 /**
- * updateProtoWithFragment takes collected fragments and integrates them onto the prototype where referenced
- * @param {Object} protoObj - prototype before it has been updated with fragments
- * @param {Object} frags - fragments object to update prototype with
- * @returns {Object} updated prototype object
+ * Takes collected fragments and integrates them onto the prototype where referenced.
+ * @param {Object} protoObj - Prototype before it has been updated with fragments.
+ * @param {Object} frags - Fragments object to update prototype with.
+ * @returns {Object} Updated prototype object.
  */
 function updateProtoWithFragment(protoObj, frags) {
     // If the proto or frags objects are null/undefined, return the protoObj.
@@ -535,11 +539,11 @@ function updateProtoWithFragment(protoObj, frags) {
 }
 exports.updateProtoWithFragment = updateProtoWithFragment;
 /**
- *  getMutationMap generates a map of mutation to GraphQL object types. This mapping is used
+ *  Generates a map of mutation to GraphQL object types. This mapping is used
  *  to identify references to cached data when mutation occurs.
  *  @param {Object} schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
- *  mutations, and fields
- *  @returns {Object} mutationMap - map of mutations to GraphQL types
+ *  mutations, and fields.
+ *  @returns {Object} mutationMap - Map of mutations to GraphQL types.
  */
 function getMutationMap(schema) {
     var _a;
@@ -567,11 +571,11 @@ function getMutationMap(schema) {
 }
 exports.getMutationMap = getMutationMap;
 /**
- *  getQueryMap generates a map of queries to GraphQL object types. This mapping is used
+ *  Generates a map of queries to GraphQL object types. This mapping is used
  *  to identify and create references to cached data.
  *  @param {Object} schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
- *  mutations, and fields
- *  @returns {Object} queryMap - map of queries to GraphQL types
+ *  mutations, and fields.
+ *  @returns {Object} queryMap - Map of queries to GraphQL types.
  */
 function getQueryMap(schema) {
     var _a;
@@ -597,11 +601,11 @@ function getQueryMap(schema) {
 }
 exports.getQueryMap = getQueryMap;
 /**
- *  getFieldsMap generates of map of fields to GraphQL types. This mapping is used to identify
+ *  Generates of map of fields to GraphQL types. This mapping is used to identify
  *  and create references to cached data.
  *  @param {Object} schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
- *  mutations, and fields
- *  @returns {Object} fieldsMap - map of fields to GraphQL types
+ *  mutations, and fields.
+ *  @returns {Object} fieldsMap - Map of fields to GraphQL types.
  */
 function getFieldsMap(schema) {
     var fieldsMap = {};
@@ -644,3 +648,102 @@ function getFieldsMap(schema) {
     return fieldsMap;
 }
 exports.getFieldsMap = getFieldsMap;
+// // TODO: Unused functions for QuellCache Class
+// /**
+//  * createRedisKey creates key based on field name and argument id and returns string or null if key creation is not possible
+//  * @param {Object} mutationMap -
+//  * @param {Object} proto -
+//  * @param {Object} protoArgs -
+//  * @returns {Object} redisKey if possible, e.g. 'Book-1' or 'Book-2', where 'Book' is name from mutationMap and '1' is id from protoArgs
+//  * and isExist if we have this key in redis
+//  *
+//  */
+// // BUG: createRedisKey is an unused function -- types should be assigned if function is used
+// async function createRedisKey(mutationMap, proto, protoArgs) {
+//   let isExist = false;
+//   let redisKey;
+//   let redisValue = null;
+//   for (const mutationName in proto) {
+//     const mutationArgs = protoArgs[mutationName];
+//     redisKey = mutationMap[mutationName];
+//     for (const key in mutationArgs) {
+//       let identifier = null;
+//       if (key === 'id' || key === '_id') {
+//         identifier = mutationArgs[key];
+//         redisKey = mutationMap[mutationName] + '-' + identifier;
+//         isExist = await this.checkFromRedis(redisKey);
+//         if (isExist) {
+//           redisValue = await this.getFromRedis(redisKey);
+//           redisValue = JSON.parse(redisValue);
+//           // combine redis value and protoArgs
+//           let argumentsValue;
+//           for (const mutationName in protoArgs) {
+//             // change later, now we assume that we have only one mutation
+//             argumentsValue = protoArgs[mutationName];
+//           }
+//           // updateObject is not defined anywhere
+//           redisValue = this.updateObject(redisValue, argumentsValue);
+//         }
+//       }
+//     }
+//   }
+//   return { redisKey, isExist, redisValue };
+// }
+// // BUG: getIdMap is an unused function -- types should be assigned if function is used
+// function getIdMap() {
+//   const idMap = {};
+//   for (const type in this.fieldsMap) {
+//     const userDefinedIds = [];
+//     const fieldsAtType = this.fieldsMap[type];
+//     for (const key in fieldsAtType) {
+//       if (fieldsAtType[key] === 'ID') userDefinedIds.push(key);
+//     }
+//     idMap[type] = userDefinedIds;
+//   }
+//   return idMap;
+// }
+// /**
+//  * Toggles to false all values in a nested field not present in cache so that they will
+//  * be included in the reformulated query.
+//  * @param {Object} proto - The prototype or a nested field within the prototype
+//  * @returns {Object} proto - updated proto with false values for fields not present in cache
+//  */
+// // BUG: toggleProto is an unused function -- types should be assigned if function is used
+// function toggleProto(proto) {
+//   if (proto === undefined) return proto;
+//   for (const key in proto) {
+//     if (Object.keys(proto[key]).length > 0) this.toggleProto(proto[key]);
+//     else proto[key] = false;
+//   }
+//   return proto;
+// }
+// /**
+//  * checkFromRedis reads from Redis cache and returns a promise.
+//  * @param {String} key - the key for Redis lookup
+//  * @returns {Promise} A promise that represents if the key was found in the redisCache
+//  */
+// // BUG: checkFromRedis is an unused function -- types should be assigned if function is used
+// async function checkFromRedis(key: string): Promise<number> {
+//   try {
+//     // will return 0 if key does not exists
+//     const existsInRedis: number = await this.redisCache.exists(key);
+//     return existsInRedis;
+//   } catch (err) {
+//     console.log('err in checkFromRedis: ', err);
+//     return 0;
+//   }
+// }
+// /**
+//  * execRedisRunQueue executes all previously queued transactions in Redis cache
+//  * @param {String} redisRunQueue - Redis queue of transactions awaiting execution
+//  */
+// // BUG: execRedisRunQueue is an unused function -- types should be assigned if function is used
+// async function execRedisRunQueue(
+//   redisRunQueue: ReturnType<typeof this.redisCache.multi>
+// ): Promise<void> {
+//   try {
+//     await redisRunQueue.exec();
+//   } catch (err) {
+//     console.log('err in execRedisRunQueue: ', err);
+//   }
+// }

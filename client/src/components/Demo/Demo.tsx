@@ -162,7 +162,7 @@ function QueryDemo({
           }
         };
         console.log('Error in fetch: ', error);
-        err = JSON.stringify(error);
+        err = 'Invalid query';
         addErrorAlerts((prev) => [...prev, err]);
       });
   }
@@ -180,9 +180,11 @@ function QueryDemo({
         costOptions: { maxDepth, maxCost, ipRate }
       })
     };
+    let resError: string;
     fetch('/api/graphql', fetchOptions)
       .then((res) => res.json())
       .then((res) => {
+        resError = res;
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         setResponse(JSON.stringify(res.queryResponse.data, null, 2));
@@ -194,11 +196,11 @@ function QueryDemo({
           log: 'Error when trying to fetch to GraphQL endpoint',
           status: 400,
           message: {
-            err: `Error in submitServerQuery. ${err}`
+            err: `Error in submitClientQuery. ${err}`
           }
         };
         console.log('Error in fetch: ', error);
-        err = JSON.stringify(err);
+        err = resError;
         addErrorAlerts((prev) => [...prev, err]);
       });
   }
