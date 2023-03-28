@@ -1576,10 +1576,10 @@ var QuellCache = /** @class */ (function () {
             if (currentDepth > maxDepth) {
                 // Pass error to Express if the maximum depth has been exceeded.
                 var err = {
-                    log: "Depth limit exceeded, tried to send query with the depth of ".concat(currentDepth, "."),
+                    log: 'Error in QuellCache.determineDepth: depth limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in QuellCache.determineDepth. Check server log for more details.'
+                        err: "Depth limit exceeded, tried to send query with the depth of ".concat(currentDepth, ".")
                     }
                 };
                 res.locals.queryErr = err;
@@ -1656,10 +1656,10 @@ var QuellCache = /** @class */ (function () {
             // Pass error to Express if the maximum cost has been exceeded.
             if (cost > maxCost) {
                 var err = {
-                    log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
+                    log: 'Error in costLimit.determineCost(helper): cost limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in costLimit.determineCost(helper). Check server log for more details.'
+                        err: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, ".")
                     }
                 };
                 res.locals.queryErr = err;
@@ -1694,10 +1694,10 @@ var QuellCache = /** @class */ (function () {
             // Pass error to Express if the maximum cost has been exceeded.
             if (totalCost > maxCost) {
                 var err = {
-                    log: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, "."),
+                    log: 'Error in costLimit.determineDepthCost(helper): cost limit exceeded.',
                     status: 413,
                     message: {
-                        err: 'Error in costLimit.determineDepthCost(helper). Check server log for more details.'
+                        err: "Cost limit exceeded, tried to send query with a cost exceeding ".concat(maxCost, ".")
                     }
                 };
                 res.locals.queryErr = err;
