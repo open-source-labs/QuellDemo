@@ -11,14 +11,14 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
-  TextField,
+  TextField
 } from '@mui/material';
 import React, {
   Dispatch,
   memo,
   SetStateAction,
   useEffect,
-  useState,
+  useState
 } from 'react';
 import { QueryEditor } from '../Editors/Editors';
 import { querySamples } from '../helperFunctions';
@@ -28,7 +28,6 @@ import { HitMiss } from '../HitMiss/HitMiss';
 import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
 import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
 import { styled } from '@mui/material/styles';
-import { width } from '@mui/system';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -40,13 +39,17 @@ const Demo = memo(() => {
   const [maxCost, setCost] = useState<number>(50);
   const [ipRate, setIPRate] = useState<number>(22);
   const [isToggled, setIsToggled] = useState<boolean>(false);
-  // const [response, setResponse] = useState<string>('');
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
 
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
+    // Clear both cache on the toggle event
+    clearLokiCache();
+    fetch('/api/clearCache').then((res) =>
+      console.log('Cleared Server Cache!')
+    );
     setIsToggled(event.target.checked);
   }
 
@@ -104,12 +107,11 @@ const Demo = memo(() => {
           <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
         </div>
         <>
-          {console.log('ERROR ALERTS >>>>> ', JSON.stringify(errorAlerts))}
           {responseTimes.map((el, i) => {
             return <SuccessfulQuery key={i} />;
           })}
           {errorAlerts.map((el, i) => {
-            console.log('ERROR HERE >>>>> ', el);
+            console.log('ERROR: ', el);
             return <BadQuery errorMessage={el} key={i} />;
           })}
         </>
@@ -135,7 +137,7 @@ function QueryDemo({
   cacheMiss,
   setCacheHit,
   setCacheMiss,
-  isToggled,
+  isToggled
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -157,31 +159,35 @@ function QueryDemo({
         }
       })
       .catch((err) => {
-        err = JSON.stringify(err);
-        console.log('Error in fetch: ', err);
-        err = 'Invalid query :(';
+        const error = {
+          log: 'Error when trying to fetch to GraphQL endpoint',
+          status: 400,
+          message: {
+            err: `Error in submitClientQuery. ${err}`
+          }
+        };
+        console.log('Error in fetch: ', error);
+        err = 'Invalid query';
         addErrorAlerts((prev) => [...prev, err]);
       });
   }
 
   function submitServerQuery() {
-    clearLokiCache();
     const startTime = new Date().getTime();
     const fetchOptions = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         query: query,
-        costOptions: { maxDepth, maxCost, ipRate },
-      }),
+        costOptions: { maxDepth, maxCost, ipRate }
+      })
     };
     let resError: string;
     fetch('/api/graphql', fetchOptions)
       .then((res) => res.json())
       .then((res) => {
-        console.log('RES LOCALS >>>>> ', res);
         resError = res;
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
@@ -190,8 +196,14 @@ function QueryDemo({
         else setCacheMiss(cacheMiss + 1);
       })
       .catch((err) => {
-        err = JSON.stringify(err);
-        console.log('Error in fetch: ', err);
+        const error = {
+          log: 'Error when trying to fetch to GraphQL endpoint',
+          status: 400,
+          message: {
+            err: `Error in submitClientQuery. ${err}`
+          }
+        };
+        console.log('Error in fetch: ', error);
         err = resError;
         addErrorAlerts((prev) => [...prev, err]);
       });
@@ -229,7 +241,7 @@ interface DemoControls {
 const DemoControls = ({
   selectedQuery,
   setQueryChoice,
-  submitQuery,
+  submitQuery
 }: DemoControls) => {
   return (
     <div className={styles.dropDownContainer}>
@@ -261,10 +273,9 @@ const CacheControls = ({
   setCacheMiss,
   cacheHit,
   cacheMiss,
-  isToggled,
+  isToggled
 }: CacheControlProps) => {
   function resetGraph() {
-    console.log('resetting the graph');
     addResponseTimes([]);
     clearLokiCache();
     isToggled ? clearServerCache() : clearClientCache();
@@ -314,8 +325,7 @@ const CacheControls = ({
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
-            // width: '60%',
+            justifyContent: 'center'
           }}
         >
           <Limit
@@ -381,7 +391,7 @@ const StyledDiv = styled('div')(({ theme }) => ({
   fontSmooth: 'always',
   color: 'white',
   boxShadow:
-    '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)',
+    '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)'
 }));
 
 function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
