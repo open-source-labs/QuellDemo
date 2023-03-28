@@ -35,8 +35,9 @@ In a new and more improved manner, QuellDemo demonstrates the abilities of Quell
 
 #### Quell-Client:
 
-<img width="1510" alt="QuellDemoClient" src="./client/src/assets/images/screenshots/QuellDemo-Client-Side.png">
+![Client-side-caching](https://user-images.githubusercontent.com/107441308/228376189-6a0214f2-ee44-464b-a85b-a3104de18e57.gif)
 
 #### Quell-Server:
 
-<img width="1511" alt="QuellDemoServer" src="./client/src/assets/images/screenshots/QuellDemo-Server-Side.png">
+![Server-side-caching](https://user-images.githubusercontent.com/107441308/228376175-d095b697-4f15-4ec6-9bfa-7029ccd469ac.gif)
+
