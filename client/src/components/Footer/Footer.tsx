@@ -13,7 +13,7 @@ const Footer = memo(() => {
         <a href="https://github.com/open-source-labs/Quell">
           <GitHubIcon className={styles.githubIcon} />
         </a>
-        <a href="https://medium.com/@katie.sandfort/quello-world-quell-releases-new-updates-to-address-critical-bug-fixes-e08699e3f5d9">
+        <a href="https://medium.com/@quellcache/boost-graphql-performance-with-quell-a-powerful-developer-friendly-caching-solution-4b32218dc640">
           <img className={styles.mediumIcon} src={MediumIcon} />
         </a>
       </div>
