@@ -1,4 +1,4 @@
-import styles from './Graph.modules.css';
+import styles from './Visualizer.modules.css';
 import { useState, useEffect } from 'react';
 
 export function Visualizer({ /* TODO - add props here */ }: VisualizerProps) {
