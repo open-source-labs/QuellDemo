@@ -99,24 +99,31 @@ const Demo = memo(() => {
         />
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
-          <CacheControls
-            setDepth={setDepth}
-            setCost={setCost}
-            setIPRate={setIPRate}
-            addResponseTimes={addResponseTimes}
-            cacheHit={cacheHit}
-            cacheMiss={cacheMiss}
-            setCacheHit={setCacheHit}
-            setCacheMiss={setCacheMiss}
-            isToggled={isToggled}
-          />
-          <Divider orientation="horizontal" />
-          <Graph
-            responseTimes={responseTimes}
-            selectedQuery={selectedQuery}
-            queryTypes={queryTypes}
-          />
-          <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
+          {isVisualizer ? (
+            <Visualizer />
+          ) : (
+            <div className={styles.rightContainerHeader}>
+              <CacheControls
+                setDepth={setDepth}
+                setCost={setCost}
+                setIPRate={setIPRate}
+                addResponseTimes={addResponseTimes}
+                cacheHit={cacheHit}
+                cacheMiss={cacheMiss}
+                setCacheHit={setCacheHit}
+                setCacheMiss={setCacheMiss}
+                isToggled={isToggled}
+              />
+              <Divider orientation="horizontal" />
+              <Graph
+                responseTimes={responseTimes}
+                selectedQuery={selectedQuery}
+                queryTypes={queryTypes}
+              />
+              <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
+            </div>
+            )
+          }
         </div>
         <>
           {responseTimes.map((el, i) => {
