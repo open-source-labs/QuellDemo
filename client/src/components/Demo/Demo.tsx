@@ -28,6 +28,7 @@ import { HitMiss } from '../HitMiss/HitMiss';
 import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
 import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
 import { styled } from '@mui/material/styles';
+import { Visualizer } from '../Visualizer/Visualizer';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -41,6 +42,8 @@ const Demo = memo(() => {
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
+  // Hook for visualizer toggled
+  const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
 
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
@@ -53,6 +56,11 @@ const Demo = memo(() => {
     setIsToggled(event.target.checked);
   }
 
+  // Function to handle visualizer toggle
+  function handleVisualizerToggle(event: React.ChangeEvent<HTMLInputElement>): void {
+    setIsVisualizer(event.target.checked);
+  }
+
   return (
     <div id="demo" className={styles.section}>
       <div id={styles.demoHeader} className="scrollpoint">
@@ -62,6 +70,10 @@ const Demo = memo(() => {
           <FormControlLabel
             label="Server-side caching"
             control={<Switch checked={isToggled} onChange={handleToggle} />}
+          />
+          <FormControlLabel
+            label="Visualizer"
+            control={<Switch checked={isVisualizer} onChange={handleVisualizerToggle} />}
           />
         </Box>
       </div>
@@ -87,24 +99,31 @@ const Demo = memo(() => {
         />
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
-          <CacheControls
-            setDepth={setDepth}
-            setCost={setCost}
-            setIPRate={setIPRate}
-            addResponseTimes={addResponseTimes}
-            cacheHit={cacheHit}
-            cacheMiss={cacheMiss}
-            setCacheHit={setCacheHit}
-            setCacheMiss={setCacheMiss}
-            isToggled={isToggled}
-          />
-          <Divider orientation="horizontal" />
-          <Graph
-            responseTimes={responseTimes}
-            selectedQuery={selectedQuery}
-            queryTypes={queryTypes}
-          />
-          <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
+          {isVisualizer ? (
+            <Visualizer />
+          ) : (
+            <div className={styles.rightContainerHeader}>
+              <CacheControls
+                setDepth={setDepth}
+                setCost={setCost}
+                setIPRate={setIPRate}
+                addResponseTimes={addResponseTimes}
+                cacheHit={cacheHit}
+                cacheMiss={cacheMiss}
+                setCacheHit={setCacheHit}
+                setCacheMiss={setCacheMiss}
+                isToggled={isToggled}
+              />
+              <Divider orientation="horizontal" />
+              <Graph
+                responseTimes={responseTimes}
+                selectedQuery={selectedQuery}
+                queryTypes={queryTypes}
+              />
+              <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
+            </div>
+            )
+          }
         </div>
         <>
           {responseTimes.map((el, i) => {
