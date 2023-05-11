@@ -2,15 +2,15 @@ import styles from './Visualizer.modules.css';
 import { useState, useEffect } from 'react';
 import FlowTree from "./FlowTree"
 
-export function Visualizer({ /* TODO - add props here */ }: VisualizerProps) {
+export function Visualizer({ query }: VisualizerProps) {
     return (
         <div className={styles.graphContainer}>
             <h1>Execution Tree</h1>
-            <FlowTree />
+            <FlowTree query={query} />
         </div>
     );
 }
 
 interface VisualizerProps {
-    // TODO  - add props here
+    query: string;
 }

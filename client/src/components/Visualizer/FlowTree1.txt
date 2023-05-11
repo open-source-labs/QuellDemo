@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange } from 'reactflow';
-import { parse, DocumentNode, FieldNode, SelectionNode, FieldDefinitionNode, OperationDefinitionNode } from 'graphql';
+import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode, SelectionSetNode, FragmentSpreadNode } from 'graphql';
 
 
 // type for NodeData
@@ -12,7 +12,6 @@ interface NodeData {
     x: number;
     y: number;
   };
-  style: {};
 }
 
 // type for FlowElement
@@ -37,7 +36,7 @@ interface PositionWithX extends Position {
 
 // turns ast field to node
 const getNode = (
-  node: FieldNode | SelectionNode | OperationDefinitionNode,
+  node: SelectionNode | FieldNode | SelectionSetNode,
   depth: number,
   siblingIndex: number,
   numSiblings: number,
@@ -50,23 +49,13 @@ const getNode = (
   const x = ((siblingIndex + 0.5) / numSiblings) * 500 + 100;
   return {
     id: id!,
-    data: {label},
+    data: { label },
     position: {
       y: 100 + depth * 100,
-      x: parentX + x - (numSiblings / 2) * 275,
+      x: parentX + x - (numSiblings / 2) * 250,
     },
-    style:  {
-      width: 125, 
-      height: 30, 
-      fontSize: 18, 
-      border: `none`, 
-      borderRadius: 10, 
-      boxShadow: `0px 0px 4px gray`,
-      padding: `2px 0px 0px 0px`
-    }
   };
 };
-
 
 
 // gets edge connection between parent/child nodes
@@ -80,13 +69,12 @@ const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
     id: `${parentId}-${childId}`,
     source: parentId,
     target: childId,
-    style: {},
   };
 };
 
 // recursively constructs a tree structure from GraphQL AST
 const buildTree = (
-  node: FieldNode | SelectionNode,
+  node: SelectionNode | SelectionSetNode,
   nodes: NodeData[],
   edges: FlowElement[],
   depth = 0,
@@ -117,16 +105,16 @@ const buildTree = (
 const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } => {
   // parses query to AST
   const ast: DocumentNode = parse(query);
-  const operation = ast.definitions.find(
-    def => def.kind === 'OperationDefinition' && def.selectionSet
-  );
-  if (!operation) {
-    throw new Error('No operation definition found in query');
+  const operation = ast.definitions[0];
+  let selectionSet;
+  if (operation.kind === 'OperationDefinition') {
+    selectionSet = (operation as OperationDefinitionNode).selectionSet;
+  } else {
+    throw new Error('Invalid query: no selection set found');
   }
-  const selections = (operation as OperationDefinitionNode).selectionSet.selections;
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
-  buildTree(selections[0], nodes, edges, 0);
+  buildTree(selectionSet, nodes, edges, 0);
   return { nodes, edges };
 };
 
