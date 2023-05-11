@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange } from 'reactflow';
-import { parse, DocumentNode, FieldNode, SelectionNode, FieldDefinitionNode, OperationDefinitionNode } from 'graphql';
+import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType } from 'reactflow';
+import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode } from 'graphql';
+import styles from './Visualizer.modules.css';
 
 
 // type for NodeData
 // data describes the content of the node
+// ? means that it is optional
 interface NodeData {
   id: string;
-  data?: { label: string };
+  data?: { label: string } ;
   position?: {
     x: number;
     y: number;
   };
-  style: {};
+  style?: any;
 }
 
 // type for FlowElement
@@ -21,6 +23,15 @@ interface FlowElement extends NodeData {
   position?: Position;
   target: string;
   source: string;
+  animated?: boolean | undefined;
+  label?: any;
+  markerEnd?: {
+    type: MarkerType;
+    width?: number;
+    height?: number;
+    color?: string;
+  } | string;
+  style?: any;
 }
 
 interface Position {
@@ -69,6 +80,7 @@ const getNode = (
 
 
 
+
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
@@ -80,7 +92,18 @@ const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
     id: `${parentId}-${childId}`,
     source: parentId,
     target: childId,
-    style: {},
+    animated: true,
+    label: 'placeholder',
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 10,
+      height: 10,
+      color: '#03C6FF'
+    },
+    style: {
+      strokeWidth: 2,
+      stroke: '#03C6FF',
+    },
   };
 };
 
@@ -98,7 +121,7 @@ const buildTree = (
   const parent = getNode(node, depth, siblingIndex, numSiblings, numSiblings, parentPosition);
   nodes.push(parent);
 
-  console.log("Parent node: ", parent);
+  // console.log("Parent node: ", parent);
   // the selectionSet means that it has child nodes
   if (node.kind === 'Field' && node.selectionSet) {
     const numChildren = node.selectionSet.selections.length;
@@ -111,6 +134,7 @@ const buildTree = (
     });
   }
 };
+
 
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
@@ -140,7 +164,13 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   // only update if the query is different from the currentQuery
   if (query !== currentQuery) {
     const { nodes: newNodes, edges: newEdges } = astToTree(query);
-    setNodes(newNodes);
+    const nodes = newNodes.map(node => ({
+      id: node.id,
+      data: node.data,
+      position: node.position!,
+      style: node.style
+    }));
+    setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
   }
@@ -151,8 +181,8 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   // console.log(nodes);
 
   // storing the initial values of the nodes and edges
-  const [newNodes, setNodes] = useState(nodes);
-  const [newEdges, setEdges] = useState(edges);
+  const [newNodes, setNodes] = useState<NodeData[]>(nodes);
+  const [newEdges, setEdges] = useState<FlowElement[]>(edges);
 
   // setNodes/setEdges updates the state of the component causing it to re-render
   const onNodesChange = useCallback( (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),[] );
@@ -163,13 +193,18 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   
   return (
     <ReactFlow 
-    nodes={newNodes} 
-    edges={newEdges} 
+    nodes={newNodes as Node<any, string | undefined>[]} 
+    edges={newEdges as Edge<any>[]} 
     onNodesChange={onNodesChange}
     onEdgesChange={onEdgesChange}
     fitView
     proOptions={proOptions}
-    style={{ height: 500, width: '100%', border: '3px solid lightGray', borderRadius: 10 }} >
+    style={{ 
+      height: 500, 
+      width: '100%', 
+      border: '3px solid lightGray', 
+      borderRadius: 10, 
+      background:'#474F57' }} >
           <Background />
           <Controls />  
           <MiniMap style={{height: 100, width: 100}}/>

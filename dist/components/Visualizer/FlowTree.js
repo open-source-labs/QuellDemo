@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useCallback } from 'react';
-import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap } from 'reactflow';
+import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, MarkerType } from 'reactflow';
 import { parse } from 'graphql';
 // turns ast field to node
 const getNode = (node, depth, siblingIndex, numSiblings, numNodes, parentPosition) => {
@@ -16,7 +16,15 @@ const getNode = (node, depth, siblingIndex, numSiblings, numNodes, parentPositio
             y: 100 + depth * 100,
             x: parentX + x - (numSiblings / 2) * 275,
         },
-        style: { width: 80, height: 40, fontSize: 18, border: `none`, borderRadius: 10, boxShadow: `0px 0px 4px gray` }
+        style: {
+            width: 125,
+            height: 30,
+            fontSize: 18,
+            border: `none`,
+            borderRadius: 10,
+            boxShadow: `0px 0px 4px gray`,
+            padding: `2px 0px 0px 0px`
+        }
     };
 };
 // gets edge connection between parent/child nodes
@@ -29,7 +37,18 @@ const getEdge = (parent, child) => {
         id: `${parentId}-${childId}`,
         source: parentId,
         target: childId,
-        style: {},
+        animated: true,
+        label: 'hi',
+        markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 10,
+            height: 10,
+            color: '#03C6FF'
+        },
+        style: {
+            strokeWidth: 2,
+            stroke: '#03C6FF',
+        },
     };
 };
 // recursively constructs a tree structure from GraphQL AST
@@ -72,7 +91,13 @@ const FlowTree = ({ query }) => {
         // only update if the query is different from the currentQuery
         if (query !== currentQuery) {
             const { nodes: newNodes, edges: newEdges } = astToTree(query);
-            setNodes(newNodes);
+            const nodes = newNodes.map(node => ({
+                id: node.id,
+                data: node.data,
+                position: node.position,
+                style: node.style
+            }));
+            setNodes(nodes);
             setEdges(newEdges);
             setCurrentQuery(query);
         }

@@ -1,4 +1,9 @@
 .graphContainer {
-    height: 500px;
-    width: 100%;
+    height: 600px;
+    width: 120%;
 }
+
+.textarea {
+    width: 100%;
+  }
+  
