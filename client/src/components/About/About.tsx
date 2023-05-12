@@ -2,9 +2,15 @@ import styles from './About.modules.css';
 import quellBanner from '/client/src/assets/images/quell_logos/quell-logo-square-no-padding.svg';
 import EggOutlinedIcon from '@mui/icons-material/EggOutlined';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import { Collapse } from '@mui/material';
 
 const About = memo(() => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const handleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
   return (
     <div id="about" className={styles.about}>
       <div id="scroll-about"></div>
@@ -13,13 +19,15 @@ const About = memo(() => {
       </div>
       <div className={styles.contentContainer}>
         <div>
-          <h1>Quello World!</h1>
+          <h1>Quell Your Fears..</h1>
           <h2>
             Quell is an easy-to-use, lightweight JavaScript library providing a
             client- and server-side caching solution for GraphQL.
           </h2>
+
         </div>
-        <div id={styles.featuresContainer}>
+        <Collapse in={!isCollapsed}>
+          <div id={styles.featuresContainer}>
           <div className={styles.featureList}>
             <EggOutlinedIcon
               className={styles.eggIcon}
@@ -118,7 +126,11 @@ const About = memo(() => {
               </a>
             </div>
           </div>
-        </div>
+          </div>
+        </Collapse>
+        <button className={styles.features} onClick={handleCollapse}>
+          {isCollapsed ? 'Show features\n▼' : '▲\nHide features'}
+        </button>
       </div>
     </div>
   );
