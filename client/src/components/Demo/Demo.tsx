@@ -29,6 +29,8 @@ import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
 import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
 import { styled } from '@mui/material/styles';
 import { Visualizer } from '../Visualizer/Visualizer';
+import { parse } from 'graphql/language/parser';
+import { DocumentNode } from 'graphql';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -42,8 +44,11 @@ const Demo = memo(() => {
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
+  
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
+
+  const [visualizerQuery, setVisualizerQuery] = useState<string>(query);
 
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
@@ -60,6 +65,10 @@ const Demo = memo(() => {
   function handleVisualizerToggle(event: React.ChangeEvent<HTMLInputElement>): void {
     setIsVisualizer(event.target.checked);
   }
+  
+  useEffect(() => {
+    setVisualizerQuery(query);
+  }, [query]);
 
   return (
     <div id="demo" className={styles.section}>
@@ -100,7 +109,9 @@ const Demo = memo(() => {
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
           {isVisualizer ? (
-            <Visualizer />
+            <Visualizer 
+            query={visualizerQuery}
+            />
           ) : (
             <div className={styles.rightContainerHeader}>
               <CacheControls
@@ -164,6 +175,7 @@ function QueryDemo({
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
+        console.log(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
