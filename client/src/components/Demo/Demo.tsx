@@ -66,9 +66,6 @@ const Demo = memo(() => {
     setIsVisualizer(event.target.checked);
   }
   
-  useEffect(() => {
-    setVisualizerQuery(query);
-  }, [query]);
 
   return (
     <div id="demo" className={styles.section}>
@@ -105,6 +102,8 @@ const Demo = memo(() => {
           setCacheHit={setCacheHit}
           setCacheMiss={setCacheMiss}
           isToggled={isToggled}
+          setVisualizerQuery={setVisualizerQuery}
+          visualizerQuery={visualizerQuery}
         />
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
@@ -167,7 +166,9 @@ function QueryDemo({
   cacheMiss,
   setCacheHit,
   setCacheMiss,
-  isToggled
+  isToggled,
+  visualizerQuery,
+  setVisualizerQuery
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -176,6 +177,7 @@ function QueryDemo({
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
         console.log(query);
+        setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
@@ -219,6 +221,7 @@ function QueryDemo({
     fetch('/api/graphql', fetchOptions)
       .then((res) => res.json())
       .then((res) => {
+        setVisualizerQuery(query);
         resError = res;
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
@@ -494,6 +497,8 @@ interface QueryDemoProps {
   setCacheHit: Dispatch<SetStateAction<number>>;
   setCacheMiss: Dispatch<SetStateAction<number>>;
   isToggled: boolean;
+  visualizerQuery: string;
+  setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
 interface CacheControlProps {

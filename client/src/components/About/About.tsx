@@ -19,7 +19,7 @@ const About = memo(() => {
       </div>
       <div className={styles.contentContainer}>
         <div>
-          <h1>Quell Your Fears..</h1>
+          <h1>Quell Your Querying Fears..</h1>
           <h2>
             Quell is an easy-to-use, lightweight JavaScript library providing a
             client- and server-side caching solution for GraphQL.

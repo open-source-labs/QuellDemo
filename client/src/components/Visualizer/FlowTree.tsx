@@ -15,6 +15,7 @@ interface NodeData {
     y: number;
   };
   style?: any;
+  type?: string;
 }
 
 // type for FlowElement
@@ -93,7 +94,7 @@ const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
     source: parentId,
     target: childId,
     animated: true,
-    label: 'placeholder',
+    label: 'time',
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 10,
@@ -192,19 +193,14 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   const proOptions = { hideAttribution: true };
   
   return (
-    <ReactFlow 
+    <ReactFlow  
     nodes={newNodes as Node<any, string | undefined>[]} 
     edges={newEdges as Edge<any>[]} 
     onNodesChange={onNodesChange}
     onEdgesChange={onEdgesChange}
     fitView
     proOptions={proOptions}
-    style={{ 
-      height: 500, 
-      width: '100%', 
-      border: '3px solid lightGray', 
-      borderRadius: 10, 
-      background:'#474F57' }} >
+    >
           <Background />
           <Controls />  
           <MiniMap style={{height: 100, width: 100}}/>
