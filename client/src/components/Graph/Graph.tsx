@@ -73,7 +73,8 @@ export function Graph({
       },
       tooltip: {
         callbacks: {
-
+          title: titleTooltip,
+          label: labelTooltip
         },
       },
     },
