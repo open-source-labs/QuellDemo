@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
 }
 
 .bannerContainer {
@@ -20,6 +21,7 @@
   font-size: 1.2rem;
   gap: 20px;
   padding: 10px;
+  align-items: center;
 }
 
 #featuresContainer {
@@ -82,7 +84,7 @@ h2 {
 }
 
 #callToAction:hover * {
-  color: #1876d1;
+  color: rgb(100, 193, 224);
   cursor: pointer;
   transition: gap 0.25s linear;
 }
@@ -107,6 +109,62 @@ h2 {
   font-size: 1.35rem;
   text-decoration: none;
   color: black;
+}
+.features {
+    color: inherit;
+    text-decoration: none;
+}
+
+.features {
+  width: 250px;
+  /* border-style: 1px solid black; */
+  margin: 0px;
+  border:none;
+  font-family: 'sofia-light';
+  font-size: 17px;
+  color:rgb(84, 99, 104);
+  /* border: none; */
+  /* background: transparent; */
+  white-space: pre-wrap;
+  /* transition: color .3s ease-in-out, box-shadow .3s ease-in-out; */
+  cursor: pointer;
+  background:
+  linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(100, 200, 200, 0)
+  ),
+  linear-gradient(
+    to right,
+    rgb(125,208,233),
+    rgb(255, 247, 176),
+    rgb(220, 160, 255)
+);
+background-size: 100% 3px, 0% 3px;
+background-position: 100% 100%, 0 100%;
+background-repeat: no-repeat;
+transition: background-size 400ms;
+} 
+
+
+.features:hover {
+  background-size: 0 3px, 100% 3px;
+  
+}
+
+@font-face {
+  font-family: 'sofia-light';
+  src: url('../../assets/sofiapro-light.woff2') format('woff2'),
+    url('../../assets/sofiapro-light.woff') format('woff');
+  font-weight: 1000;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Monaco';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Monaco'), url('../../assets/Monaco.woff') format('woff');
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */

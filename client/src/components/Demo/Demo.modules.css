@@ -11,22 +11,23 @@
   margin: 0;
 }
 
+
 .container {
-  max-width: 85%;
+  max-width: 95%;
   display: flex;
   flex-direction: column;
   flex-flow: wrap;
   align-items: center;
-  border-radius: 10px;
-  box-shadow: 0px 15px 50px 0px rgba(0, 0, 0);
+  border-radius: 30px;
+  box-shadow: 0px 5px 20px 0px rgb(133, 133, 133);
   background-color: #dedede;
-  border: 2.25px solid #bbb;
+  border: none;
   justify-content: space-between;
   overflow: hidden;
   scroll-snap-align: y mandatory;
   scroll-behavior: smooth;
-  padding: 10px;
-  gap: 10px;
+  padding: 0px;
+  gap: 0px;
   margin: 2% 0;
 }
 
@@ -53,7 +54,16 @@
   min-width: 90%;
 }
 
-.leftContainer,
+.leftContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  justify-items: center;
+}
+
+
 .rightContainer {
   width: 100%;
   display: flex;
@@ -75,11 +85,11 @@
 }
 
 #response {
-  height: 300px;
+  height: 410px;
   width: 100%;
   background-color: #474f57;
-  border-radius: 5px;
-  overflow-y: scroll;
+  border-radius: 10px;
+  overflow-y: hidden;
   border: none;
   color: white;
 }

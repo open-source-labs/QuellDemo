@@ -3,9 +3,11 @@
   flex-direction: column;
   align-items: center;
   padding: 10px 0;
-  border: 3px solid white;
+  border: none;
   border-radius: 15px;
   max-width: 95%;
+  max-height:500px;
+  margin: 8px;
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
