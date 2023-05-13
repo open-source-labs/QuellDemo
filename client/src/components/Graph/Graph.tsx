@@ -35,7 +35,6 @@ export function Graph({
   };
 
   // function to display accurate time in tooltip
-
   const labelChart: string = 'Response Times';
 
   const titleTooltip = (tooltipItems: TooltipItem<'bar'>[]): string => {
