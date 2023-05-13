@@ -28,6 +28,7 @@ function App() {
       </Suspense>
       <div className="main" id={renderFx}>
         {!teamComp && <About />}
+        {!teamComp && <hr style={{width: '60%'}}/>}
         {!teamComp && <Demo />}
       </div>
       <Footer />

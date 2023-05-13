@@ -3,10 +3,12 @@ import { parse, DocumentNode, SelectionSetNode, OperationDefinitionNode } from '
 import MonacoEditor from '@monaco-editor/react';
 import styles from './Visualizer.modules.css';
 
+// defining the expected type
 interface Props {
   query: string;
 }
 
+// The FC stands for Function Component
 const FlowTable: React.FC<Props> = ({ query }) => {
   const [queryOperations, setQueryOperations] = useState<string[]>([]);
   const editorRef = useRef<any>(null);
@@ -19,6 +21,7 @@ const FlowTable: React.FC<Props> = ({ query }) => {
     }
   }, [query]);
 
+  // parses the query
   const parseQuery = (query: string): SelectionSetNode | OperationDefinitionNode | undefined => {
     const ast: DocumentNode = parse(query);
 
@@ -34,7 +37,8 @@ const FlowTable: React.FC<Props> = ({ query }) => {
     return undefined;
   };
 
-  const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode, parentName = ''): string[] => {
+  // function that takes the query and returns an array of operations in order of the query
+  const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode | any, parentName = ''): string[] => {
     const operationOrder: string[] = [];
     if (!operation) {
       return operationOrder;
@@ -77,7 +81,7 @@ const FlowTable: React.FC<Props> = ({ query }) => {
           minimap: {
             enabled: false,
           },
-          lineNumbers: 'off',
+          lineNumbers: 'on',
         }}
       />
     </div>
