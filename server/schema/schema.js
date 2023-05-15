@@ -19,6 +19,13 @@ const Countries = require('../models/countriesModel.js');
 //ALTERNATIVELY IN THE RESOLVER CHOOSE THE DB OF YOUR LIKING
 //WE USED MONGODB FOR TESTING PURPOSES BUT PSQL MAYBE BETTER!
 
+// Helper function for field-level performance tracking
+const trackFieldPerformance = (fieldName, parentName, startTime) => {
+  const endTime = new Date().getTime();
+  const duration = endTime - startTime;
+  console.log(`Resolver for "${parentName}.${fieldName}" field took ${duration} ms`);
+};
+
 const ArtistType = new GraphQLObjectType({
   name: 'Artist',
   fields: () => ({
@@ -26,9 +33,13 @@ const ArtistType = new GraphQLObjectType({
     name: { type: GraphQLString },
     albums: {
       type: new GraphQLList(AlbumType),
-      async resolve(parent, args) {
-        const albumList = await Album.find({ artist: parent.name });
-        return albumList;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        return Album.find({ artist: parent.name }).then((result) => {
+          const parentName = parent.name;
+          trackFieldPerformance('albums', parentName, startTime);
+          return result;
+        });
       },
     },
   }),
@@ -42,9 +53,13 @@ const AlbumType = new GraphQLObjectType({
     artist: { type: GraphQLString },
     songs: {
       type: new GraphQLList(SongType),
-      async resolve(parent, args) {
-        const songList = await Songs.find({ album: parent.name });
-        return songList;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        return Songs.find({ album: parent.name }).then((result) => {
+          const parentName = parent.name;
+          trackFieldPerformance('songs', parentName, startTime);
+          return result;
+        });
       },
     },
   }),
@@ -58,14 +73,20 @@ const AttractionsType = new GraphQLObjectType({
     city: { type: GraphQLString },
     country: {
       type: CountryType,
-      async resolve(parent, args) {
-        const city = await Cities.findOne({ city: parent.city });
-        const country = await Countries.findOne({ country: city.country });
-        return country;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        return Cities.findOne({ city: parent.city })
+          .then((city) => Countries.findOne({ country: city.country }))
+          .then((result) => {
+            const parentName = parent.name;
+            trackFieldPerformance('country', parentName, startTime);
+            return result;
+          });
       },
     },
   }),
 });
+
 
 const CityType = new GraphQLObjectType({
   name: 'City',
@@ -75,9 +96,13 @@ const CityType = new GraphQLObjectType({
     country: { type: GraphQLString },
     attractions: {
       type: new GraphQLList(AttractionsType),
-      async resolve(parent, args) {
-        const attractions = await Attractions.find({ city: parent.name });
-        return attractions;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        return Attractions.find({ city: parent.name }).then((result) => {
+          const parentName = parent.name;
+          trackFieldPerformance('attractions', parentName, startTime);
+          return result;
+        });
       },
     },
   }),
@@ -90,13 +115,18 @@ const CountryType = new GraphQLObjectType({
     name: { type: GraphQLString },
     cities: {
       type: new GraphQLList(CityType),
-      async resolve(parent, args) {
-        const citiesList = await Cities.find({ country: parent.name });
-        return citiesList;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        return Cities.find({ country: parent.name }).then((citiesList) => {
+          const parentName = parent.name
+          trackFieldPerformance('cities', parentName, startTime);
+          return citiesList;
+        });
       },
     },
   }),
 });
+
 
 const SongType = new GraphQLObjectType({
   name: 'Song',

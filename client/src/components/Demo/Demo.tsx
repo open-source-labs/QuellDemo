@@ -71,7 +71,7 @@ const Demo = memo(() => {
   return (
     <div id="demo" className={styles.section}>
       <div id={styles.demoHeader} className="scrollpoint">
-        {/* <div id="scroll-demo"></div> */}
+        <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
@@ -177,7 +177,7 @@ function QueryDemo({
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        console.log(query);
+        // console.log(query);
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
