@@ -6,7 +6,6 @@ import styles from './Visualizer.modules.css';
 
 // type for NodeData
 // data describes the content of the node
-// ? means that it is optional
 interface NodeData {
   id: string;
   data?: { label: string } ;
@@ -140,7 +139,6 @@ const buildTree = (
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
 const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } => {
-  // parses query to AST
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
     def => def.kind === 'OperationDefinition' && def.selectionSet
@@ -151,9 +149,12 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
   const selections = (operation as OperationDefinitionNode).selectionSet.selections;
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
-  buildTree(selections[0], nodes, edges, 0);
+  selections.forEach(selection => {
+    buildTree(selection, nodes, edges);
+  });
   return { nodes, edges };
 };
+
 
 
 // render a tree graph from GraphQL AST

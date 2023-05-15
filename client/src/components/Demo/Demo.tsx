@@ -38,8 +38,8 @@ const Demo = memo(() => {
   const [selectedQuery, setQueryChoice] = useState<string>('2depth');
   const [query, setQuery] = useState<string>(querySamples[selectedQuery]);
   const [queryTypes, addQueryTypes] = useState<string[]>([]);
-  const [maxDepth, setDepth] = useState<number>(10);
-  const [maxCost, setCost] = useState<number>(50);
+  const [maxDepth, setDepth] = useState<number>(15);
+  const [maxCost, setCost] = useState<number>(6000);
   const [ipRate, setIPRate] = useState<number>(22);
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
@@ -53,11 +53,12 @@ const Demo = memo(() => {
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
-    // Clear both cache on the toggle event
-    clearLokiCache();
-    fetch('/api/clearCache').then((res) =>
-      console.log('Cleared Server Cache!')
-    );
+    // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
+      // Clear both cache on the toggle event
+      // clearLokiCache();
+      // fetch('/api/clearCache').then((res) =>
+      //   console.log('Cleared Server Cache!')
+      // );
     setIsToggled(event.target.checked);
   }
 
@@ -437,7 +438,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <input
             className={styles.limitsInput}
             type="number"
-            placeholder="10"
+            placeholder={"15"}
             onChange={(e) => {
               setDepth(Number(e.target.value));
             }}
@@ -450,7 +451,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <input
             className={styles.limitsInput}
             type="number"
-            placeholder="50"
+            placeholder="6000"
             onChange={(e) => {
               setCost(Number(e.target.value));
             }}
