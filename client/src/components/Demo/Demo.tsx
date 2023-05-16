@@ -177,7 +177,7 @@ function QueryDemo({
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        // console.log(query);
+        console.log(res);
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);

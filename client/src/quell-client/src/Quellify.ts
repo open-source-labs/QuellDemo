@@ -96,7 +96,9 @@ async function Quellify(
   ): Promise<JSONObject> => {
     try {
       const data = await fetch(endPoint, fetchConfig);
+      console.log('data: ', data);
       const response = await data.json();
+      console.log('response: ', response);
       return response.queryResponse.data;
     } catch (error) {
       const err: ClientErrorType = {
