@@ -11,49 +11,57 @@ import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
 import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
 import { styled } from '@mui/material/styles';
 import { Visualizer } from '../Visualizer/Visualizer';
+// import { getElapsedTime } from '../../../../server/schema/schema';
 const Demo = memo(() => {
     const [responseTimes, addResponseTimes] = useState([]);
     const [errorAlerts, addErrorAlerts] = useState([]);
     const [selectedQuery, setQueryChoice] = useState('2depth');
     const [query, setQuery] = useState(querySamples[selectedQuery]);
     const [queryTypes, addQueryTypes] = useState([]);
-    const [maxDepth, setDepth] = useState(10);
-    const [maxCost, setCost] = useState(50);
+    const [maxDepth, setDepth] = useState(15);
+    const [maxCost, setCost] = useState(6000);
     const [ipRate, setIPRate] = useState(22);
     const [isToggled, setIsToggled] = useState(false);
     const [cacheHit, setCacheHit] = useState(0);
     const [cacheMiss, setCacheMiss] = useState(0);
+    const [elapsed, setElapsed] = useState(-1);
+    // console.log('getElapsedTime:', getElapsedTime());
     // Hook for visualizer toggled
     const [isVisualizer, setIsVisualizer] = useState(false);
     const [visualizerQuery, setVisualizerQuery] = useState(query);
     useEffect(() => { }, [errorAlerts, responseTimes]);
     function handleToggle(event) {
+        // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
         // Clear both cache on the toggle event
-        clearLokiCache();
-        fetch('/api/clearCache').then((res) => console.log('Cleared Server Cache!'));
+        // clearLokiCache();
+        // fetch('/api/clearCache').then((res) =>
+        //   console.log('Cleared Server Cache!')
+        // );
         setIsToggled(event.target.checked);
     }
     // Function to handle visualizer toggle
     function handleVisualizerToggle(event) {
         setIsVisualizer(event.target.checked);
     }
-    useEffect(() => {
-        setVisualizerQuery(query);
-    }, [query]);
-    return (_jsxs("div", Object.assign({ id: "demo", className: styles.section }, { children: [_jsxs("div", Object.assign({ id: styles.demoHeader, className: "scrollpoint" }, { children: [_jsx("div", { id: "scroll-demo" }), _jsx("h1", Object.assign({ id: styles.header }, { children: "Demo" })), _jsxs(Box, { children: [_jsx(FormControlLabel, { label: "Server-side caching", control: _jsx(Switch, { checked: isToggled, onChange: handleToggle }) }), _jsx(FormControlLabel, { label: "Visualizer", control: _jsx(Switch, { checked: isVisualizer, onChange: handleVisualizerToggle }) })] })] })), _jsxs("div", Object.assign({ className: styles.container }, { children: [_jsx(QueryDemo, { maxDepth: maxDepth, maxCost: maxCost, ipRate: ipRate, addErrorAlerts: addErrorAlerts, responseTimes: responseTimes, addResponseTimes: addResponseTimes, selectedQuery: selectedQuery, setQueryChoice: setQueryChoice, query: query, setQuery: setQuery, queryTypes: queryTypes, addQueryTypes: addQueryTypes, cacheHit: cacheHit, cacheMiss: cacheMiss, setCacheHit: setCacheHit, setCacheMiss: setCacheMiss, isToggled: isToggled }), _jsx(Divider, { sx: { zIndex: '50' }, flexItem: true, orientation: "vertical" }), _jsx("div", Object.assign({ className: styles.rightContainer }, { children: isVisualizer ? (_jsx(Visualizer, { query: visualizerQuery })) : (_jsxs("div", Object.assign({ className: styles.rightContainerHeader }, { children: [_jsx(CacheControls, { setDepth: setDepth, setCost: setCost, setIPRate: setIPRate, addResponseTimes: addResponseTimes, cacheHit: cacheHit, cacheMiss: cacheMiss, setCacheHit: setCacheHit, setCacheMiss: setCacheMiss, isToggled: isToggled }), _jsx(Divider, { orientation: "horizontal" }), _jsx(Graph, { responseTimes: responseTimes, selectedQuery: selectedQuery, queryTypes: queryTypes }), _jsx(HitMiss, { cacheHit: cacheHit, cacheMiss: cacheMiss })] }))) })), _jsxs(_Fragment, { children: [responseTimes.map((el, i) => {
+    return (_jsxs("div", Object.assign({ id: "demo", className: styles.section }, { children: [_jsxs("div", Object.assign({ id: styles.demoHeader, className: "scrollpoint" }, { children: [_jsx("div", { id: "scroll-demo" }), _jsx("h1", Object.assign({ id: styles.header }, { children: "Demo" })), _jsxs(Box, { children: [_jsx(FormControlLabel, { label: "Server-side caching", control: _jsx(Switch, { checked: isToggled, onChange: handleToggle }) }), _jsx(FormControlLabel, { label: "Visualizer", control: _jsx(Switch, { checked: isVisualizer, onChange: handleVisualizerToggle }) })] })] })), _jsxs("div", Object.assign({ className: styles.container }, { children: [_jsx(QueryDemo, { maxDepth: maxDepth, maxCost: maxCost, ipRate: ipRate, addErrorAlerts: addErrorAlerts, responseTimes: responseTimes, addResponseTimes: addResponseTimes, selectedQuery: selectedQuery, setQueryChoice: setQueryChoice, query: query, setQuery: setQuery, queryTypes: queryTypes, addQueryTypes: addQueryTypes, cacheHit: cacheHit, cacheMiss: cacheMiss, setCacheHit: setCacheHit, setCacheMiss: setCacheMiss, isToggled: isToggled, setVisualizerQuery: setVisualizerQuery, visualizerQuery: visualizerQuery, setElapsed: setElapsed, elapsed: elapsed }), _jsx(Divider, { sx: { zIndex: '50' }, flexItem: true, orientation: "vertical" }), _jsx("div", Object.assign({ className: styles.rightContainer }, { children: isVisualizer ? (_jsx(Visualizer, { query: visualizerQuery })) : (_jsxs("div", Object.assign({ className: styles.rightContainerHeader }, { children: [_jsx(CacheControls, { setDepth: setDepth, setCost: setCost, setIPRate: setIPRate, addResponseTimes: addResponseTimes, cacheHit: cacheHit, cacheMiss: cacheMiss, setCacheHit: setCacheHit, setCacheMiss: setCacheMiss, isToggled: isToggled }), _jsx(Divider, { orientation: "horizontal" }), _jsx(Graph, { responseTimes: responseTimes, selectedQuery: selectedQuery, queryTypes: queryTypes }), _jsx(HitMiss, { cacheHit: cacheHit, cacheMiss: cacheMiss })] }))) })), _jsxs(_Fragment, { children: [responseTimes.map((el, i) => {
                                 return _jsx(SuccessfulQuery, {}, i);
                             }), errorAlerts.map((el, i) => {
                                 console.log('ERROR: ', el);
                                 return _jsx(BadQuery, { errorMessage: el }, i);
                             })] })] }))] })));
 });
-function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, maxCost, ipRate, selectedQuery, setQueryChoice, query, setQuery, queryTypes, addQueryTypes, cacheHit, cacheMiss, setCacheHit, setCacheMiss, isToggled }) {
+function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, maxCost, ipRate, selectedQuery, setQueryChoice, query, setQuery, queryTypes, addQueryTypes, cacheHit, cacheMiss, setCacheHit, setCacheMiss, isToggled, visualizerQuery, setVisualizerQuery, setElapsed, elapsed }) {
     const [response, setResponse] = useState('');
     function submitClientQuery() {
         const startTime = new Date().getTime();
         Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
             .then((res) => {
-            console.log(query);
+            console.log(res);
+            setVisualizerQuery(query);
+            // if (setElapsed) {
+            //   setElapsed(getElapsedTime());
+            // };
+            // console.log('elapsed: ', elapsed);
             const responseTime = new Date().getTime() - startTime;
             addResponseTimes([...responseTimes, responseTime]);
             const queryType = selectedQuery;
@@ -67,6 +75,15 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
                     setCacheHit(cacheHit + 1);
                 }
             }
+        })
+            .then(() => {
+            fetch('/api/queryTime').then(res => res.text())
+                .then((time) => {
+                if (setElapsed) {
+                    console.log('time: ', time);
+                    setElapsed(Number(time));
+                }
+            });
         })
             .catch((err) => {
             const error = {
@@ -97,6 +114,7 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
         fetch('/api/graphql', fetchOptions)
             .then((res) => res.json())
             .then((res) => {
+            setVisualizerQuery(query);
             resError = res;
             const responseTime = new Date().getTime() - startTime;
             addResponseTimes([...responseTimes, responseTime]);
@@ -155,9 +173,9 @@ function QuerySelect({ setQueryChoice, selectedQuery }) {
 }
 const StyledDiv = styled('div')(({ theme }) => (Object.assign(Object.assign({}, theme.typography.button), { backgroundColor: theme.palette.primary.main, borderRadius: '5px', fontSmooth: 'always', color: 'white', boxShadow: '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)' })));
 function Limit({ setDepth, setCost, setIPRate }) {
-    return (_jsxs("div", { children: [_jsx(StyledDiv, Object.assign({ className: styles.limits }, { children: _jsxs("form", { children: [_jsx("label", { children: "Max Depth: " }), _jsx("input", { className: styles.limitsInput, type: "number", placeholder: "10", onChange: (e) => {
+    return (_jsxs("div", { children: [_jsx(StyledDiv, Object.assign({ className: styles.limits }, { children: _jsxs("form", { children: [_jsx("label", { children: "Max Depth: " }), _jsx("input", { className: styles.limitsInput, type: "number", placeholder: "15", onChange: (e) => {
                                 setDepth(Number(e.target.value));
-                            } })] }) })), _jsx(StyledDiv, Object.assign({ className: styles.limits }, { children: _jsxs("form", { children: [_jsx("label", { children: "Max Cost:" }), _jsx("input", { className: styles.limitsInput, type: "number", placeholder: "50", onChange: (e) => {
+                            } })] }) })), _jsx(StyledDiv, Object.assign({ className: styles.limits }, { children: _jsxs("form", { children: [_jsx("label", { children: "Max Cost:" }), _jsx("input", { className: styles.limitsInput, type: "number", placeholder: "6000", onChange: (e) => {
                                 setCost(Number(e.target.value));
                             } })] }) })), _jsx(StyledDiv, Object.assign({ className: styles.limits }, { children: _jsxs("form", { children: [_jsx("label", { children: "Requests /s:" }), _jsx("input", { className: styles.limitsInput, type: "number", placeholder: "22", onChange: (e) => {
                                 setIPRate(+Number(e.target.value));

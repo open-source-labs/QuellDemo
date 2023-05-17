@@ -4,8 +4,10 @@ const {
   GraphQLString,
   GraphQLList,
   GraphQLID,
+  GraphQLFloat,
   buildSchema,
   GraphQLError,
+  GraphQLInt
 } = require('graphql');
 const Songs = require('../models/songsModel.js');
 const Artist = require('../models/artistsModel.js');
@@ -19,6 +21,13 @@ const Countries = require('../models/countriesModel.js');
 //ALTERNATIVELY IN THE RESOLVER CHOOSE THE DB OF YOUR LIKING
 //WE USED MONGODB FOR TESTING PURPOSES BUT PSQL MAYBE BETTER!
 
+// Helper function for console logging time (for now)
+const trackFieldPerformance = (fieldName, parentName, elapsedTime) => {
+  console.log(`Resolver for "${parentName}.${fieldName}" field took ${elapsedTime} ms`);
+};
+
+let elapsedTime = -2;
+
 const ArtistType = new GraphQLObjectType({
   name: 'Artist',
   fields: () => ({
@@ -26,11 +35,22 @@ const ArtistType = new GraphQLObjectType({
     name: { type: GraphQLString },
     albums: {
       type: new GraphQLList(AlbumType),
-      async resolve(parent, args) {
-        const albumList = await Album.find({ artist: parent.name });
-        return albumList;
+      // a resolver function is responsible for return data for a specific field
+      // this is where we can grab the specific timing for the field
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        const parentName = parent.name;
+        return Album.find({ artist: parent.name }).then((result) => {
+          // console.log(result);
+          const endTime = new Date().getTime();
+          elapsedTime = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime,'ms');
+          trackFieldPerformance('albums', parentName, elapsedTime);
+          console.log(result);
+          return result;
+        });
       },
-    },
+    }
   }),
 });
 
@@ -42,13 +62,21 @@ const AlbumType = new GraphQLObjectType({
     artist: { type: GraphQLString },
     songs: {
       type: new GraphQLList(SongType),
-      async resolve(parent, args) {
-        const songList = await Songs.find({ album: parent.name });
-        return songList;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        const parentName = parent.name;
+        return Songs.find({ album: parentName }).then((result) => {
+          const endTime = new Date().getTime();
+          const elapsedTime = endTime - startTime;
+          trackFieldPerformance('songs', parentName, elapsedTime);
+          parent.elapsedTime = elapsedTime.toString();
+          return result;
+        });
       },
-    },
+    }
   }),
 });
+
 
 const AttractionsType = new GraphQLObjectType({
   name: 'Attractions',
@@ -58,14 +86,22 @@ const AttractionsType = new GraphQLObjectType({
     city: { type: GraphQLString },
     country: {
       type: CountryType,
-      async resolve(parent, args) {
-        const city = await Cities.findOne({ city: parent.city });
-        const country = await Countries.findOne({ country: city.country });
-        return country;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        const parentName = parent.name;
+        return Cities.findOne({ city: parent.city })
+          .then((city) => Countries.findOne({ country: city.country }))
+          .then((result) => {
+            const endTime = new Date().getTime();
+            const elapsedTime = endTime - startTime;
+            trackFieldPerformance('countries', parentName, elapsedTime);
+            return result;
+          });
       },
     },
   }),
 });
+
 
 const CityType = new GraphQLObjectType({
   name: 'City',
@@ -75,9 +111,15 @@ const CityType = new GraphQLObjectType({
     country: { type: GraphQLString },
     attractions: {
       type: new GraphQLList(AttractionsType),
-      async resolve(parent, args) {
-        const attractions = await Attractions.find({ city: parent.name });
-        return attractions;
+      resolve(parent, args) {
+        const startTime = new Date().getTime();
+        const parentName = parent.name;
+        return Attractions.find({ city: parent.name }).then((result) => {
+          const endTime = new Date().getTime();
+          const elapsedTime = endTime - startTime;
+          trackFieldPerformance('attractions', parentName, elapsedTime);
+          return result;
+        });
       },
     },
   }),
@@ -90,13 +132,20 @@ const CountryType = new GraphQLObjectType({
     name: { type: GraphQLString },
     cities: {
       type: new GraphQLList(CityType),
-      async resolve(parent, args) {
-        const citiesList = await Cities.find({ country: parent.name });
-        return citiesList;
+     async resolve(parent, args) {
+        const startTime = new Date().getTime();
+        const parentName = parent.name
+        return Cities.find({ country: parent.name }).then((result) => {
+          const endTime = new Date().getTime();
+          const elapsedTime = endTime - startTime;
+          trackFieldPerformance('cities', parentName, elapsedTime);
+          return result;
+        });
       },
     },
   }),
 });
+
 
 const SongType = new GraphQLObjectType({
   name: 'Song',
@@ -236,6 +285,10 @@ const RootMutations = new GraphQLObjectType({
     },
   },
 });
+
+exports.getElapsedTime = function() {
+  return elapsedTime;
+}
 
 module.exports = new GraphQLSchema({
   query: RootQuery,

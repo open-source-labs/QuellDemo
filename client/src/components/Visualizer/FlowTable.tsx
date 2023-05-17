@@ -13,6 +13,7 @@ const FlowTable: React.FC<Props> = ({ query }) => {
   const [queryOperations, setQueryOperations] = useState<string[]>([]);
   const editorRef = useRef<any>(null);
 
+  // The useEffect parse the query and generate the operation order
   useEffect(() => {
     const operation = parseQuery(query);
     if (operation) {
@@ -43,10 +44,12 @@ const FlowTable: React.FC<Props> = ({ query }) => {
     if (!operation) {
       return operationOrder;
     }
+    // Iterate over the selection in the operation
     operation.selections.forEach((selection: { name: { value: any; }; selectionSet: OperationDefinitionNode | SelectionSetNode; }) => {
       if ('name' in selection) {
         const fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
         operationOrder.push(fieldName);
+        // Recursively generate the operation order for nested selection
         if ('selectionSet' in selection) {
           const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
           operationOrder.push(...nestedSelections);
@@ -59,10 +62,6 @@ const FlowTable: React.FC<Props> = ({ query }) => {
 
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
-  };
-
-  const handleEditorChange = (value: string, event: any) => {
-    // do nothing since we want the editor to be read-only
   };
 
   return (

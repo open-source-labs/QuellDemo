@@ -31,6 +31,7 @@ import { styled } from '@mui/material/styles';
 import { Visualizer } from '../Visualizer/Visualizer';
 import { parse } from 'graphql/language/parser';
 import { DocumentNode } from 'graphql';
+// import { getElapsedTime } from '../../../../server/schema/schema';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -44,6 +45,9 @@ const Demo = memo(() => {
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
+  const [elapsed, setElapsed] = useState<number>(-1);
+
+  // console.log('getElapsedTime:', getElapsedTime());
   
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
@@ -71,7 +75,7 @@ const Demo = memo(() => {
   return (
     <div id="demo" className={styles.section}>
       <div id={styles.demoHeader} className="scrollpoint">
-        {/* <div id="scroll-demo"></div> */}
+        <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
@@ -105,6 +109,8 @@ const Demo = memo(() => {
           isToggled={isToggled}
           setVisualizerQuery={setVisualizerQuery}
           visualizerQuery={visualizerQuery}
+          setElapsed={setElapsed}
+          elapsed={elapsed}
         />
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
@@ -169,7 +175,9 @@ function QueryDemo({
   setCacheMiss,
   isToggled,
   visualizerQuery,
-  setVisualizerQuery
+  setVisualizerQuery,
+  setElapsed,
+  elapsed
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -177,8 +185,12 @@ function QueryDemo({
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        console.log(query);
+        console.log(res);
         setVisualizerQuery(query);
+        // if (setElapsed) {
+        //   setElapsed(getElapsedTime());
+        // };
+        // console.log('elapsed: ', elapsed);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
@@ -191,6 +203,15 @@ function QueryDemo({
             setCacheHit(cacheHit + 1);
           }
         }
+      })
+      .then(() => {
+        fetch ('/api/queryTime').then(res => res.text())
+        .then((time) => {
+          if (setElapsed){
+            console.log('time: ', time);
+            setElapsed(Number(time));
+          }
+        })
       })
       .catch((err) => {
         const error = {
@@ -500,6 +521,8 @@ interface QueryDemoProps {
   isToggled: boolean;
   visualizerQuery: string;
   setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>;
+  setElapsed?: React.Dispatch<React.SetStateAction<number>>;
+  elapsed?: number;
 }
 
 interface CacheControlProps {
