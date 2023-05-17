@@ -163,16 +163,18 @@ async function Quellify(
   };
 
   // Refetch LRU cache
+  // TODO: handle mutations
   const refetchLRUCache = async (): Promise<void> => {
+    console.log('refetching');
     const cacheSize = lruCacheOrder.length;
-    for (let i = 0; i < cacheSize; i++) {
+    // i < cacheSize - 1 because the last query in the order array is the current query
+    for (let i = 0; i < cacheSize - 1; i++) {
       const cachedQuery = lruCacheOrder[i];
       // Get operation type for cachedQuery
       const oldAST: DocumentNode = parse(cachedQuery);
       const { operationType } = determineType(oldAST);
-      // If the operation type is a mutation, delete the query from the LRU cache
+      // If the operation type is a mutation, leave it out of the refetch
       if (operationType === 'mutation') {
-        invalidateCache(cachedQuery);
         continue;
       }
       // If the operation type is a query, refetch the query from the LRU cache
@@ -228,7 +230,7 @@ async function Quellify(
         lruCache.set(query, results);
 
         // Refetch each query in the LRU cache to update the cache
-        console.log(lruCache);
+        refetchLRUCache();
 
         // The second element in the return array is a boolean that the data was found in the lokiCache.
         return [results, true];
@@ -246,6 +248,10 @@ async function Quellify(
       const results: LokiGetType = lokiCache.get(mutationID);
       console.log('CACHE HAS BEEN INVALIDATED')
       invalidateCache(query);
+      
+      // Refetch each query in the LRU cache to update the cache
+      refetchLRUCache();
+
       // The second element in the return array is a boolean that the data was found in the lokiCache.
       return [results, true];
   }
@@ -259,6 +265,8 @@ async function Quellify(
       // Grab the results from lokiCache for the $loki ID.
       const results: LokiGetType = lokiCache.get(mutationID);
       lruCache.set(query, results);
+      // Refetch each query in the LRU cache to update the cache
+      refetchLRUCache();
       // The second element in the return array is a boolean that the data was found in the lokiCache.
       return [results, true];
    }
@@ -277,6 +285,8 @@ async function Quellify(
         if (parsedData) {
           const addedEntry = lokiCache.insert(parsedData);
           IDCache[query] = addedEntry.$loki;
+          // Refetch each query in the LRU cache to update the cache
+          refetchLRUCache();
           return [addedEntry, false];
         }
         
@@ -295,6 +305,8 @@ async function Quellify(
         if (removedEntry) {
         lokiCache.remove(removedEntry);
         invalidateCache(query);
+        // Refetch each query in the LRU cache to update the cache
+        refetchLRUCache();
         return [removedEntry, false];
       } else {
         return [null, false];
@@ -309,6 +321,8 @@ async function Quellify(
     if (parsedData) {
       const updatedEntry = lokiCache.update(parsedData);
       IDCache[query] = updatedEntry.$loki;
+      // Refetch each query in the LRU cache to update the cache
+      refetchLRUCache();
       return [updatedEntry, false];
     }
    }
