@@ -165,33 +165,46 @@ async function Quellify(
   // Refetch LRU cache
   // TODO: handle mutations
   const refetchLRUCache = async (): Promise<void> => {
-    console.log('refetching');
-    const cacheSize = lruCacheOrder.length;
-    // i < cacheSize - 1 because the last query in the order array is the current query
-    for (let i = 0; i < cacheSize - 1; i++) {
-      const cachedQuery = lruCacheOrder[i];
-      // Get operation type for cachedQuery
-      const oldAST: DocumentNode = parse(cachedQuery);
-      const { operationType } = determineType(oldAST);
-      // If the operation type is a mutation, leave it out of the refetch
-      if (operationType === 'mutation') {
-        continue;
+    try {
+      console.log('refetching');
+      const cacheSize = lruCacheOrder.length;
+      // i < cacheSize - 1 because the last query in the order array is the current query
+      for (let i = 0; i < cacheSize - 1; i++) {
+        const query = lruCacheOrder[i];
+        // Get operation type for query
+        const oldAST: DocumentNode = parse(query);
+        const { operationType } = determineType(oldAST);
+        // If the operation type is not a query, leave it out of the refetch
+        if (operationType !== 'query') {
+          continue;
+        }
+        // If the operation type is a query, refetch the query from the LRU cache
+        const cachedResults = lruCache.get(query);
+        if (cachedResults) {
+          // Fetch configuration for post requests that is passed to the performFetch function.
+          const fetchConfig: FetchObjType = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query, costOptions })
+          };
+          const data = await fetch(endPoint, fetchConfig);
+          const response = await data.json();
+          updateLRUCache(query, response.queryResponse.data);
+          console.log('cache updated for query:', query);
+        }
       }
-      // If the operation type is a query, refetch the query from the LRU cache
-      const cachedResults = lruCache.get(cachedQuery);
-      if (cachedResults) {
-        // Fetch configuration for post requests that is passed to the performFetch function.
-        const fetchConfig: FetchObjType = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ cachedQuery, costOptions })
-        };
-        const data = await fetch(endPoint, fetchConfig);
-        const response = await data.json();
-        updateLRUCache(cachedQuery, response.queryResponse.data);
-      }
+    } catch (error) {
+      const err: ClientErrorType = {
+        log: `Error when trying to refetch LRU cache: ${error}.`,
+        status: 400,
+        message: {
+          err: 'Error in refetchLRUCache. Check server log for more details.'
+        }
+      };
+      console.log('Error when refetching LRU cache: ', err);
+      throw error;
     }
   };
   
