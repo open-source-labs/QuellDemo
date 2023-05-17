@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.getFieldsMap = exports.getQueryMap = exports.getMutationMap = exports.updateProtoWithFragment = exports.parseAST = exports.joinResponses = exports.createQueryObj = exports.createQueryStr = void 0;
 var visitor_1 = require("graphql/language/visitor");
 /**
