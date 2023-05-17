@@ -15,6 +15,6 @@ function App() {
         toggleRenderFx('rendered');
     }, []);
     useEffect(() => { }, [teamComp]);
-    return (_jsxs(_Fragment, { children: [_jsx(Navbar, { teamComp: teamComp, toggleRenderTeam: toggleRenderTeam }), _jsx(Suspense, Object.assign({ fallback: _jsx("div", { children: "Loading.." }) }, { children: teamComp ? _jsx(LazyLoadTeam, {}) : null })), _jsxs("div", Object.assign({ className: "main", id: renderFx }, { children: [!teamComp && _jsx(About, {}), !teamComp && _jsx(Demo, {})] })), _jsx(Footer, {})] }));
+    return (_jsxs(_Fragment, { children: [_jsx(Navbar, { teamComp: teamComp, toggleRenderTeam: toggleRenderTeam }), _jsx(Suspense, Object.assign({ fallback: _jsx("div", { children: "Loading.." }) }, { children: teamComp ? _jsx(LazyLoadTeam, {}) : null })), _jsxs("div", Object.assign({ className: "main", id: renderFx }, { children: [!teamComp && _jsx(About, {}), !teamComp && _jsx("hr", { style: { width: '60%' } }), !teamComp && _jsx(Demo, {})] })), _jsx(Footer, {})] }));
 }
 export default App;

@@ -7,6 +7,7 @@ const {
   GraphQLFloat,
   buildSchema,
   GraphQLError,
+  GraphQLInt
 } = require('graphql');
 const Songs = require('../models/songsModel.js');
 const Artist = require('../models/artistsModel.js');
@@ -25,6 +26,8 @@ const trackFieldPerformance = (fieldName, parentName, elapsedTime) => {
   console.log(`Resolver for "${parentName}.${fieldName}" field took ${elapsedTime} ms`);
 };
 
+let elapsedTime = -2;
+
 const ArtistType = new GraphQLObjectType({
   name: 'Artist',
   fields: () => ({
@@ -38,20 +41,16 @@ const ArtistType = new GraphQLObjectType({
         const startTime = new Date().getTime();
         const parentName = parent.name;
         return Album.find({ artist: parent.name }).then((result) => {
-          console.log(result);
-          const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
-          trackFieldPerformance('albums', parentName, elapsedTime);
-          parent.elapsedTime = elapsedTime.toString();
-          console.log(parent.elapsedTime);
           // console.log(result);
+          const endTime = new Date().getTime();
+          elapsedTime = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime,'ms');
+          trackFieldPerformance('albums', parentName, elapsedTime);
+          console.log(result);
           return result;
         });
       },
-    },
-    elapsedTime: { 
-      type: GraphQLString
-     }
+    }
   }),
 });
 
@@ -74,10 +73,10 @@ const AlbumType = new GraphQLObjectType({
           return result;
         });
       },
-    },
-    elapsedTime: { type: GraphQLString}
+    }
   }),
 });
+
 
 const AttractionsType = new GraphQLObjectType({
   name: 'Attractions',
@@ -96,10 +95,7 @@ const AttractionsType = new GraphQLObjectType({
             const endTime = new Date().getTime();
             const elapsedTime = endTime - startTime;
             trackFieldPerformance('countries', parentName, elapsedTime);
-            return {
-              data: result,
-              elapsedTime: elapsedTime,
-            };
+            return result;
           });
       },
     },
@@ -122,10 +118,7 @@ const CityType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           const elapsedTime = endTime - startTime;
           trackFieldPerformance('attractions', parentName, elapsedTime);
-          return {
-            data: result,
-            elapsedTime: elapsedTime,
-          };
+          return result;
         });
       },
     },
@@ -146,10 +139,7 @@ const CountryType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           const elapsedTime = endTime - startTime;
           trackFieldPerformance('cities', parentName, elapsedTime);
-          return {
-            data: result,
-            elapsedTime: elapsedTime,
-          };
+          return result;
         });
       },
     },
@@ -295,6 +285,10 @@ const RootMutations = new GraphQLObjectType({
     },
   },
 });
+
+exports.getElapsedTime = function() {
+  return elapsedTime;
+}
 
 module.exports = new GraphQLSchema({
   query: RootQuery,

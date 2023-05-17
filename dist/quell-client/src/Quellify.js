@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { parse } from 'graphql/language/parser';
 import determineType from './helpers/determineType';
+import { LRUCache } from 'lru-cache';
 import Loki from 'lokijs';
 const lokidb = new Loki('client-cache');
 let lokiCache = lokidb.addCollection('loki-client-cache', {
@@ -25,7 +26,50 @@ i.e. {{JSONStringifiedQuery: $lokiID}}
  */
 let IDCache = {};
 /**
- * Clears existing cache and ID cache and resets to a new cache.
+ * Manually removes item from cache
+ */
+const invalidateCache = (query) => {
+    if (IDCache[query]) {
+        const cacheId = IDCache[query];
+        lruCache.delete(query);
+        lokiCache.remove(cacheId);
+        delete IDCache[query];
+        console.log('Cache invalidated for query:', query);
+        console.log('IDCache:', IDCache);
+        console.log('LRUCache:', lruCache);
+        console.log('lokiCache:', lokiCache);
+    }
+};
+/**
+ * Implement LRU caching strategy
+ */
+// Set the maximum cache size on LRU cache
+const MAX_CACHE_SIZE = 2;
+const lruCache = new LRUCache({
+    max: MAX_CACHE_SIZE,
+});
+// Track the order of accessed queries
+const lruCacheOrder = [];
+// Update LRU Cache on each query
+const updateLRUCache = (query, results) => {
+    const cacheSize = lruCacheOrder.length;
+    if (cacheSize >= MAX_CACHE_SIZE) {
+        // Get and remove the least recently used query
+        const leastRecentlyUsedQuery = lruCacheOrder.shift();
+        if (leastRecentlyUsedQuery) {
+            // Invalidate the cache entry in Loki and IDCache
+            invalidateCache(leastRecentlyUsedQuery);
+        }
+    }
+    // Add the current query to the end of the order array
+    lruCacheOrder.push(query);
+    // Set the query and results in the cache
+    lruCache.set(query, results);
+    console.log('Cache updated for query:', query);
+    console.log('LRUCache:', lruCache);
+};
+/**
+ * Clears entire existing cache and ID cache and resets to a new cache.
  */
 const clearCache = () => {
     lokidb.removeCollection('loki-client-cache');
@@ -33,6 +77,7 @@ const clearCache = () => {
         disableMeta: true
     });
     IDCache = {};
+    lruCache.clear();
     console.log('Client cache has been cleared.');
 };
 /**
@@ -55,6 +100,13 @@ const clearCache = () => {
  */
 function Quellify(endPoint, query, costOptions) {
     return __awaiter(this, void 0, void 0, function* () {
+        // Check the LRU cache before performing fetch request
+        const cachedResults = lruCache.get(query);
+        if (cachedResults) {
+            console.log('pulling from lru cache');
+            console.log('IDCache', IDCache[query]);
+            return [cachedResults, true];
+        }
         /**
          * Fetch configuration for post requests that is passed to the performFetch function.
          */
@@ -83,7 +135,10 @@ function Quellify(endPoint, query, costOptions) {
         const performFetch = (fetchConfig) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const data = yield fetch(endPoint, fetchConfig);
+                console.log('data: ', data);
                 const response = yield data.json();
+                updateLRUCache(query, response.queryResponse.data);
+                console.log('response: ', response);
                 return response.queryResponse.data;
             }
             catch (error) {
@@ -95,6 +150,52 @@ function Quellify(endPoint, query, costOptions) {
                     }
                 };
                 console.log('Error when performing Fetch: ', err);
+                throw error;
+            }
+        });
+        // Refetch LRU cache
+        // TODO: handle mutations
+        const refetchLRUCache = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                console.log('refetching');
+                const cacheSize = lruCacheOrder.length;
+                // i < cacheSize - 1 because the last query in the order array is the current query
+                for (let i = 0; i < cacheSize - 1; i++) {
+                    const query = lruCacheOrder[i];
+                    // Get operation type for query
+                    const oldAST = parse(query);
+                    const { operationType } = determineType(oldAST);
+                    // If the operation type is not a query, leave it out of the refetch
+                    if (operationType !== 'query') {
+                        continue;
+                    }
+                    // If the operation type is a query, refetch the query from the LRU cache
+                    const cachedResults = lruCache.get(query);
+                    if (cachedResults) {
+                        // Fetch configuration for post requests that is passed to the performFetch function.
+                        const fetchConfig = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ query, costOptions })
+                        };
+                        const data = yield fetch(endPoint, fetchConfig);
+                        const response = yield data.json();
+                        updateLRUCache(query, response.queryResponse.data);
+                        console.log('cache updated for query:', query);
+                    }
+                }
+            }
+            catch (error) {
+                const err = {
+                    log: `Error when trying to refetch LRU cache: ${error}.`,
+                    status: 400,
+                    message: {
+                        err: 'Error in refetchLRUCache. Check server log for more details.'
+                    }
+                };
+                console.log('Error when refetching LRU cache: ', err);
                 throw error;
             }
         });
@@ -115,47 +216,117 @@ function Quellify(endPoint, query, costOptions) {
             return [parsedData, false];
         }
         else if (operationType === 'mutation') {
-            // TODO: If the operation is a mutation, we are currently clearing the cache because it is stale.
-            // The goal would be to instead have a normalized cache and update the cache following a mutation.
-            clearCache();
             // Assign mutationType
             const mutationType = Object.keys(proto)[0];
-            // Determine whether the mutation is a add, delete, or update mutation.
-            if (mutationType.includes('add') ||
-                mutationType.includes('new') ||
-                mutationType.includes('create') ||
-                mutationType.includes('make')) {
-                // If the mutation is a create mutation, execute the mutation and return the result.
-                // Assume create mutations will start with 'add', 'new', 'create', or 'make'.
-                const parsedData = yield performFetch(postFetch);
-                // The second element in the return array is a boolean that the data was not found in the lokiCache.
-                return [parsedData, false];
+            // Check the cache for the query
+            if (IDCache[query]) {
+                // check if mutation is an add mutation
+                if (mutationType.includes('add') ||
+                    mutationType.includes('new') ||
+                    mutationType.includes('create') ||
+                    mutationType.includes('make')) {
+                    // Update the data found in cache
+                    // Grab the $loki ID from the IDCache.
+                    const mutationID = IDCache[query];
+                    // Grab the results from lokiCache for the $loki ID.
+                    const results = lokiCache.get(mutationID);
+                    lruCache.set(query, results);
+                    // Refetch each query in the LRU cache to update the cache
+                    refetchLRUCache();
+                    // The second element in the return array is a boolean that the data was found in the lokiCache.
+                    return [results, true];
+                }
+                // Check if mutation is a delete mutation
+                else if (mutationType.includes('delete') ||
+                    mutationType.includes('remove')) {
+                    // Update the data found in cache
+                    // Grab the $loki ID from the IDCache.
+                    const mutationID = IDCache[query];
+                    console.log('delete mutation id', mutationID);
+                    // Grab the results from lokiCache for the $loki ID.
+                    const results = lokiCache.get(mutationID);
+                    console.log('CACHE HAS BEEN INVALIDATED');
+                    invalidateCache(query);
+                    // Refetch each query in the LRU cache to update the cache
+                    refetchLRUCache();
+                    // The second element in the return array is a boolean that the data was found in the lokiCache.
+                    return [results, true];
+                }
+                // Check if mutation is an update mutation
+                else if (mutationType.includes('update')) {
+                    // Update the data found in cache
+                    // Grab the $loki ID from the IDCache.
+                    const mutationID = IDCache[query];
+                    // Grab the results from lokiCache for the $loki ID.
+                    const results = lokiCache.get(mutationID);
+                    lruCache.set(query, results);
+                    // Refetch each query in the LRU cache to update the cache
+                    refetchLRUCache();
+                    // The second element in the return array is a boolean that the data was found in the lokiCache.
+                    return [results, true];
+                }
             }
-            else if (mutationType.includes('delete') ||
-                mutationType.includes('remove')) {
-                // If the mutation is a delete mutation, execute the mutation and return the result.
-                // Assume delete mutations will start with 'delete' or 'remove'.
-                const parsedData = yield performFetch(deleteFetch);
-                // The second element in the return array is a boolean that the data was not found in the lokiCache.
-                return [parsedData, false];
+            else {
+                // If mutation is not in cache
+                // Check if mutation is an add mutation
+                if (mutationType.includes('add') ||
+                    mutationType.includes('new') ||
+                    mutationType.includes('create') ||
+                    mutationType.includes('make')) {
+                    // Execute a fetch request with the query
+                    const parsedData = yield performFetch(postFetch);
+                    if (parsedData) {
+                        const addedEntry = lokiCache.insert(parsedData);
+                        IDCache[query] = addedEntry.$loki;
+                        // Refetch each query in the LRU cache to update the cache
+                        refetchLRUCache();
+                        return [addedEntry, false];
+                    }
+                    // Check if mutation is a delete mutation
+                    else if (mutationType.includes('delete') ||
+                        mutationType.includes('remove')) {
+                        console.log('hello it is deleted');
+                        // execute a fetch request with the query
+                        const parsedData = yield performFetch(deleteFetch);
+                        console.log('parsedData', parsedData);
+                        if (parsedData) {
+                            const removedEntry = lokiCache.get(IDCache[query]);
+                            if (removedEntry) {
+                                lokiCache.remove(removedEntry);
+                                invalidateCache(query);
+                                // Refetch each query in the LRU cache to update the cache
+                                refetchLRUCache();
+                                return [removedEntry, false];
+                            }
+                            else {
+                                return [null, false];
+                            }
+                        }
+                        // Check if mutation is an update mutation
+                        else if (mutationType.includes('update')) {
+                            // Execute a fetch request with the query
+                            const parsedData = yield performFetch(postFetch);
+                            if (parsedData) {
+                                const updatedEntry = lokiCache.update(parsedData);
+                                IDCache[query] = updatedEntry.$loki;
+                                // Refetch each query in the LRU cache to update the cache
+                                refetchLRUCache();
+                                return [updatedEntry, false];
+                            }
+                        }
+                    }
+                }
             }
-            else if (mutationType.includes('update')) {
-                // If the mutation is an update mutation, execute the mutation and return the result.
-                // Assume update mutations will start with 'update'.
-                const parsedData = yield performFetch(postFetch);
-                // The second element in the return array is a boolean that the data was not found in the lokiCache.
-                return [parsedData, false];
-            }
+            // Operation is a Query
         }
         else {
-            // Otherwise, the operation is a query.
-            // Check to see if this query has been made already by checking the IDCache for the query.
             if (IDCache[query]) {
                 // If the query has a $loki ID in the IDCache, retrieve and return the results from the lokiCache.
                 // Grab the $loki ID from the IDCache.
                 const queryID = IDCache[query];
                 // Grab the results from lokiCache for the $loki ID.
                 const results = lokiCache.get(queryID);
+                lruCache.set(query, results);
                 // The second element in the return array is a boolean that the data was found in the lokiCache.
                 return [results, true];
             }
@@ -167,6 +338,7 @@ function Quellify(endPoint, query, costOptions) {
                     const addedEntry = lokiCache.insert(parsedData);
                     // Add query $loki ID to IDcache at query key
                     IDCache[query] = addedEntry.$loki;
+                    lruCache.set(query, addedEntry);
                     // The second element in the return array is a boolean that the data was not found in the lokiCache.
                     return [addedEntry, false];
                 }

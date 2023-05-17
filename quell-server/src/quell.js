@@ -46,7 +46,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.QuellCache = void 0;
 var parser_1 = require("graphql/language/parser");
 var graphql_1 = require("graphql");
@@ -129,7 +129,8 @@ var QuellCache = /** @class */ (function () {
             .connect()
             .then(function () {
             console.log('Connected to redisCache');
-        })["catch"](function (error) {
+        })
+            .catch(function (error) {
             var err = {
                 log: "Error when trying to connect to redisCache, ".concat(error),
                 status: 400,
@@ -257,7 +258,8 @@ var QuellCache = /** @class */ (function () {
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
                             return next();
-                        })["catch"](function (error) {
+                        })
+                            .catch(function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === unQuellable of query, ".concat(error),
                                 status: 400,
@@ -280,7 +282,8 @@ var QuellCache = /** @class */ (function () {
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
                             return next();
-                        })["catch"](function (error) {
+                        })
+                            .catch(function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === noID of query, ".concat(error),
                                 status: 400,
@@ -306,7 +309,8 @@ var QuellCache = /** @class */ (function () {
                                 res.locals.queryResponse = queryResult;
                                 _this.writeToCache(queryString, queryResult);
                                 return next();
-                            })["catch"](function (error) {
+                            })
+                                .catch(function (error) {
                                 var err = {
                                     log: "Error inside catch block of operationType === noID of query, graphQL query failed, ".concat(error),
                                     status: 400,
@@ -347,7 +351,8 @@ var QuellCache = /** @class */ (function () {
                                 _this.updateCacheByMutation(databaseResponse, mutationName_1, mutationType_1, mutationQueryObject_1);
                             }
                             return next();
-                        })["catch"](function (error) {
+                        })
+                            .catch(function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === mutation of query, ".concat(error),
                                 status: 400,
@@ -401,7 +406,8 @@ var QuellCache = /** @class */ (function () {
                                             return [2 /*return*/, next()];
                                     }
                                 });
-                            }); })["catch"](function (error) {
+                            }); })
+                                .catch(function (error) {
                                 var err = {
                                     log: "Error inside catch block of operationType === query of query, ".concat(error),
                                     status: 400,
@@ -1441,7 +1447,8 @@ var QuellCache = /** @class */ (function () {
                     };
                     res.locals.redisStats = output;
                     return next();
-                })["catch"](function (error) {
+                })
+                    .catch(function (error) {
                     var err = {
                         log: "Error inside catch block of getting info within getStatsFromRedis, ".concat(error),
                         status: 400,
@@ -1477,7 +1484,8 @@ var QuellCache = /** @class */ (function () {
             .then(function (response) {
             res.locals.redisKeys = response;
             return next();
-        })["catch"](function (error) {
+        })
+            .catch(function (error) {
             var err = {
                 log: "Error inside catch block of getRedisKeys, keys potentially undefined, ".concat(error),
                 status: 400,
@@ -1501,7 +1509,8 @@ var QuellCache = /** @class */ (function () {
                 .then(function (response) {
                 res.locals.redisValues = response;
                 return next();
-            })["catch"](function (error) {
+            })
+                .catch(function (error) {
                 var err = {
                     log: "Error inside catch block of getRedisValues, ".concat(error),
                     status: 400,
@@ -1711,11 +1720,28 @@ var QuellCache = /** @class */ (function () {
                 }
             });
         };
-        determineDepthCost(prototype);
-        // Attach the AST and parsed AST to res.locals so that the next middleware doesn't need to determine these again.
-        res.locals.AST = AST;
-        res.locals.parsedAST = { proto: proto, operationType: operationType, frags: frags };
         return next();
+    };
+    // Query database and return time to complete query
+    QuellCache.prototype.queryTime = function (queryStr) {
+        var start = new Date().getTime();
+        // Query database
+        (0, graphql_1.graphql)({ schema: this.schema, source: queryStr })
+            .then(function (res) {
+            var end = new Date().getTime();
+            return end - start;
+        })
+            .catch(function (err) {
+            console.log(err);
+            return -1;
+        });
+    };
+    // Iterate through fields of the query stored in req.body and add the query time of each field to the total query time
+    // return type is a promise that resolves to an object with the query time and the query string
+    QuellCache.prototype.resolveTime = function (req, res, next) {
+        var queryTime = 0;
+        var queryString = req.body.query;
+        return { queryString: queryString, queryTime: queryTime };
     };
     return QuellCache;
 }());
