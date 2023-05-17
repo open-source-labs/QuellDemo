@@ -20,6 +20,6 @@
     "strictNullChecks": true,
     "jsx": "react-jsx"
   },
-  "include": ["client/src/**/*"],
+  "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts"],
   "exclude": ["node_modules", "target"]
 }

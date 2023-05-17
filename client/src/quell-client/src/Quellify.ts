@@ -4,7 +4,7 @@ import { parse } from 'graphql/language/parser';
 import determineType from './helpers/determineType';
 import { LRUCache } from 'lru-cache';
 import Loki from 'lokijs';
-import type {
+import {
   CostParamsType,
   IDLokiCacheType,
   LokiGetType,
@@ -93,13 +93,7 @@ const clearCache = (): void => {
  *  @param {object} costOptions - Any changes to the default cost options for the query or mutation.
  *
  *  default costOptions = {
- *   maxCost: 5000, // maximum cost allowed before a request is rejected
- *   mutationCost: 5, // cost of a mutation
- *   objectCost: 2, // cost of retrieving an object
- *   scalarCost: 1, // cost of retrieving a scalar
- *   depthCostFactor: 1.5, // multiplicative cost of each depth level
- *   depthMax: 10, //depth limit parameter
- *   ipRate: 3 // requests allowed per second
+
  * }
  *
  */
@@ -306,4 +300,4 @@ async function Quellify(
     }
   }
 }
-export { Quellify, clearCache as clearLokiCache };
+export { Quellify, clearCache as clearLokiCache, lruCache };
