@@ -80,7 +80,6 @@ const getNode = (
 
 
 
-
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
@@ -191,6 +190,8 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   const onEdgesChange = useCallback( (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),[] );
   
   // console.log('ast: ', ast);
+
+  // this is to remove the reactflow watermark
   const proOptions = { hideAttribution: true };
   
   return (

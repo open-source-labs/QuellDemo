@@ -33,6 +33,7 @@ const ArtistType = new GraphQLObjectType({
     albums: {
       type: new GraphQLList(AlbumType),
       // a resolver function is responsible for return data for a specific field
+      // this is where we can grab the specific timing for the field
       resolve(parent, args) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
@@ -41,14 +42,16 @@ const ArtistType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           const elapsedTime = endTime - startTime;
           trackFieldPerformance('albums', parentName, elapsedTime);
+          parent.elapsedTime = elapsedTime.toString();
+          console.log(parent.elapsedTime);
           // console.log(result);
-          return {
-            album: result,
-            elapsedTime: elapsedTime,
-          };
+          return result;
         });
       },
     },
+    elapsedTime: { 
+      type: GraphQLString
+     }
   }),
 });
 
@@ -67,14 +70,12 @@ const AlbumType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           const elapsedTime = endTime - startTime;
           trackFieldPerformance('songs', parentName, elapsedTime);
-          return {
-            data: result,
-            elapsedTime: elapsedTime,
-          };
+          parent.elapsedTime = elapsedTime.toString();
+          return result;
         });
       },
     },
-    elapsedTime: { type: GraphQLFloat}
+    elapsedTime: { type: GraphQLString}
   }),
 });
 
