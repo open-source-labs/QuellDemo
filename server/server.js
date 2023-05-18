@@ -57,6 +57,13 @@ app.use(
   }
 );
 
+app.use('/api/queryTime', (req, res) => {
+  console.log('elapsed time', schema.getElapsedTime());
+  return res.status(200).send(schema.getElapsedTime());
+  // console.log('reached /api/queryTime');
+  // return res.status(200).send('does this work?');
+});
+
 app.use((req, res) =>
   res.status(404).send("This is not the page you're looking for...")
 );

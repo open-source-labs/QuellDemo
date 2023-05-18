@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType } from 'reactflow';
+import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType, XYPosition } from 'reactflow';
 import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode } from 'graphql';
 import styles from './Visualizer.modules.css';
 
 
 // type for NodeData
 // data describes the content of the node
-// ? means that it is optional
 interface NodeData {
   id: string;
   data?: { label: string } ;
@@ -81,7 +80,6 @@ const getNode = (
 
 
 
-
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
@@ -140,7 +138,6 @@ const buildTree = (
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
 const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } => {
-  // parses query to AST
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
     def => def.kind === 'OperationDefinition' && def.selectionSet
@@ -151,9 +148,12 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
   const selections = (operation as OperationDefinitionNode).selectionSet.selections;
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
-  buildTree(selections[0], nodes, edges, 0);
+  selections.forEach(selection => {
+    buildTree(selection, nodes, edges);
+  });
   return { nodes, edges };
 };
+
 
 
 // render a tree graph from GraphQL AST
@@ -190,6 +190,8 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
   const onEdgesChange = useCallback( (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),[] );
   
   // console.log('ast: ', ast);
+
+  // this is to remove the reactflow watermark
   const proOptions = { hideAttribution: true };
   
   return (

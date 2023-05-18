@@ -38,7 +38,7 @@ const getEdge = (parent, child) => {
         source: parentId,
         target: childId,
         animated: true,
-        label: 'hi',
+        label: 'time',
         markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 10,
@@ -56,7 +56,7 @@ const buildTree = (node, nodes, edges, depth = 0, siblingIndex = 0, numSiblings 
     // gets the parent node and pushes it into the nodes array
     const parent = getNode(node, depth, siblingIndex, numSiblings, numSiblings, parentPosition);
     nodes.push(parent);
-    console.log("Parent node: ", parent);
+    // console.log("Parent node: ", parent);
     // the selectionSet means that it has child nodes
     if (node.kind === 'Field' && node.selectionSet) {
         const numChildren = node.selectionSet.selections.length;
@@ -71,7 +71,6 @@ const buildTree = (node, nodes, edges, depth = 0, siblingIndex = 0, numSiblings 
 };
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
 const astToTree = (query) => {
-    // parses query to AST
     const ast = parse(query);
     const operation = ast.definitions.find(def => def.kind === 'OperationDefinition' && def.selectionSet);
     if (!operation) {
@@ -80,7 +79,9 @@ const astToTree = (query) => {
     const selections = operation.selectionSet.selections;
     const nodes = [];
     const edges = [];
-    buildTree(selections[0], nodes, edges, 0);
+    selections.forEach(selection => {
+        buildTree(selection, nodes, edges);
+    });
     return { nodes, edges };
 };
 // render a tree graph from GraphQL AST
@@ -112,7 +113,8 @@ const FlowTree = ({ query }) => {
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     // console.log('ast: ', ast);
+    // this is to remove the reactflow watermark
     const proOptions = { hideAttribution: true };
-    return (_jsxs(ReactFlow, Object.assign({ nodes: newNodes, edges: newEdges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, fitView: true, proOptions: proOptions, style: { height: 500, width: '100%', border: '3px solid lightGray', borderRadius: 10 } }, { children: [_jsx(Background, {}), _jsx(Controls, {}), _jsx(MiniMap, { style: { height: 100, width: 100 } })] })));
+    return (_jsxs(ReactFlow, Object.assign({ nodes: newNodes, edges: newEdges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, fitView: true, proOptions: proOptions }, { children: [_jsx(Background, {}), _jsx(Controls, {}), _jsx(MiniMap, { style: { height: 100, width: 100 } })] })));
 };
 export default FlowTree;

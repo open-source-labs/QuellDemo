@@ -31,6 +31,7 @@ import { styled } from '@mui/material/styles';
 import { Visualizer } from '../Visualizer/Visualizer';
 import { parse } from 'graphql/language/parser';
 import { DocumentNode } from 'graphql';
+// import { getElapsedTime } from '../../../../server/schema/schema';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -38,12 +39,15 @@ const Demo = memo(() => {
   const [selectedQuery, setQueryChoice] = useState<string>('2depth');
   const [query, setQuery] = useState<string>(querySamples[selectedQuery]);
   const [queryTypes, addQueryTypes] = useState<string[]>([]);
-  const [maxDepth, setDepth] = useState<number>(10);
-  const [maxCost, setCost] = useState<number>(50);
+  const [maxDepth, setDepth] = useState<number>(15);
+  const [maxCost, setCost] = useState<number>(6000);
   const [ipRate, setIPRate] = useState<number>(22);
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
+  const [elapsed, setElapsed] = useState<number>(-1);
+
+  // console.log('getElapsedTime:', getElapsedTime());
   
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
@@ -53,11 +57,12 @@ const Demo = memo(() => {
   useEffect(() => {}, [errorAlerts, responseTimes]);
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
-    // Clear both cache on the toggle event
-    clearLokiCache();
-    fetch('/api/clearCache').then((res) =>
-      console.log('Cleared Server Cache!')
-    );
+    // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
+      // Clear both cache on the toggle event
+      // clearLokiCache();
+      // fetch('/api/clearCache').then((res) =>
+      //   console.log('Cleared Server Cache!')
+      // );
     setIsToggled(event.target.checked);
   }
 
@@ -70,7 +75,7 @@ const Demo = memo(() => {
   return (
     <div id="demo" className={styles.section}>
       <div id={styles.demoHeader} className="scrollpoint">
-        {/* <div id="scroll-demo"></div> */}
+        <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
@@ -104,6 +109,8 @@ const Demo = memo(() => {
           isToggled={isToggled}
           setVisualizerQuery={setVisualizerQuery}
           visualizerQuery={visualizerQuery}
+          setElapsed={setElapsed}
+          elapsed={elapsed}
         />
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
         <div className={styles.rightContainer}>
@@ -168,7 +175,9 @@ function QueryDemo({
   setCacheMiss,
   isToggled,
   visualizerQuery,
-  setVisualizerQuery
+  setVisualizerQuery,
+  setElapsed,
+  elapsed
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>('');
 
@@ -176,8 +185,12 @@ function QueryDemo({
     const startTime = new Date().getTime();
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        console.log(query);
+        console.log(res);
         setVisualizerQuery(query);
+        // if (setElapsed) {
+        //   setElapsed(getElapsedTime());
+        // };
+        // console.log('elapsed: ', elapsed);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
@@ -190,6 +203,15 @@ function QueryDemo({
             setCacheHit(cacheHit + 1);
           }
         }
+      })
+      .then(() => {
+        fetch ('/api/queryTime').then(res => res.text())
+        .then((time) => {
+          if (setElapsed){
+            console.log('time: ', time);
+            setElapsed(Number(time));
+          }
+        })
       })
       .catch((err) => {
         const error = {
@@ -437,7 +459,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <input
             className={styles.limitsInput}
             type="number"
-            placeholder="10"
+            placeholder={"15"}
             onChange={(e) => {
               setDepth(Number(e.target.value));
             }}
@@ -450,7 +472,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
           <input
             className={styles.limitsInput}
             type="number"
-            placeholder="50"
+            placeholder="6000"
             onChange={(e) => {
               setCost(Number(e.target.value));
             }}
@@ -499,6 +521,8 @@ interface QueryDemoProps {
   isToggled: boolean;
   visualizerQuery: string;
   setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>;
+  setElapsed?: React.Dispatch<React.SetStateAction<number>>;
+  elapsed?: number;
 }
 
 interface CacheControlProps {

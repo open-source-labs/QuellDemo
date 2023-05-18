@@ -10,7 +10,8 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
+    // "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./dist",
     "resolveJsonModule": true,
@@ -18,7 +19,11 @@
     "noEmit": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ",",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
   "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts"],
   "exclude": ["node_modules", "target"]
