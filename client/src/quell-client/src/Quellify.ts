@@ -134,6 +134,7 @@ async function Quellify(
       const data = await fetch(endPoint, fetchConfig);
       const response = await data.json();
       updateLRUCache(query, response.queryResponse.data);
+      console.log('fool query response', response.queryResponse.data);
       return response.queryResponse.data;
     } catch (error) {
       const err: ClientErrorType = {
@@ -196,6 +197,7 @@ async function Quellify(
   const AST: DocumentNode = parse(query);
   // Find operationType, proto using determineType
   const { operationType, proto } = determineType(AST);
+  console.log('mike operation type', operationType)
   if (operationType === 'unQuellable') {
     /*
      * If the operation is unQuellable (cannot be cached), fetch the data
@@ -209,9 +211,13 @@ async function Quellify(
   } else if (operationType === 'mutation') {
     // Assign mutationType
     const mutationType: string = Object.keys(proto)[0];
+    console.log('mike mutation type', mutationType)
+    console.log('HEREHEREHREHREH', IDCache);
+    
     // Check the cache for the query
     if (IDCache[query]) {
       // check if mutation is an add mutation
+      console.log('does this even do anything?')
       if (
         mutationType.includes('add') ||
         mutationType.includes('new') ||
@@ -221,12 +227,15 @@ async function Quellify(
         // Update the data found in cache
         // Grab the $loki ID from the IDCache.
         const mutationID: number = IDCache[query];
+        console.log('add mutation ID', mutationID)
         // Grab the results from lokiCache for the $loki ID.
         const results: LokiGetType = lokiCache.get(mutationID);
         lruCache.set(query, results);
 
+
         // Refetch each query in the LRU cache to update the cache
         refetchLRUCache();
+
 
         // The second element in the return array is a boolean that the data was found in the lokiCache.
         return [results, true];
@@ -236,23 +245,29 @@ async function Quellify(
       mutationType.includes('delete') ||
       mutationType.includes('remove')
     ) {
+      console.log('PLEASE DELETE')
       // Update the data found in cache
       // Grab the $loki ID from the IDCache.
       const mutationID: number = IDCache[query];
+      console.log('delete mutationId', mutationID);
       // Grab the results from lokiCache for the $loki ID.
       const results: LokiGetType = lokiCache.get(mutationID);
       invalidateCache(query);
-      
+      console.log('delete mutation results', results)
       // Refetch each query in the LRU cache to update the cache
       refetchLRUCache();
+
+      console.log('delete mutation results', results)
 
       // The second element in the return array is a boolean that the data was found in the lokiCache.
       return [results, true];
   }
     // Check if mutation is an update mutation
     else if (
-      mutationType.includes('update') 
+      mutationType.includes('update') ||
+      mutationType.includes('edit')
     ) {
+      console.log('DOES THIS WORK');
       // Update the data found in cache
       // Grab the $loki ID from the IDCache.
       const mutationID: number = IDCache[query];
@@ -262,6 +277,7 @@ async function Quellify(
       // Refetch each query in the LRU cache to update the cache
       refetchLRUCache();
       // The second element in the return array is a boolean that the data was found in the lokiCache.
+      console.log('edit mutation in cache', results)
       return [results, true];
    }
   } else {
@@ -281,6 +297,7 @@ async function Quellify(
           IDCache[query] = addedEntry.$loki;
           // Refetch each query in the LRU cache to update the cache
           refetchLRUCache();
+          console.log('lenny add mutation results', addedEntry)
           return [addedEntry, false];
         }
         
@@ -290,6 +307,7 @@ async function Quellify(
       mutationType.includes('delete') ||
       mutationType.includes('remove')
     )  {
+      console.log('will we delete??')
       // execute a fetch request with the query
       const parsedData: JSONObject = await performFetch(deleteFetch);
       if (parsedData) {
@@ -306,15 +324,18 @@ async function Quellify(
     }
   // Check if mutation is an update mutation
   else if (
-    mutationType.includes('update') 
+    mutationType.includes('update') ||
+    mutationType.includes('edit') 
   ) {
     // Execute a fetch request with the query
     const parsedData: JSONObject = await performFetch(postFetch);
+    console.log('edit mutation not in cache parsed data', parsedData)
     if (parsedData) {
       const updatedEntry = lokiCache.update(parsedData);
       IDCache[query] = updatedEntry.$loki;
       // Refetch each query in the LRU cache to update the cache
       refetchLRUCache();
+      console.log('edit mutation results', updatedEntry)
       return [updatedEntry, false];
     }
    }
