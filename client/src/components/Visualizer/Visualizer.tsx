@@ -20,5 +20,5 @@ export function Visualizer({ query, elapsed }: VisualizerProps) {
 
 interface VisualizerProps {
   query: string;
-  elapsed: number;
+  elapsed: {};
 }

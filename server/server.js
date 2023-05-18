@@ -1,5 +1,6 @@
 const {
   getElapsedTime,
+  clearElapsedTime,
   graphqlSchema
 } = require('./schema/schema.js');
 const express = require('express');
@@ -34,8 +35,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static('./dist'));
 
+// clearElapsedTime so that elapsedTime doesn't persist old times for new queries
 app.use(
   '/api/graphql',
+  clearElapsedTime,
   quellCache.rateLimiter,
   quellCache.costLimit,
   quellCache.depthLimit,

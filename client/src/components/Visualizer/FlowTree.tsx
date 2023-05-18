@@ -83,16 +83,14 @@ const getNode = (
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
-const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
+const getEdge = (parent: FieldNode, child: SelectionNode, ): FlowElement => {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
-
-  return {
+  const edgeProps : FlowElement = {
     id: `${parentId}-${childId}`,
     source: parentId,
     target: childId,
     animated: true,
-    label: 'time',
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 10,
@@ -104,6 +102,13 @@ const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
       stroke: '#03C6FF',
     },
   };
+
+  const childNode = child as FieldNode;
+  console.log(childNode.name.value);
+  // if(elapsedTime[childNode.name.value]){
+  //   edgeProps.label = elapsedTime[childNode.name.value]
+  // }
+  return edgeProps;
 };
 
 // recursively constructs a tree structure from GraphQL AST
@@ -114,7 +119,8 @@ const buildTree = (
   depth = 0,
   siblingIndex = 0,
   numSiblings = 1,
-  parentPosition?: Position
+  parentPosition?: Position,
+  // elapsedTime?: {} 
 ): void => {
   // gets the parent node and pushes it into the nodes array
   const parent = getNode(node, depth, siblingIndex, numSiblings, numSiblings, parentPosition);
@@ -137,7 +143,8 @@ const buildTree = (
 
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
-const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } => {
+const astToTree = (query: string, elapsedTime: {} ): { nodes: NodeData[]; edges: FlowElement[] } => {
+  // parses query to AST
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
     def => def.kind === 'OperationDefinition' && def.selectionSet
@@ -157,14 +164,15 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
 
 
 // render a tree graph from GraphQL AST
-const FlowTree: React.FC<{query: string, elapsed: number}> = ({query, elapsed}) => {
+const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => {
   const [currentQuery, setCurrentQuery] = useState(query);
+  const [elapsedTime, setElapsedTime] = useState(elapsed);
 
 // update the state of nodes and edges when query changes
   useEffect(() => {
   // only update if the query is different from the currentQuery
   if (query !== currentQuery) {
-    const { nodes: newNodes, edges: newEdges } = astToTree(query);
+    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
     const nodes = newNodes.map(node => ({
       id: node.id,
       data: node.data,
@@ -174,12 +182,13 @@ const FlowTree: React.FC<{query: string, elapsed: number}> = ({query, elapsed}) 
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
+    setElapsedTime(elapsed);
   };
   console.log('elapsed in flowtree: ', elapsed);
 } , [query, currentQuery]);
 
   // console.log(query);
-  const { nodes, edges } = astToTree(query);
+  const { nodes, edges } = astToTree(query, elapsedTime);
   // console.log(nodes);
 
   // storing the initial values of the nodes and edges

@@ -26,7 +26,7 @@ const trackFieldPerformance = (fieldName, parentName, elapsedTime) => {
   console.log(`Resolver for "${parentName}.${fieldName}" field took ${elapsedTime} ms`);
 };
 
-let elapsedTime = -2;
+let elapsedTime = {};
 
 const ArtistType = new GraphQLObjectType({
   name: 'Artist',
@@ -39,13 +39,12 @@ const ArtistType = new GraphQLObjectType({
       // this is where we can grab the specific timing for the field
       resolve(parent, args) {
         const startTime = new Date().getTime();
-        const parentName = parent.name;
         return Album.find({ artist: parent.name }).then((result) => {
           // console.log(result);
           const endTime = new Date().getTime();
-          elapsedTime = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime,'ms');
-          trackFieldPerformance('albums', parentName, elapsedTime);
+          elapsedTime.albums = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.albums,'ms');
+          // trackFieldPerformance('albums', parentName, elapsedTime);
           console.log(result);
           return result;
         });
@@ -67,9 +66,9 @@ const AlbumType = new GraphQLObjectType({
         const parentName = parent.name;
         return Songs.find({ album: parentName }).then((result) => {
           const endTime = new Date().getTime();
-          elapsedTime = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime,'ms');
-          trackFieldPerformance('songs', parentName, elapsedTime);
+          elapsedTime.songs = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.songs,'ms');
+          // trackFieldPerformance('songs', parentName, elapsedTime);
           console.log(result);
           return result;
         });
@@ -94,9 +93,9 @@ const AttractionsType = new GraphQLObjectType({
           .then((city) => Countries.findOne({ country: city.country }))
           .then((result) => {
             const endTime = new Date().getTime();
-            elapsedTime = endTime - startTime;
-            console.log('elapsedTime: ', elapsedTime,'ms');
-            trackFieldPerformance('country', parentName, elapsedTime);
+            elapsedTime.country = endTime - startTime;
+            console.log('elapsedTime: ', elapsedTime.country,'ms');
+            // trackFieldPerformance('country', parentName, elapsedTime);
             console.log(result);
             return result;
           });
@@ -119,9 +118,9 @@ const CityType = new GraphQLObjectType({
         const parentName = parent.name;
         return Attractions.find({ city: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          elapsedTime = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime,'ms');
-          trackFieldPerformance('attractions', parentName, elapsedTime);
+          elapsedTime.attractions = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.attractions,'ms');
+          // trackFieldPerformance('attractions', parentName, elapsedTime);
           console.log(result);
           return result;
         });
@@ -142,9 +141,9 @@ const CountryType = new GraphQLObjectType({
         const parentName = parent.name
         return Cities.find({ country: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          elapsedTime = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime,'ms');
-          trackFieldPerformance('cities', parentName, elapsedTime);
+          elapsedTime.cities = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.cities,'ms');
+          // trackFieldPerformance('cities', parentName, elapsedTime);
           console.log(result);
           return result;
         });
@@ -294,8 +293,14 @@ const RootMutations = new GraphQLObjectType({
 });
 
 const getElapsedTime = (req, res, next) => {
-  console.log('elapsed time in mid: ',elapsedTime);
+  console.log('elapsed time in mid: ', elapsedTime);
   res.locals.time = elapsedTime;
+  return next();
+}
+
+const clearElapsedTime = (req, res, next) => {
+  elapsedTime = {};
+  console.log(elapsedTime);
   return next();
 }
 
@@ -306,6 +311,7 @@ const graphqlSchema = new GraphQLSchema({
 });
 
 module.exports = {
+  clearElapsedTime,
   getElapsedTime,
   graphqlSchema
 }
