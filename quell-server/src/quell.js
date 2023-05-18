@@ -25,7 +25,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+        while (_) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -46,7 +46,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.QuellCache = void 0;
 var parser_1 = require("graphql/language/parser");
 var graphql_1 = require("graphql");
@@ -129,8 +129,7 @@ var QuellCache = /** @class */ (function () {
             .connect()
             .then(function () {
             console.log('Connected to redisCache');
-        })
-            .catch(function (error) {
+        })["catch"](function (error) {
             var err = {
                 log: "Error when trying to connect to redisCache, ".concat(error),
                 status: 400,
@@ -258,8 +257,7 @@ var QuellCache = /** @class */ (function () {
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
                             return next();
-                        })
-                            .catch(function (error) {
+                        })["catch"](function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === unQuellable of query, ".concat(error),
                                 status: 400,
@@ -282,8 +280,7 @@ var QuellCache = /** @class */ (function () {
                             .then(function (queryResult) {
                             res.locals.queryResponse = queryResult;
                             return next();
-                        })
-                            .catch(function (error) {
+                        })["catch"](function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === noID of query, ".concat(error),
                                 status: 400,
@@ -309,8 +306,7 @@ var QuellCache = /** @class */ (function () {
                                 res.locals.queryResponse = queryResult;
                                 _this.writeToCache(queryString, queryResult);
                                 return next();
-                            })
-                                .catch(function (error) {
+                            })["catch"](function (error) {
                                 var err = {
                                     log: "Error inside catch block of operationType === noID of query, graphQL query failed, ".concat(error),
                                     status: 400,
@@ -351,8 +347,7 @@ var QuellCache = /** @class */ (function () {
                                 _this.updateCacheByMutation(databaseResponse, mutationName_1, mutationType_1, mutationQueryObject_1);
                             }
                             return next();
-                        })
-                            .catch(function (error) {
+                        })["catch"](function (error) {
                             var err = {
                                 log: "Error inside catch block of operationType === mutation of query, ".concat(error),
                                 status: 400,
@@ -364,6 +359,11 @@ var QuellCache = /** @class */ (function () {
                         });
                         return [3 /*break*/, 6];
                     case 4:
+                        /*
+                         * Otherwise, the operation type is a query.
+                         */
+                        // Combine fragments on prototype so we can access fragment values in cache.
+                        console.log('idCache:', idCache);
                         prototype_1 = Object.keys(frags).length > 0
                             ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
                             : proto;
@@ -371,6 +371,7 @@ var QuellCache = /** @class */ (function () {
                         return [4 /*yield*/, this.buildFromCache(prototype_1, prototypeKeys)];
                     case 5:
                         cacheResponse_1 = _c.sent();
+                        console.log('cacheResponse:', cacheResponse_1);
                         queryObject = (0, quellHelpers_1.createQueryObj)(prototype_1);
                         // If the cached response is incomplete, reformulate query,
                         // handoff query, join responses, and cache joined responses.
@@ -406,8 +407,7 @@ var QuellCache = /** @class */ (function () {
                                             return [2 /*return*/, next()];
                                     }
                                 });
-                            }); })
-                                .catch(function (error) {
+                            }); })["catch"](function (error) {
                                 var err = {
                                     log: "Error inside catch block of operationType === query of query, ".concat(error),
                                     status: 400,
@@ -484,15 +484,15 @@ var QuellCache = /** @class */ (function () {
         if (firstRun === void 0) { firstRun = true; }
         if (subID === void 0) { subID = false; }
         return __awaiter(this, void 0, void 0, function () {
-            var _loop_1, this_1, _c, _d, _e, _i, typeKey;
+            var _loop_1, this_1, _c, _d, _i, typeKey;
             var _this = this;
-            return __generator(this, function (_f) {
-                switch (_f.label) {
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         _loop_1 = function (typeKey) {
-                            var cacheID, keyName, capitalized, cacheResponse, redisRunQueue, _loop_2, i, cacheID, cacheResponse, _g, _h, _j, _k, field;
-                            return __generator(this, function (_l) {
-                                switch (_l.label) {
+                            var cacheID, keyName, capitalized, cacheResponse, redisRunQueue, _loop_2, i, cacheID, cacheResponse, _f, _g, _h, field;
+                            return __generator(this, function (_j) {
+                                switch (_j.label) {
                                     case 0:
                                         if (!prototypeKeys.includes(typeKey)) return [3 /*break*/, 2];
                                         cacheID = void 0;
@@ -521,16 +521,16 @@ var QuellCache = /** @class */ (function () {
                                         }
                                         return [4 /*yield*/, this_1.getFromRedis(cacheID)];
                                     case 1:
-                                        cacheResponse = _l.sent();
+                                        cacheResponse = _j.sent();
                                         itemFromCache[typeKey] = cacheResponse ? JSON.parse(cacheResponse) : {};
-                                        _l.label = 2;
+                                        _j.label = 2;
                                     case 2:
                                         if (!Array.isArray(itemFromCache[typeKey])) return [3 /*break*/, 7];
                                         redisRunQueue = this_1.redisCache.multi();
                                         _loop_2 = function (i) {
                                             var getCommandCallback_1, currTypeKey_1, cacheResponseRaw, error_3, err, cacheResponseRaw, error_4, err;
-                                            return __generator(this, function (_m) {
-                                                switch (_m.label) {
+                                            return __generator(this, function (_k) {
+                                                switch (_k.label) {
                                                     case 0:
                                                         if (!(typeof itemFromCache[typeKey] === 'string')) return [3 /*break*/, 9];
                                                         getCommandCallback_1 = function (cacheResponse) {
@@ -574,18 +574,18 @@ var QuellCache = /** @class */ (function () {
                                                         };
                                                         currTypeKey_1 = itemFromCache[typeKey][i];
                                                         if (!(i !== 0 && i % this_1.redisReadBatchSize === 0)) return [3 /*break*/, 5];
-                                                        _m.label = 1;
+                                                        _k.label = 1;
                                                     case 1:
-                                                        _m.trys.push([1, 3, , 4]);
+                                                        _k.trys.push([1, 3, , 4]);
                                                         return [4 /*yield*/, redisRunQueue.exec()];
                                                     case 2:
-                                                        cacheResponseRaw = _m.sent();
+                                                        cacheResponseRaw = _k.sent();
                                                         cacheResponseRaw.forEach(function (cacheResponse) {
                                                             return getCommandCallback_1(JSON.stringify(cacheResponse));
                                                         });
                                                         return [3 /*break*/, 4];
                                                     case 3:
-                                                        error_3 = _m.sent();
+                                                        error_3 = _k.sent();
                                                         err = {
                                                             log: "Error inside 1st-catch block of buildFromCache, ".concat(error_3),
                                                             status: 400,
@@ -597,22 +597,22 @@ var QuellCache = /** @class */ (function () {
                                                         return [3 /*break*/, 4];
                                                     case 4:
                                                         redisRunQueue = this_1.redisCache.multi();
-                                                        _m.label = 5;
+                                                        _k.label = 5;
                                                     case 5:
                                                         // Add a get command for the current type key to the queue.
                                                         redisRunQueue.get(currTypeKey_1.toLowerCase());
-                                                        _m.label = 6;
+                                                        _k.label = 6;
                                                     case 6:
-                                                        _m.trys.push([6, 8, , 9]);
+                                                        _k.trys.push([6, 8, , 9]);
                                                         return [4 /*yield*/, redisRunQueue.exec()];
                                                     case 7:
-                                                        cacheResponseRaw = _m.sent();
+                                                        cacheResponseRaw = _k.sent();
                                                         cacheResponseRaw.forEach(function (cacheResponse) {
                                                             return getCommandCallback_1(JSON.stringify(cacheResponse));
                                                         });
                                                         return [3 /*break*/, 9];
                                                     case 8:
-                                                        error_4 = _m.sent();
+                                                        error_4 = _k.sent();
                                                         err = {
                                                             log: "Error inside 2nd-catch block of buildFromCache, ".concat(error_4),
                                                             status: 400,
@@ -627,13 +627,13 @@ var QuellCache = /** @class */ (function () {
                                             });
                                         };
                                         i = 0;
-                                        _l.label = 3;
+                                        _j.label = 3;
                                     case 3:
                                         if (!(i < itemFromCache[typeKey].length)) return [3 /*break*/, 6];
                                         return [5 /*yield**/, _loop_2(i)];
                                     case 4:
-                                        _l.sent();
-                                        _l.label = 5;
+                                        _j.sent();
+                                        _j.label = 5;
                                     case 5:
                                         i++;
                                         return [3 /*break*/, 3];
@@ -654,29 +654,26 @@ var QuellCache = /** @class */ (function () {
                                             typeof prototype[typeKey] === 'object')) return [3 /*break*/, 11];
                                         return [4 /*yield*/, this_1.generateCacheID(prototype)];
                                     case 8:
-                                        cacheID = _l.sent();
+                                        cacheID = _j.sent();
                                         return [4 /*yield*/, this_1.getFromRedis(cacheID)];
                                     case 9:
-                                        cacheResponse = _l.sent();
+                                        cacheResponse = _j.sent();
                                         if (cacheResponse)
                                             itemFromCache[typeKey] = JSON.parse(cacheResponse);
                                         return [4 /*yield*/, this_1.buildFromCache(prototype[typeKey], prototypeKeys, itemFromCache[typeKey], false)];
                                     case 10:
-                                        _l.sent();
-                                        _l.label = 11;
+                                        _j.sent();
+                                        _j.label = 11;
                                     case 11: return [3 /*break*/, 17];
                                     case 12:
-                                        _g = prototype[typeKey];
-                                        _h = [];
-                                        for (_j in _g)
-                                            _h.push(_j);
-                                        _k = 0;
-                                        _l.label = 13;
+                                        _f = [];
+                                        for (_g in prototype[typeKey])
+                                            _f.push(_g);
+                                        _h = 0;
+                                        _j.label = 13;
                                     case 13:
-                                        if (!(_k < _h.length)) return [3 /*break*/, 17];
-                                        _j = _h[_k];
-                                        if (!(_j in _g)) return [3 /*break*/, 16];
-                                        field = _j;
+                                        if (!(_h < _f.length)) return [3 /*break*/, 17];
+                                        field = _f[_h];
                                         // If field is not found in cache then toggle to false
                                         if (itemFromCache[typeKey] &&
                                             !Object.prototype.hasOwnProperty.call(itemFromCache[typeKey], field) &&
@@ -688,7 +685,7 @@ var QuellCache = /** @class */ (function () {
                                             typeof prototype[typeKey][field] === 'object')) return [3 /*break*/, 15];
                                         return [4 /*yield*/, this_1.buildFromCache(prototype[typeKey][field], prototypeKeys, itemFromCache[typeKey][field] || {}, false)];
                                     case 14:
-                                        _l.sent();
+                                        _j.sent();
                                         return [3 /*break*/, 16];
                                     case 15:
                                         if (!itemFromCache[typeKey] &&
@@ -696,30 +693,27 @@ var QuellCache = /** @class */ (function () {
                                             typeof prototype[typeKey][field] !== 'object') {
                                             prototype[typeKey][field] = false;
                                         }
-                                        _l.label = 16;
+                                        _j.label = 16;
                                     case 16:
-                                        _k++;
+                                        _h++;
                                         return [3 /*break*/, 13];
                                     case 17: return [2 /*return*/];
                                 }
                             });
                         };
                         this_1 = this;
-                        _c = prototype;
-                        _d = [];
-                        for (_e in _c)
-                            _d.push(_e);
+                        _c = [];
+                        for (_d in prototype)
+                            _c.push(_d);
                         _i = 0;
-                        _f.label = 1;
+                        _e.label = 1;
                     case 1:
-                        if (!(_i < _d.length)) return [3 /*break*/, 4];
-                        _e = _d[_i];
-                        if (!(_e in _c)) return [3 /*break*/, 3];
-                        typeKey = _e;
+                        if (!(_i < _c.length)) return [3 /*break*/, 4];
+                        typeKey = _c[_i];
                         return [5 /*yield**/, _loop_1(typeKey)];
                     case 2:
-                        _f.sent();
-                        _f.label = 3;
+                        _e.sent();
+                        _e.label = 3;
                     case 3:
                         _i++;
                         return [3 /*break*/, 1];
@@ -740,38 +734,35 @@ var QuellCache = /** @class */ (function () {
     QuellCache.prototype.normalizeForCache = function (responseData, map, protoField, currName) {
         if (map === void 0) { map = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, _c, _i, resultName, currField, currProto, i, el, dataType, fieldStore, cacheID, _d, _e, _f, _g, key, responseDataAtCacheID, cacheIDForIDCache;
-            var _h, _j, _k, _l;
-            return __generator(this, function (_m) {
-                switch (_m.label) {
+            var _a, _b, _i, resultName, currField, currProto, i, el, dataType, fieldStore, cacheID, _c, _d, _e, key, responseDataAtCacheID, cacheIDForIDCache;
+            var _f, _g, _h, _j;
+            return __generator(this, function (_k) {
+                switch (_k.label) {
                     case 0:
-                        _a = responseData;
-                        _b = [];
-                        for (_c in _a)
-                            _b.push(_c);
+                        _a = [];
+                        for (_b in responseData)
+                            _a.push(_b);
                         _i = 0;
-                        _m.label = 1;
+                        _k.label = 1;
                     case 1:
-                        if (!(_i < _b.length)) return [3 /*break*/, 12];
-                        _c = _b[_i];
-                        if (!(_c in _a)) return [3 /*break*/, 11];
-                        resultName = _c;
+                        if (!(_i < _a.length)) return [3 /*break*/, 12];
+                        resultName = _a[_i];
                         currField = responseData[resultName];
                         currProto = protoField[resultName];
                         if (!Array.isArray(currField)) return [3 /*break*/, 6];
                         i = 0;
-                        _m.label = 2;
+                        _k.label = 2;
                     case 2:
                         if (!(i < currField.length)) return [3 /*break*/, 5];
                         el = currField[i];
                         dataType = map[resultName];
                         if (!(typeof el === 'object' && typeof dataType === 'string')) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.normalizeForCache((_h = {}, _h[dataType] = el, _h), map, (_j = {},
-                                _j[dataType] = currProto,
-                                _j), currName)];
+                        return [4 /*yield*/, this.normalizeForCache((_f = {}, _f[dataType] = el, _f), map, (_g = {},
+                                _g[dataType] = currProto,
+                                _g), currName)];
                     case 3:
-                        _m.sent();
-                        _m.label = 4;
+                        _k.sent();
+                        _k.label = 4;
                     case 4:
                         i++;
                         return [3 /*break*/, 2];
@@ -783,17 +774,14 @@ var QuellCache = /** @class */ (function () {
                             ? map[currProto.__type]
                             : currProto.__type;
                         cacheID += currProto.__id ? "--".concat(currProto.__id) : '';
-                        _d = currField;
-                        _e = [];
-                        for (_f in _d)
-                            _e.push(_f);
-                        _g = 0;
-                        _m.label = 7;
+                        _c = [];
+                        for (_d in currField)
+                            _c.push(_d);
+                        _e = 0;
+                        _k.label = 7;
                     case 7:
-                        if (!(_g < _e.length)) return [3 /*break*/, 10];
-                        _f = _e[_g];
-                        if (!(_f in _d)) return [3 /*break*/, 9];
-                        key = _f;
+                        if (!(_e < _c.length)) return [3 /*break*/, 10];
+                        key = _c[_e];
                         // If prototype has no ID, check field keys for ID (mostly for arrays)
                         if (!currProto.__id &&
                             (key === 'id' || key === '_id' || key === 'ID' || key === 'Id')) {
@@ -815,19 +803,19 @@ var QuellCache = /** @class */ (function () {
                         fieldStore[key] = currField[key];
                         if (!(typeof currField[key] === 'object')) return [3 /*break*/, 9];
                         if (!(protoField[resultName] !== null)) return [3 /*break*/, 9];
-                        return [4 /*yield*/, this.normalizeForCache((_k = {}, _k[key] = currField[key], _k), map, (_l = {},
-                                _l[key] = protoField[resultName][key],
-                                _l), currName)];
+                        return [4 /*yield*/, this.normalizeForCache((_h = {}, _h[key] = currField[key], _h), map, (_j = {},
+                                _j[key] = protoField[resultName][key],
+                                _j), currName)];
                     case 8:
-                        _m.sent();
-                        _m.label = 9;
+                        _k.sent();
+                        _k.label = 9;
                     case 9:
-                        _g++;
+                        _e++;
                         return [3 /*break*/, 7];
                     case 10:
                         // Store "current object" on cache in JSON format
                         this.writeToCache(cacheID, fieldStore);
-                        _m.label = 11;
+                        _k.label = 11;
                     case 11:
                         _i++;
                         return [3 /*break*/, 1];
@@ -1447,8 +1435,7 @@ var QuellCache = /** @class */ (function () {
                     };
                     res.locals.redisStats = output;
                     return next();
-                })
-                    .catch(function (error) {
+                })["catch"](function (error) {
                     var err = {
                         log: "Error inside catch block of getting info within getStatsFromRedis, ".concat(error),
                         status: 400,
@@ -1484,8 +1471,7 @@ var QuellCache = /** @class */ (function () {
             .then(function (response) {
             res.locals.redisKeys = response;
             return next();
-        })
-            .catch(function (error) {
+        })["catch"](function (error) {
             var err = {
                 log: "Error inside catch block of getRedisKeys, keys potentially undefined, ".concat(error),
                 status: 400,
@@ -1509,8 +1495,7 @@ var QuellCache = /** @class */ (function () {
                 .then(function (response) {
                 res.locals.redisValues = response;
                 return next();
-            })
-                .catch(function (error) {
+            })["catch"](function (error) {
                 var err = {
                     log: "Error inside catch block of getRedisValues, ".concat(error),
                     status: 400,
@@ -1720,28 +1705,11 @@ var QuellCache = /** @class */ (function () {
                 }
             });
         };
+        determineDepthCost(prototype);
+        // Attach the AST and parsed AST to res.locals so that the next middleware doesn't need to determine these again.
+        res.locals.AST = AST;
+        res.locals.parsedAST = { proto: proto, operationType: operationType, frags: frags };
         return next();
-    };
-    // Query database and return time to complete query
-    QuellCache.prototype.queryTime = function (queryStr) {
-        var start = new Date().getTime();
-        // Query database
-        (0, graphql_1.graphql)({ schema: this.schema, source: queryStr })
-            .then(function (res) {
-            var end = new Date().getTime();
-            return end - start;
-        })
-            .catch(function (err) {
-            console.log(err);
-            return -1;
-        });
-    };
-    // Iterate through fields of the query stored in req.body and add the query time of each field to the total query time
-    // return type is a promise that resolves to an object with the query time and the query string
-    QuellCache.prototype.resolveTime = function (req, res, next) {
-        var queryTime = 0;
-        var queryString = req.body.query;
-        return { queryString: queryString, queryTime: queryTime };
     };
     return QuellCache;
 }());

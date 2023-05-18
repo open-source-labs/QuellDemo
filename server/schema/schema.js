@@ -67,9 +67,10 @@ const AlbumType = new GraphQLObjectType({
         const parentName = parent.name;
         return Songs.find({ album: parentName }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
+          elapsedTime = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime,'ms');
           trackFieldPerformance('songs', parentName, elapsedTime);
-          parent.elapsedTime = elapsedTime.toString();
+          console.log(result);
           return result;
         });
       },
@@ -93,8 +94,10 @@ const AttractionsType = new GraphQLObjectType({
           .then((city) => Countries.findOne({ country: city.country }))
           .then((result) => {
             const endTime = new Date().getTime();
-            const elapsedTime = endTime - startTime;
-            trackFieldPerformance('countries', parentName, elapsedTime);
+            elapsedTime = endTime - startTime;
+            console.log('elapsedTime: ', elapsedTime,'ms');
+            trackFieldPerformance('country', parentName, elapsedTime);
+            console.log(result);
             return result;
           });
       },
@@ -116,8 +119,10 @@ const CityType = new GraphQLObjectType({
         const parentName = parent.name;
         return Attractions.find({ city: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
+          elapsedTime = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime,'ms');
           trackFieldPerformance('attractions', parentName, elapsedTime);
+          console.log(result);
           return result;
         });
       },
@@ -137,8 +142,10 @@ const CountryType = new GraphQLObjectType({
         const parentName = parent.name
         return Cities.find({ country: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
+          elapsedTime = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime,'ms');
           trackFieldPerformance('cities', parentName, elapsedTime);
+          console.log(result);
           return result;
         });
       },
@@ -287,6 +294,7 @@ const RootMutations = new GraphQLObjectType({
 });
 
 const getElapsedTime = (req, res, next) => {
+  console.log('elapsed time in mid: ',elapsedTime);
   res.locals.time = elapsedTime;
   return next();
 }

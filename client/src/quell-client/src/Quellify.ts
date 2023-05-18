@@ -47,7 +47,7 @@ const invalidateCache = (query: string): void => {
  */
 
 // Set the maximum cache size on LRU cache
-const MAX_CACHE_SIZE: number = 2;
+const MAX_CACHE_SIZE: number = 5;
 const lruCache = new LRUCache<string, LokiGetType>({
   max: MAX_CACHE_SIZE,
 });
@@ -72,6 +72,7 @@ const updateLRUCache = (query: string, results: LokiGetType): void => {
   lruCache.set(query, results); 
   console.log('Cache updated for query:', query);
   console.log('LRUCache:', lruCache);
+  console.log('lokiCache:', lokiCache);
 };
 /**
  * Clears entire existing cache and ID cache and resets to a new cache.
