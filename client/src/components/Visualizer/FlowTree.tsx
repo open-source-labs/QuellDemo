@@ -83,7 +83,7 @@ const getNode = (
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
-const getEdge = (parent: FieldNode, child: SelectionNode, ): FlowElement => {
+const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowElement => {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
   const edgeProps : FlowElement = {
@@ -105,9 +105,10 @@ const getEdge = (parent: FieldNode, child: SelectionNode, ): FlowElement => {
 
   const childNode = child as FieldNode;
   console.log(childNode.name.value);
-  // if(elapsedTime[childNode.name.value]){
-  //   edgeProps.label = elapsedTime[childNode.name.value]
-  // }
+  if(elapsed[childNode.name.value]){
+    edgeProps.label = `${elapsed[childNode.name.value]}ms`;
+    console.log('edgeProps: ',edgeProps);
+  }
   return edgeProps;
 };
 
@@ -116,11 +117,11 @@ const buildTree = (
   node: FieldNode | SelectionNode,
   nodes: NodeData[],
   edges: FlowElement[],
+  elapsed: {}, 
   depth = 0,
   siblingIndex = 0,
   numSiblings = 1,
-  parentPosition?: Position,
-  // elapsedTime?: {} 
+  parentPosition?: Position
 ): void => {
   // gets the parent node and pushes it into the nodes array
   const parent = getNode(node, depth, siblingIndex, numSiblings, numSiblings, parentPosition);
@@ -134,8 +135,8 @@ const buildTree = (
     node.selectionSet.selections.forEach((childNode, i) => {
       const child = getNode(childNode, depth + 1, i, numChildren, numSiblings, parent.position);
       //pushes the child node and edge into the respective arrays
-      edges.push(getEdge(node as FieldNode, childNode));
-      buildTree(childNode, nodes, edges, depth + 1, i, numChildren, parent.position);
+      edges.push(getEdge(node as FieldNode, childNode, elapsed));
+      buildTree(childNode, nodes, edges, elapsed, depth + 1, i, numChildren, parent.position);
     });
   }
 };
@@ -143,7 +144,7 @@ const buildTree = (
 
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
-const astToTree = (query: string, elapsedTime: {} ): { nodes: NodeData[]; edges: FlowElement[] } => {
+const astToTree = (query: string, elapsed: {} ): { nodes: NodeData[]; edges: FlowElement[] } => {
   // parses query to AST
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
@@ -156,7 +157,7 @@ const astToTree = (query: string, elapsedTime: {} ): { nodes: NodeData[]; edges:
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
   selections.forEach(selection => {
-    buildTree(selection, nodes, edges);
+    buildTree(selection, nodes, edges, elapsed);
   });
   return { nodes, edges };
 };
@@ -172,7 +173,7 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
   useEffect(() => {
   // only update if the query is different from the currentQuery
   if (query !== currentQuery) {
-    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
+    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsed);
     const nodes = newNodes.map(node => ({
       id: node.id,
       data: node.data,
@@ -182,13 +183,13 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
-    setElapsedTime(elapsed);
+    // setElapsedTime(elapsed);
   };
   console.log('elapsed in flowtree: ', elapsed);
 } , [query, currentQuery]);
 
   // console.log(query);
-  const { nodes, edges } = astToTree(query, elapsedTime);
+  const { nodes, edges } = astToTree(query, elapsed);
   // console.log(nodes);
 
   // storing the initial values of the nodes and edges
