@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType } from 'reactflow';
+import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType, XYPosition } from 'reactflow';
 import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode } from 'graphql';
 import styles from './Visualizer.modules.css';
 
@@ -157,7 +157,7 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
 
 
 // render a tree graph from GraphQL AST
-const FlowTree: React.FC<{query: string}> = ({query}) => {
+const FlowTree: React.FC<{query: string, elapsed: number}> = ({query, elapsed}) => {
   const [currentQuery, setCurrentQuery] = useState(query);
 
 // update the state of nodes and edges when query changes
@@ -174,7 +174,8 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
-  }
+  };
+  console.log('elapsed in flowtree: ', elapsed);
 } , [query, currentQuery]);
 
   // console.log(query);

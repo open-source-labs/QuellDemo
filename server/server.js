@@ -1,10 +1,14 @@
-const schema = require('./schema/schema.js');
+const {
+  getElapsedTime,
+  graphqlSchema
+} = require('./schema/schema.js');
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyparser = require('body-parser');
 const mongoose = require('mongoose');
 const { QuellCache } = require('../quell-server/src/quell.js');
+const schema = graphqlSchema
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
@@ -57,11 +61,11 @@ app.use(
   }
 );
 
-app.use('/api/queryTime', (req, res) => {
-  console.log('elapsed time', schema.getElapsedTime());
-  return res.status(200).send(schema.getElapsedTime());
+app.use('/api/queryTime', getElapsedTime, (req, res) => {
+  // console.log('elapsed time', getElapsedTime);
+  // console.log('elapsed time', res.locals.time);
+  return res.status(200).send(res.locals);
   // console.log('reached /api/queryTime');
-  // return res.status(200).send('does this work?');
 });
 
 app.use((req, res) =>

@@ -117,6 +117,7 @@ const Demo = memo(() => {
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}
+            elapsed={elapsed}
             />
           ) : (
             <div className={styles.rightContainerHeader}>
@@ -205,11 +206,11 @@ function QueryDemo({
         }
       })
       .then(() => {
-        fetch ('/api/queryTime').then(res => res.text())
+        fetch ('/api/queryTime').then(res => res.json())
         .then((time) => {
           if (setElapsed){
             console.log('time: ', time);
-            setElapsed(Number(time));
+            setElapsed(time.time);
           }
         })
       })

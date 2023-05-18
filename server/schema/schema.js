@@ -286,12 +286,18 @@ const RootMutations = new GraphQLObjectType({
   },
 });
 
-exports.getElapsedTime = function() {
-  return elapsedTime;
+const getElapsedTime = (req, res, next) => {
+  res.locals.time = elapsedTime;
+  return next();
 }
 
-module.exports = new GraphQLSchema({
+const graphqlSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,
   types: [ArtistType, AlbumType, SongType],
 });
+
+module.exports = {
+  getElapsedTime,
+  graphqlSchema
+}
