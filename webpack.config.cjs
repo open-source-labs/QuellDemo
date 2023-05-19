@@ -62,6 +62,7 @@ module.exports = {
       '/api/graphql': 'http://localhost:3000',
       '/api/clearCache': 'http://localhost:3000/',
       '/api/redis': 'http://localhost:3000/',
+      '/api/queryTime': 'http://localhost:3000/',
     },
     client: { overlay: false },
   },

@@ -410,6 +410,7 @@ export class QuellCache {
        * Otherwise, the operation type is a query.
        */
       // Combine fragments on prototype so we can access fragment values in cache.
+      console.log('idCache:', idCache);
       const prototype: ProtoObjType =
         Object.keys(frags).length > 0
           ? updateProtoWithFragment(proto, frags)
@@ -424,6 +425,8 @@ export class QuellCache {
         data: ItemFromCacheType;
         cached?: boolean;
       } = await this.buildFromCache(prototype, prototypeKeys);
+
+      console.log('cacheResponse:', cacheResponse);
 
       // Create merged response object to merge the data from the cache and the data from the database.
       let mergedResponse: MergedResponse;
@@ -469,7 +472,7 @@ export class QuellCache {
                 )
               : databaseResponse;
 
-            const currName = 'string it should not be again';
+              const currName = 'string it should not be again';
             await this.normalizeForCache(
               mergedResponse.data as ResponseDataType,
               this.queryMap,

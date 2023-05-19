@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType } from 'reactflow';
+import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType, XYPosition } from 'reactflow';
 import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode } from 'graphql';
 import styles from './Visualizer.modules.css';
 
@@ -72,7 +72,7 @@ const getNode = (
       fontSize: 18, 
       border: `none`, 
       borderRadius: 10, 
-      boxShadow: `0px 0px 4px gray`,
+      boxShadow: `0px 0px 3px gray`,
       padding: `2px 0px 0px 0px`
     }
   };
@@ -83,16 +83,14 @@ const getNode = (
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
-const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
+const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowElement => {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
-
-  return {
+  const edgeProps : FlowElement = {
     id: `${parentId}-${childId}`,
     source: parentId,
     target: childId,
-    animated: true,
-    label: 'time',
+    animated: false,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 10,
@@ -101,9 +99,16 @@ const getEdge = (parent: FieldNode, child: SelectionNode): FlowElement => {
     },
     style: {
       strokeWidth: 2,
-      stroke: '#03C6FF',
+      stroke: '#03C6FF'
     },
   };
+
+  const childNode = child as FieldNode;
+  // console.log(childNode.name.value);
+  if(elapsed[childNode.name.value]){
+    edgeProps.label = `${elapsed[childNode.name.value]}ms`;
+  }
+  return edgeProps;
 };
 
 // recursively constructs a tree structure from GraphQL AST
@@ -111,6 +116,7 @@ const buildTree = (
   node: FieldNode | SelectionNode,
   nodes: NodeData[],
   edges: FlowElement[],
+  elapsed: {}, 
   depth = 0,
   siblingIndex = 0,
   numSiblings = 1,
@@ -128,8 +134,8 @@ const buildTree = (
     node.selectionSet.selections.forEach((childNode, i) => {
       const child = getNode(childNode, depth + 1, i, numChildren, numSiblings, parent.position);
       //pushes the child node and edge into the respective arrays
-      edges.push(getEdge(node as FieldNode, childNode));
-      buildTree(childNode, nodes, edges, depth + 1, i, numChildren, parent.position);
+      edges.push(getEdge(node as FieldNode, childNode, elapsed));
+      buildTree(childNode, nodes, edges, elapsed, depth + 1, i, numChildren, parent.position);
     });
   }
 };
@@ -137,7 +143,8 @@ const buildTree = (
 
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
-const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } => {
+const astToTree = (query: string, elapsed: {} ): { nodes: NodeData[]; edges: FlowElement[] } => {
+  // parses query to AST
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
     def => def.kind === 'OperationDefinition' && def.selectionSet
@@ -149,7 +156,7 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
   selections.forEach(selection => {
-    buildTree(selection, nodes, edges);
+    buildTree(selection, nodes, edges, elapsed);
   });
   return { nodes, edges };
 };
@@ -157,14 +164,15 @@ const astToTree = (query: string): { nodes: NodeData[]; edges: FlowElement[] } =
 
 
 // render a tree graph from GraphQL AST
-const FlowTree: React.FC<{query: string}> = ({query}) => {
+const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => {
   const [currentQuery, setCurrentQuery] = useState(query);
+  const [elapsedTime, setElapsedTime] = useState(elapsed);
 
 // update the state of nodes and edges when query changes
   useEffect(() => {
   // only update if the query is different from the currentQuery
-  if (query !== currentQuery) {
-    const { nodes: newNodes, edges: newEdges } = astToTree(query);
+  // if (query !== currentQuery) {
+    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
     const nodes = newNodes.map(node => ({
       id: node.id,
       data: node.data,
@@ -174,11 +182,12 @@ const FlowTree: React.FC<{query: string}> = ({query}) => {
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
-  }
-} , [query, currentQuery]);
-
+    setElapsedTime(elapsed);
+  // };
+  // console.log('elapsed in flowtree: ', elapsed);
+} , [query, currentQuery, elapsed, elapsedTime]);
   // console.log(query);
-  const { nodes, edges } = astToTree(query);
+  const { nodes, edges } = astToTree(query, elapsedTime);
   // console.log(nodes);
 
   // storing the initial values of the nodes and edges
