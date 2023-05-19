@@ -90,7 +90,7 @@ const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowEle
     id: `${parentId}-${childId}`,
     source: parentId,
     target: childId,
-    animated: true,
+    animated: false,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 10,
@@ -107,7 +107,6 @@ const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowEle
   console.log(childNode.name.value);
   if(elapsed[childNode.name.value]){
     edgeProps.label = `${elapsed[childNode.name.value]}ms`;
-    console.log('edgeProps: ',edgeProps);
   }
   return edgeProps;
 };
@@ -172,8 +171,8 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
 // update the state of nodes and edges when query changes
   useEffect(() => {
   // only update if the query is different from the currentQuery
-  if (query !== currentQuery) {
-    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsed);
+  // if (query !== currentQuery) {
+    const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
     const nodes = newNodes.map(node => ({
       id: node.id,
       data: node.data,
@@ -183,13 +182,12 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
-    // setElapsedTime(elapsed);
-  };
-  console.log('elapsed in flowtree: ', elapsed);
-} , [query, currentQuery]);
-
+    setElapsedTime(elapsed);
+  // };
+  // console.log('elapsed in flowtree: ', elapsed);
+} , [query, currentQuery, elapsed, elapsedTime]);
   // console.log(query);
-  const { nodes, edges } = astToTree(query, elapsed);
+  const { nodes, edges } = astToTree(query, elapsedTime);
   // console.log(nodes);
 
   // storing the initial values of the nodes and edges

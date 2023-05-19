@@ -47,7 +47,7 @@ const invalidateCache = (query: string): void => {
  */
 
 // Set the maximum cache size on LRU cache
-const MAX_CACHE_SIZE: number = 5;
+const MAX_CACHE_SIZE: number = 2;
 const lruCache = new LRUCache<string, LokiGetType>({
   max: MAX_CACHE_SIZE,
 });
