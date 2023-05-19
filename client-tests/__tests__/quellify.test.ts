@@ -63,23 +63,57 @@ describe('Quellify', () => {
     const addQuery = 'mutation { addCity(name: "San Diego", country: "United States") { id name } }'; 
     const costOptions = defaultCostOptions; 
     
-    // Perform add mutation query
+    // Perform add mutation query (First query but isnt cached)
     const [addMutationData, addMutationfoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+    console.log("FIRST QUERY ON TEST", addMutationData);
     // Get the cityId on the mutation query
     const cityId = addMutationData.addCity.id;
+    console.log('san diego', cityId)
  
     // Assertion: Original query should be in the cache
     expect(addMutationfoundInCache).toBe(false);
 
-    // TESTING
-    const [hi, we] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
-    expect(addMutationfoundInCache).toBe(true);
+    // // TESTING
+    // const addQuery2 = 'mutation { addCity(name: "San Diego 2", country: "United States") { id name } }'; 
+    // const [secondMutationData, secondAddMutationFoundInCache] = await Quellify(endPoint, addQuery2, costOptions) as [any, boolean];
+    // expect(secondAddMutationFoundInCache).toBe(true);
 
 
-     // Perform edit mutation query
-    const mutationQuery = `mutation { editCity(id: ${cityId}, name: "New York") { id name } }`;
-    const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
-    console.log(`what the fuck ${cacheMutationData}`);
+     // Perform edit mutation query (Second query for mutation)
+    //  const mutationQuery = 'mutation($cityId: ID!, $name: String!, $country: String!) { editCity(id: $cityId, name: $name, country: $country) { id name country } }';
+     const mutationQuery = 'mutation { editCity(name: "Los Angeles", country: "United States") { id name } }'; 
+
+     const variables = {
+       cityId: "cityId",
+       name: "LBC",
+       country: "United States"
+     };
+     
+    //  const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions, variables) as [any, boolean];
+     const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
+
+     // Order of consolelogs
+
+     // HELLLO PLESE
+     // Final time mutation {add/edit}
+     // mutation query mutation { addCity(name: "San Diego", country: "United States") { id name } }
+
+     // mutation query mutation($cityId: ID!, $name: String!, $country: String!) { editCity(id: $cityId, name: $name, country: $country) { id name country } }
+
+     // I eat ask
+     // query response1 data: { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' } }
+     // query response2 data: { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' } }
+     // parsed  { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' }
+     // IDCache mutation { addCity(name: "San Diego", country: "United States") { id name } }': 1
+     // lenny mutation results ddCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' },
+     // first query on test addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' },
+     // consolelog city and id
+
+
+    //  const mutationQuery = 'mutation { editCity(id: , name: "LBC", country: "United States") { id name country } }';
+    // const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
+
+    console.log(`SECOND QUERY ON TEST ${cacheMutationData}`);
     // const hi = await Quellify(endPoint, mutationQuery, costOptions);
     // console.log(`this is hi, ${hi}`);
 
