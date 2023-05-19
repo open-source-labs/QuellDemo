@@ -72,7 +72,7 @@ const getNode = (
       fontSize: 18, 
       border: `none`, 
       borderRadius: 10, 
-      boxShadow: `0px 0px 3px black`,
+      boxShadow: `0px 0px 3px gray`,
       padding: `2px 0px 0px 0px`
     }
   };

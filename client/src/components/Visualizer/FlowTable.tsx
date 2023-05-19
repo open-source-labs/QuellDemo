@@ -60,11 +60,10 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
         console.log('elapsedTime: ', elapsedTime);
         console.log('elapsedTime[selection.name.value]: ',elapsedTime[selection.name.value]);
         console.log('fieldName', fieldName);
-        if (elapsedTime[selection.name.value]) {
-          fieldName += `(${elapsedTime[selection.name.value]}ms)`;
-        } 
-        console.log('new fieldName', fieldName);
-        operationOrder.push(fieldName);
+        if (elapsedTime[selection.name.value] && operationOrder.length > 1) {
+          const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
+          operationOrder.push(newName);
+        } else{operationOrder.push(fieldName)};
         // Recursively generate the operation order for nested selection
         if ('selectionSet' in selection) {
           const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
