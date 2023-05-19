@@ -12,7 +12,7 @@ export function Visualizer({ query, elapsed }: VisualizerProps) {
             </div>
             <h2> Execution Table </h2>
             <div className={styles.flowTable}>
-                <FlowTable query={query}/>
+                <FlowTable query={query} elapsed={elapsed}/>
             </div>
         </div>
     );

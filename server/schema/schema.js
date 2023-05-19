@@ -142,7 +142,7 @@ const CountryType = new GraphQLObjectType({
         return Cities.find({ country: parent.name }).then((result) => {
           const endTime = new Date().getTime();
           elapsedTime.cities = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime.cities,'ms');
+          console.log('elapsedTime.cities: ', elapsedTime.cities,'ms');
           // trackFieldPerformance('cities', parentName, elapsedTime);
           console.log(result);
           return result;

@@ -72,7 +72,7 @@ const getNode = (
       fontSize: 18, 
       border: `none`, 
       borderRadius: 10, 
-      boxShadow: `0px 0px 4px gray`,
+      boxShadow: `0px 0px 3px black`,
       padding: `2px 0px 0px 0px`
     }
   };
@@ -99,12 +99,12 @@ const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowEle
     },
     style: {
       strokeWidth: 2,
-      stroke: '#03C6FF',
+      stroke: '#03C6FF'
     },
   };
 
   const childNode = child as FieldNode;
-  console.log(childNode.name.value);
+  // console.log(childNode.name.value);
   if(elapsed[childNode.name.value]){
     edgeProps.label = `${elapsed[childNode.name.value]}ms`;
   }
