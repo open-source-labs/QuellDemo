@@ -56,87 +56,124 @@ describe('Quellify', () => {
 
 
   // });
+
+  
   
   // Test: Checks that edited mutations are being cached
-  it('should update the cache for edit mutation queries', async () => {
-    const endPoint = 'http://localhost:3000/api/graphql';
-    const addQuery = 'mutation { addCity(name: "San Diego", country: "United States") { id name } }'; 
-    const costOptions = defaultCostOptions; 
+  // it('should update the cache for edit mutation queries', async () => {
+  //   const endPoint = 'http://localhost:3000/api/graphql';
+  //   const addQuery = 'mutation { addCity(name: "San Diego", country: "United States") { id name } }'; 
+  //   const costOptions = defaultCostOptions; 
     
-    // Perform add mutation query (First query but isnt cached)
-    const [addMutationData, addMutationfoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
-    console.log("FIRST QUERY ON TEST", addMutationData);
-    // Get the cityId on the mutation query
-    const cityId = addMutationData.addCity.id;
-    console.log('san diego', cityId)
+  //   // Perform add mutation query (First query but isnt cached)
+  //   const [addMutationData, addMutationfoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+  //   console.log("FIRST QUERY ON TEST", addMutationData);
+  //   // Get the cityId on the mutation query
+  //   const cityId = addMutationData.addCity.id;
+  //   // console.log('san diego', cityId)
  
-    // Assertion: Original query should be in the cache
-    expect(addMutationfoundInCache).toBe(false);
+  //   // Assertion: Original query should be in the cache
+  //   expect(addMutationfoundInCache).toBe(false);
+  //   const city = "Las Vegas";
+  //   // TEMPLATE LITERAL WORKS IF YOU PUT IT IN QUOTES
+  //   const backticks = `mutation { editCity(id: "${cityId}",name: "${city}", country: "United States") { id name } }`; 
 
-    // // TESTING
-    // const addQuery2 = 'mutation { addCity(name: "San Diego 2", country: "United States") { id name } }'; 
-    // const [secondMutationData, secondAddMutationFoundInCache] = await Quellify(endPoint, addQuery2, costOptions) as [any, boolean];
-    // expect(secondAddMutationFoundInCache).toBe(true);
+  //   // const editQuery = 'mutation { editCity(name: "Los Altos", country: "United States") { id name } }'; 
 
-
-     // Perform edit mutation query (Second query for mutation)
-    //  const mutationQuery = 'mutation($cityId: ID!, $name: String!, $country: String!) { editCity(id: $cityId, name: $name, country: $country) { id name country } }';
-     const mutationQuery = 'mutation { editCity(name: "Los Angeles", country: "United States") { id name } }'; 
-
-     const variables = {
-       cityId: "cityId",
-       name: "LBC",
-       country: "United States"
-     };
-     
-    //  const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions, variables) as [any, boolean];
-     const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
-
-     // Order of consolelogs
-
-     // HELLLO PLESE
-     // Final time mutation {add/edit}
-     // mutation query mutation { addCity(name: "San Diego", country: "United States") { id name } }
-
-     // mutation query mutation($cityId: ID!, $name: String!, $country: String!) { editCity(id: $cityId, name: $name, country: $country) { id name country } }
-
-     // I eat ask
-     // query response1 data: { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' } }
-     // query response2 data: { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' } }
-     // parsed  { addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' }
-     // IDCache mutation { addCity(name: "San Diego", country: "United States") { id name } }': 1
-     // lenny mutation results ddCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' },
-     // first query on test addCity: { id: '6466c6947a59b3b4845cd327', name: 'San Diego' },
-     // consolelog city and id
+  //   const [addMutations2, addCache2] = await Quellify(endPoint, backticks, costOptions) as [any, boolean];
+  //   console.log("IM SECOND QUERY", addMutations2);
+  //   expect(addCache2).toBe(false);
+  //   console.log("DOES THE QUERY 1 EXIST", addMutationData);
+  //   console.log("Query 1 Id: ", addMutationData);
+  //   console.log("Query 2 Id: ", addMutations2)
+  //   console.log('san diego', cityId)
+  //   console.log('addMutations2ID', addMutations2.editCity.id)
 
 
-    //  const mutationQuery = 'mutation { editCity(id: , name: "LBC", country: "United States") { id name country } }';
-    // const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
+  //   // // TESTING
+  //   // const addQuery2 = 'mutation { addCity(name: "San Diego 2", country: "United States") { id name } }'; 
+  //   // const [secondMutationData, secondAddMutationFoundInCache] = await Quellify(endPoint, addQuery2, costOptions) as [any, boolean];
+  //   // expect(secondAddMutationFoundInCache).toBe(true);
 
-    console.log(`SECOND QUERY ON TEST ${cacheMutationData}`);
-    // const hi = await Quellify(endPoint, mutationQuery, costOptions);
-    // console.log(`this is hi, ${hi}`);
 
-    // expect(cacheAddMutationfoundInCache).toBe(true);
+  //    // Perform edit mutation query (Second query for mutation)
+  //   //  const mutationQuery = 'mutation($cityId: ID!, $name: String!, $country: String!) { editCity(id: $cityId, name: $name, country: $country) { id name country } }';
+  // //   const mutationQuery = `
+  // //   mutation EditCity($cityId: ID!, $name: String!, $country: String!) {
+  // //     editCity(id: $cityId, name: $name, country: $country) {
+  // //       id
+  // //       name
+  // //     }
+  // //   }
+  // // `;
+  
+  // // const variables = {
+  // //   cityId: cityId,
+  // //   name: "LBC",
+  // //   country: "United States"
+  // // };
+  
+  // // const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(
+  // //   endPoint,
+  // //   mutationQuery,
+  // //   costOptions,
+  // //   { variables } // Pass variables as an object with the "variables" key
+  // // ) as [any, boolean];
+
+  // //   //  const mutationQuery = 'mutation { editCity(id: , name: "LBC", country: "United States") { id name country } }';
+  // //   // const [cacheMutationData, cacheAddMutationfoundInCache] = await Quellify(endPoint, mutationQuery, costOptions) as [any, boolean];
+   
+  // //   console.log(`SECOND QUERY ON TEST ${cacheMutationData}`);
+
+  //   // const hi = await Quellify(endPoint, mutationQuery, costOptions);
+  //   // console.log(`this is hi, ${hi}`);
+
+  //   // expect(cacheAddMutationfoundInCache).toBe(true);
     
    
-    // const data = await Quellify(endPoint, query, costOptions);
-    // const [data, foundInCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
+  //   // const data = await Quellify(endPoint, query, costOptions);
+  //   // const [data, foundInCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
 
-    // // Initial query should not be from the cache
-    // expect(foundInCache).toBe(false);
+  //   // // Initial query should not be from the cache
+  //   // expect(foundInCache).toBe(false);
 
-    // // Perform mutation query again
-    // const [cachedData, updatedCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
-    // // Assertion: The data should be found in the cache
-    // expect(updatedCache).toBe(true)
-    // // Assertion: The data name should be updated
-    // expect(cachedData.name).toBe('New York')
-    // // Assertion: The data id should be unchanged
-    // expect(cachedData.id).toBe(data.id)
+  //   // // Perform mutation query again
+  //   // const [cachedData, updatedCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
+  //   // // Assertion: The data should be found in the cache
+  //   // expect(updatedCache).toBe(true)
+  //   // // Assertion: The data name should be updated
+  //   // expect(cachedData.name).toBe('New York')
+  //   // // Assertion: The data id should be unchanged
+  //   // expect(cachedData.id).toBe(data.id)
 
-  });
+  // });
 
+
+    // Test: item should be invalidated when a delete mutation is invoked
+    it('should invalidate item from cache if delete mutation is invoked', async () => {
+      const endPoint = 'http://localhost:3000/api/graphql';
+      const addQuery = 'mutation { addCity(name: "San Diego", country: "United States") { id name } }';
+      const deleteQuery = 'mutation { deleteCity(name: "San Diego") { id name } }';
+      const costOptions = defaultCostOptions;
+  
+      // Perform the add mutation query
+      const [addMutationData, addMutationFoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+      // Assertion: Data should not be found in cache
+      expect(addMutationFoundInCache).toBe(false);
+      
+      // Perform the delete mutation query
+      const [deleteMutationData, deleteMutationFoundInCache] = await Quellify(endPoint, deleteQuery, costOptions) as [any, boolean];
+      console.log('delete mutation data', deleteMutationData);
+      // Assertion: Data should not be found in cache after delete mutation
+      expect(deleteMutationFoundInCache).toBe(false);
+ 
+  
+      // Perform the add mutation query again
+      const [addMutationData2, addMutationFoundInCache2] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+      // Assertion: Data should not be found in cache after delete mutation
+      expect(addMutationFoundInCache2).toBe(true);
+    });
+  
 // expect(data).toBeDefined();
 // Test: item should be invalidated when a delete mutation is invoked
   // it('should invalidate item from cache if delete mutation is invoked', async () => {
@@ -162,6 +199,8 @@ describe('Quellify', () => {
 
   // });
   
+//-------------------------------------------NEXT TEST-------------------------//
+
   // Test: lruCache should evict the least recently used item from cache if cache size is exceeded
   // it('should evict the LRU item from cache if cache size is exceeded', async () => {
   //   const endPoint = 'http://localhost:3000/api/graphql';

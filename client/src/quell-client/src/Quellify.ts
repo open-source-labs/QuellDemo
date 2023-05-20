@@ -28,7 +28,7 @@ i.e. {{JSONStringifiedQuery: $lokiID}}
  */
 let IDCache: IDLokiCacheType = {};
 /**
- * Manually removes item from cache
+ * Function to manually removes item from cache
  */
 const invalidateCache = (query: string): void => {
   if (IDCache[query]) {
@@ -51,7 +51,7 @@ const lruCache = new LRUCache<string, LokiGetType>({
 // Track the order of accessed queries
 const lruCacheOrder: string[] = []; 
 
-// Update LRU Cache on each query
+// Function to update LRU Cache on each query
 const updateLRUCache = (query: string, results: LokiGetType): void => {
   const cacheSize = lruCacheOrder.length;
   if (cacheSize >= MAX_CACHE_SIZE) {
@@ -99,10 +99,10 @@ async function Quellify(
   variables?: Record<string, any>
 ) {
   // Check the LRU cache before performing fetch request
-  const cachedResults = lruCache.get(query);
-  if (cachedResults) {
-    return [cachedResults, true];
-  }
+  // const cachedResults = lruCache.get(query);
+  // if (cachedResults) {
+  //   return [cachedResults, true];
+  // }
   /**
    * Fetch configuration for post requests that is passed to the performFetch function.
    */
@@ -136,7 +136,7 @@ async function Quellify(
       const response = await data.json();
       console.log('query response 1', response)
       updateLRUCache(query, response.queryResponse.data);
-      console.log('query response 2', response.queryResponse)
+      console.log('query response 2', response)
       return response.queryResponse.data;
     } catch (error) {
       const err: ClientErrorType = {
@@ -215,19 +215,22 @@ async function Quellify(
   } else if (operationType === 'mutation') {
     // Assign mutationType
     const mutationType: string = Object.keys(proto)[0];
-
+    console.log('idcache[query] after parsing into AST', IDCache[query])
 
     // Check the cache for the query
     if (IDCache[query]) {
       // check if mutation is an add mutation
+      console.log('mutation idcache query', IDCache[query])
       if (
         mutationType.includes('add') ||
         mutationType.includes('new') ||
         mutationType.includes('create') ||
         mutationType.includes('make')
       ) {
+        console.log("Currently inside cached add")
         // Update the data found in cache
         // Grab the $loki ID from the IDCache.
+        
         const mutationID: number = IDCache[query];
         // Grab the results from lokiCache for the $loki ID.
         const results: LokiGetType = lokiCache.get(mutationID);
@@ -249,8 +252,10 @@ async function Quellify(
       // Update the data found in cache
       // Grab the $loki ID from the IDCache.
       const mutationID: number = IDCache[query];
+      console.log('mutation ID delete', mutationID)
       // Grab the results from lokiCache for the $loki ID.
       const results: LokiGetType = lokiCache.get(mutationID);
+      console.log('deletion mutation results', results)
       invalidateCache(query);
       // Refetch each query in the LRU cache to update the cache
       refetchLRUCache();
@@ -264,11 +269,14 @@ async function Quellify(
       mutationType.includes('update') ||
       mutationType.includes('edit')
     ) {
+      console.log('entering in cache block for edit mutation')
       // Update the data found in cache
       // Grab the $loki ID from the IDCache.
+      console.log('IDCache in mutation before reassign:', IDCache[query])
       const mutationID: number = IDCache[query];
+      console.log('IDCache in mutation after reassign:', IDCache[query])
       // Grab the results from lokiCache for the $loki ID.
-      const results: LokiGetType = lokiCache.get(mutationID);
+      const results: LokiGetType = lokiCache.update(mutationID);
       lruCache.set(query, results);
       // Refetch each query in the LRU cache to update the cache
       refetchLRUCache();
@@ -277,8 +285,8 @@ async function Quellify(
    }
   } 
   else if (IDCache[query] === undefined && mutationType) {
-    console.log('HELLO PLEASE WORK I BEG OF YOU')
-    console.log('final time mutation', mutationType)
+    console.log('Enters non-cached mutation')
+    // console.log('final time mutation', mutationType)
     console.log('mutation query', query)
        // If mutation is not in cache
        // Check if mutation is an add mutation
@@ -286,64 +294,67 @@ async function Quellify(
         mutationType.includes('add') ||
         mutationType.includes('new') ||
         mutationType.includes('create') ||
-        mutationType.includes('make')||
-        mutationType.includes('edit')
+        mutationType.includes('make')
       ) {
-        console.log("I eat ask")
+        console.log("Goes into non-cache add mutation")
         // Execute a fetch request with the query
         const parsedData: JSONObject = await performFetch(postFetch);
-        console.log('parsedData', parsedData)
+        console.log('parsedData of non-cache add mutation', parsedData)
         if (parsedData) {
           const addedEntry = lokiCache.insert(parsedData);
           IDCache[query] = addedEntry.$loki;
-          console.log('IDCACHE', IDCache)
+          console.log('IDCache[query] on add mutation', IDCache)
           // Refetch each query in the LRU cache to update the cache
           refetchLRUCache();
           console.log('lenny add mutation results', addedEntry)
           return [addedEntry, false];
         }
       }
-        
+      // Check if mutation is an edit mutation
+      else if(
+        mutationType.includes('edit') || 
+        mutationType.includes('update')
+        ){
+        // Execute a fetch request with the query
+        const parsedData: JSONObject = await performFetch(postFetch);
+        console.log("ENTERED NON-CACHED EDIT")
+        console.log("PARSE DATA IS HERE FOR EDIT",parsedData)
+        console.log(parsedData)
+        if (parsedData) {
+          console.log('doing a simple test here')
+          console.log('IDCache after test', IDCache)
+          const updatedEntry = lokiCache.insert(parsedData);
+          IDCache[query] = updatedEntry.$loki;
+          console.log('IDCache[query] on edit mutation', IDCache[query])
+          // Refetch each query in the LRU cache to update the cache
+          refetchLRUCache();
+          return [parsedData, false]; // previous updatedData
+        }
+      }
     // Check if mutation is a delete mutation
     
-    else if (
-      mutationType.includes('delete') ||
-      mutationType.includes('remove')
-    )  {
-      // execute a fetch request with the query
-      const parsedData: JSONObject = await performFetch(deleteFetch);
-      if (parsedData) {
-        const removedEntry = lokiCache.get(IDCache[query]);
-        if (removedEntry) {
-        lokiCache.remove(removedEntry);
-        invalidateCache(query);
-        // Refetch each query in the LRU cache to update the cache
-        refetchLRUCache();
-        return [removedEntry, false];
-      } else {
-        return [null, false];
+      else if (
+        mutationType.includes('delete') ||
+        mutationType.includes('remove')
+      )  {
+        // execute a fetch request with the query
+        const parsedData: JSONObject = await performFetch(deleteFetch);
+        if (parsedData) {
+          const removedEntry = lokiCache.get(IDCache[query]);
+          if (removedEntry) {
+          lokiCache.remove(removedEntry);
+          invalidateCache(query);
+          // Refetch each query in the LRU cache to update the cache
+          refetchLRUCache();
+          return [removedEntry, false];
+        } else {
+          return [null, false];
+        }
       }
     }
   }
-  // Check if mutation is an update mutation
-  else if (
-    mutationType.includes('update') ||
-    mutationType.includes('edit') 
-  ) {
-    console.log('OK PLZZZZ WORK');
-    // Execute a fetch request with the query
-    const parsedData: JSONObject = await performFetch(postFetch);
-    console.log('edit mutation not in cache parsed data', parsedData)
-    if (parsedData) {
-      const updatedEntry = lokiCache.update(parsedData);
-      IDCache[query] = updatedEntry.$loki;
-      // Refetch each query in the LRU cache to update the cache
-      refetchLRUCache();
-      return [parsedData, false]; // previous updatedData
-    }
-   }
-  }
-    // Operation is a Query
+    // Operation type does not meet mutation or unquellable types. 
+    // In other words, it is a Query
   } else {
     if (IDCache[query]) {
         // If the query has a $loki ID in the IDCache, retrieve and return the results from the lokiCache.
