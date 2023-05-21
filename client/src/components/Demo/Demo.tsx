@@ -195,7 +195,13 @@ function QueryDemo({
         const queryType: string = selectedQuery;
         addQueryTypes([...queryTypes, queryType]);
         if (Array.isArray(res)) {
-          setResponse(JSON.stringify(res[0], null, 2));
+          let responseObj = res[0];
+          // remove "$loki" property from cached response
+          if (responseObj.hasOwnProperty('$loki')) {
+            delete responseObj['$loki'];
+          }
+          let cachedResponse = JSON.stringify(responseObj, null, 2);
+          setResponse(cachedResponse);
           if (res[1] === false) {
             setCacheMiss(cacheMiss + 1);
           } else if (res[1] === true) {
