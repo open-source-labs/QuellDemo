@@ -262,13 +262,48 @@ const RootMutations = new GraphQLObjectType({
         }
       },
     },
+    editCity: {
+      type: CityType,
+      args: {
+        id: { type: GraphQLID }, 
+        name: { type: GraphQLString },
+        country: { type: GraphQLString },
+      },
+      async resolve(parent, args) {
+        const { id, name, country } = args;
+        const checkCountry = await Countries.findOne({ name: country });
+        if (!checkCountry) {
+          throw new Error('Country not found');
+        }
+        const updatedCity = await Cities.findOneAndUpdate(
+          { _id: id }, 
+          { $set: { name, country } }, 
+          { new: true }           
+        );
+        return updatedCity;
+      }
+    },
+    // editCity: {
+    //   type: CityType,
+    //   args: { id: { type: GraphQLID }, name: { type: GraphQLString }, country: { type: GraphQLString } },
+    //   async resolve(parent, args) {
+    //     const updatedCity = await Cities.findByIdAndUpdate(
+    //       args.id,
+    //       { name: args.name, country: args.country },
+    //       { new: true }
+    //     );
+    
+    //     return updatedCity;
+    //   },
     deleteCity: {
       type: CityType,
-      args: { name: { type: GraphQLString } },
+      args: {
+        id: { type: GraphQLID }
+      },
       async resolve(parent, args) {
-        const findCity = await Cities.findOne({ name: args.name });
+        const findCity = await Cities.findOne({ _id: args.id });
         if (findCity) {
-          await Cities.deleteOne({ name: args.name });
+          await Cities.deleteOne({ _id: args.id });
         }
       },
     },
