@@ -1,10 +1,15 @@
-const schema = require('./schema/schema.js');
+const {
+  getElapsedTime,
+  clearElapsedTime,
+  graphqlSchema
+} = require('./schema/schema.js');
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyparser = require('body-parser');
 const mongoose = require('mongoose');
 const { QuellCache } = require('../quell-server/src/quell.js');
+const schema = graphqlSchema
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
@@ -30,8 +35,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static('./dist'));
 
+// clearElapsedTime so that elapsedTime doesn't persist old times for new queries
 app.use(
   '/api/graphql',
+  clearElapsedTime,
   quellCache.rateLimiter,
   quellCache.costLimit,
   quellCache.depthLimit,
@@ -57,11 +64,11 @@ app.use(
   }
 );
 
-app.use('/api/queryTime', (req, res) => {
-  console.log('elapsed time', schema.getElapsedTime());
-  return res.status(200).send(schema.getElapsedTime());
+app.use('/api/queryTime', getElapsedTime, (req, res) => {
+  // console.log('elapsed time', getElapsedTime);
+  // console.log('elapsed time', res.locals.time);
+  return res.status(200).send(res.locals);
   // console.log('reached /api/queryTime');
-  // return res.status(200).send('does this work?');
 });
 
 app.use((req, res) =>

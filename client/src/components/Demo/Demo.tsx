@@ -45,9 +45,7 @@ const Demo = memo(() => {
   const [isToggled, setIsToggled] = useState<boolean>(false);
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
-  const [elapsed, setElapsed] = useState<number>(-1);
-
-  // console.log('getElapsedTime:', getElapsedTime());
+  const [elapsed, setElapsed] = useState<{}>({});
   
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
@@ -117,6 +115,7 @@ const Demo = memo(() => {
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}
+            elapsed={elapsed}
             />
           ) : (
             <div className={styles.rightContainerHeader}>
@@ -183,14 +182,14 @@ function QueryDemo({
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
+    //TODO edit this? clear server cache
+    fetch('/api/clearCache').then((res) =>
+      console.log('Cleared Server Cache!')
+    );
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         setVisualizerQuery(query);
-        // if (setElapsed) {
-        //   setElapsed(getElapsedTime());
-        // };
-        // console.log('elapsed: ', elapsed);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
@@ -205,11 +204,11 @@ function QueryDemo({
         }
       })
       .then(() => {
-        fetch ('/api/queryTime').then(res => res.text())
+        fetch ('/api/queryTime').then(res => res.json())
         .then((time) => {
           if (setElapsed){
-            console.log('time: ', time);
-            setElapsed(Number(time));
+            // console.log('time: ', time);
+            setElapsed(time.time);
           }
         })
       })
@@ -521,8 +520,8 @@ interface QueryDemoProps {
   isToggled: boolean;
   visualizerQuery: string;
   setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>;
-  setElapsed?: React.Dispatch<React.SetStateAction<number>>;
-  elapsed?: number;
+  setElapsed?: React.Dispatch<React.SetStateAction<{}>>;
+  elapsed?: {};
 }
 
 interface CacheControlProps {

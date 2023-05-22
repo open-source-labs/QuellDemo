@@ -21,12 +21,8 @@ const Countries = require('../models/countriesModel.js');
 //ALTERNATIVELY IN THE RESOLVER CHOOSE THE DB OF YOUR LIKING
 //WE USED MONGODB FOR TESTING PURPOSES BUT PSQL MAYBE BETTER!
 
-// Helper function for console logging time (for now)
-const trackFieldPerformance = (fieldName, parentName, elapsedTime) => {
-  console.log(`Resolver for "${parentName}.${fieldName}" field took ${elapsedTime} ms`);
-};
 
-let elapsedTime = -2;
+let elapsedTime = {};
 
 const ArtistType = new GraphQLObjectType({
   name: 'Artist',
@@ -39,14 +35,12 @@ const ArtistType = new GraphQLObjectType({
       // this is where we can grab the specific timing for the field
       resolve(parent, args) {
         const startTime = new Date().getTime();
-        const parentName = parent.name;
         return Album.find({ artist: parent.name }).then((result) => {
           // console.log(result);
           const endTime = new Date().getTime();
-          elapsedTime = endTime - startTime;
-          console.log('elapsedTime: ', elapsedTime,'ms');
-          trackFieldPerformance('albums', parentName, elapsedTime);
-          console.log(result);
+          elapsedTime.albums = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.albums,'ms');
+          // console.log(result);
           return result;
         });
       },
@@ -67,9 +61,9 @@ const AlbumType = new GraphQLObjectType({
         const parentName = parent.name;
         return Songs.find({ album: parentName }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
-          trackFieldPerformance('songs', parentName, elapsedTime);
-          parent.elapsedTime = elapsedTime.toString();
+          elapsedTime.songs = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.songs,'ms');
+          // console.log(result);
           return result;
         });
       },
@@ -93,8 +87,9 @@ const AttractionsType = new GraphQLObjectType({
           .then((city) => Countries.findOne({ country: city.country }))
           .then((result) => {
             const endTime = new Date().getTime();
-            const elapsedTime = endTime - startTime;
-            trackFieldPerformance('countries', parentName, elapsedTime);
+            elapsedTime.country = endTime - startTime;
+            console.log('elapsedTime: ', elapsedTime.country,'ms');
+            // console.log(result);
             return result;
           });
       },
@@ -116,8 +111,9 @@ const CityType = new GraphQLObjectType({
         const parentName = parent.name;
         return Attractions.find({ city: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
-          trackFieldPerformance('attractions', parentName, elapsedTime);
+          elapsedTime.attractions = endTime - startTime;
+          console.log('elapsedTime: ', elapsedTime.attractions,'ms');
+          // console.log(result);
           return result;
         });
       },
@@ -137,8 +133,9 @@ const CountryType = new GraphQLObjectType({
         const parentName = parent.name
         return Cities.find({ country: parent.name }).then((result) => {
           const endTime = new Date().getTime();
-          const elapsedTime = endTime - startTime;
-          trackFieldPerformance('cities', parentName, elapsedTime);
+          elapsedTime.cities = endTime - startTime;
+          console.log('elapsedTime.cities: ', elapsedTime.cities,'ms');
+          // console.log(result);
           return result;
         });
       },
@@ -321,12 +318,26 @@ const RootMutations = new GraphQLObjectType({
   },
 });
 
-exports.getElapsedTime = function() {
-  return elapsedTime;
+const getElapsedTime = (req, res, next) => {
+  console.log('elapsed time in mid: ', elapsedTime);
+  res.locals.time = elapsedTime;
+  return next();
 }
 
-module.exports = new GraphQLSchema({
+const clearElapsedTime = (req, res, next) => {
+  elapsedTime = {};
+  console.log(elapsedTime);
+  return next();
+}
+
+const graphqlSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,
   types: [ArtistType, AlbumType, SongType],
 });
+
+module.exports = {
+  clearElapsedTime,
+  getElapsedTime,
+  graphqlSchema
+}

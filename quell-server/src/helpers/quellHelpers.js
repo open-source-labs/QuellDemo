@@ -19,7 +19,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.getFieldsMap = exports.getQueryMap = exports.getMutationMap = exports.updateProtoWithFragment = exports.parseAST = exports.joinResponses = exports.createQueryObj = exports.createQueryStr = void 0;
 var visitor_1 = require("graphql/language/visitor");
 /**
@@ -300,10 +300,10 @@ function parseAST(AST, options) {
     (0, visitor_1.visit)(AST, {
         // The enter function will be triggered upon entering each node in the traversal.
         enter: function (node) {
-            var _a, _b;
+            var _a, _b, _c, _d;
             // Quell cannot cache directives, so we need to return as unQuellable if the node has directives.
-            if (node === null || node === void 0 ? void 0 : node.directives) {
-                if ((_b = (_a = node === null || node === void 0 ? void 0 : node.directives) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 > 0) {
+            if ((_a = node) === null || _a === void 0 ? void 0 : _a.directives) {
+                if ((_d = (_c = (_b = node) === null || _b === void 0 ? void 0 : _b.directives) === null || _c === void 0 ? void 0 : _c.length) !== null && _d !== void 0 ? _d : 0 > 0) {
                     operationType = 'unQuellable';
                     // Return BREAK to break out of the current traversal branch.
                     return visitor_1.BREAK;
