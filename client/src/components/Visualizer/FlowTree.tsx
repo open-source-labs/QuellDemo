@@ -198,8 +198,6 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
   const onNodesChange = useCallback( (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),[] );
   const onEdgesChange = useCallback( (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),[] );
   
-  // console.log('ast: ', ast);
-
   // this is to remove the reactflow watermark
   const proOptions = { hideAttribution: true };
   

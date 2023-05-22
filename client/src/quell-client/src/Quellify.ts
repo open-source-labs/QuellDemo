@@ -71,8 +71,8 @@ const updateLRUCache = (query: string, results: LokiGetType): void => {
   // Set the query and results in the cache
   lruCache.set(query, results); 
   console.log('Cache updated for query:', query);
-  console.log('LRUCache:', lruCache);
-  console.log('lokiCache:', lokiCache);
+  // console.log('LRUCache:', lruCache);
+  // console.log('lokiCache:', lokiCache);
 };
 /**
  * Clears entire existing cache and ID cache and resets to a new cache.
@@ -147,10 +147,8 @@ async function Quellify(
   ): Promise<JSONObject> => {
     try {
       const data = await fetch(endPoint, fetchConfig);
-      console.log('data: ', data);
       const response = await data.json();
       updateLRUCache(query, response.queryResponse.data);
-      console.log('response: ', response);
       return response.queryResponse.data;
     } catch (error) {
       const err: ClientErrorType = {

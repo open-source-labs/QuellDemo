@@ -21,10 +21,6 @@ const Countries = require('../models/countriesModel.js');
 //ALTERNATIVELY IN THE RESOLVER CHOOSE THE DB OF YOUR LIKING
 //WE USED MONGODB FOR TESTING PURPOSES BUT PSQL MAYBE BETTER!
 
-// Helper function for console logging time (for now)
-const trackFieldPerformance = (fieldName, parentName, elapsedTime) => {
-  console.log(`Resolver for "${parentName}.${fieldName}" field took ${elapsedTime} ms`);
-};
 
 let elapsedTime = {};
 
@@ -44,8 +40,7 @@ const ArtistType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.albums = endTime - startTime;
           console.log('elapsedTime: ', elapsedTime.albums,'ms');
-          // trackFieldPerformance('albums', parentName, elapsedTime);
-          console.log(result);
+          // console.log(result);
           return result;
         });
       },
@@ -68,8 +63,7 @@ const AlbumType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.songs = endTime - startTime;
           console.log('elapsedTime: ', elapsedTime.songs,'ms');
-          // trackFieldPerformance('songs', parentName, elapsedTime);
-          console.log(result);
+          // console.log(result);
           return result;
         });
       },
@@ -95,8 +89,7 @@ const AttractionsType = new GraphQLObjectType({
             const endTime = new Date().getTime();
             elapsedTime.country = endTime - startTime;
             console.log('elapsedTime: ', elapsedTime.country,'ms');
-            // trackFieldPerformance('country', parentName, elapsedTime);
-            console.log(result);
+            // console.log(result);
             return result;
           });
       },
@@ -120,8 +113,7 @@ const CityType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.attractions = endTime - startTime;
           console.log('elapsedTime: ', elapsedTime.attractions,'ms');
-          // trackFieldPerformance('attractions', parentName, elapsedTime);
-          console.log(result);
+          // console.log(result);
           return result;
         });
       },
@@ -143,8 +135,7 @@ const CountryType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.cities = endTime - startTime;
           console.log('elapsedTime.cities: ', elapsedTime.cities,'ms');
-          // trackFieldPerformance('cities', parentName, elapsedTime);
-          console.log(result);
+          // console.log(result);
           return result;
         });
       },
