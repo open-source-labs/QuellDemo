@@ -279,14 +279,10 @@ const RootMutations = new GraphQLObjectType({
           throw new Error('Country not found');
         }
         const updatedCity = await Cities.findOneAndUpdate(
-          // { _id: id }, 
-          // { $set: { name, country } }, 
-          // { new: true }           
-          id, 
-          { name, country  }, 
-          { new: true } 
+          { _id: id }, 
+          { $set: { name, country } }, 
+          { new: true }           
         );
-    
         return updatedCity;
       }
     },

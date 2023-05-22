@@ -96,6 +96,7 @@ export interface FieldsObjectType {
 }
 
 export interface CostParamsType {
+  [key: string]: number | undefined;
   maxCost: number;
   mutationCost?: number;
   objectCost?: number;
