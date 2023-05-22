@@ -46,8 +46,6 @@ const Demo = memo(() => {
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
   const [elapsed, setElapsed] = useState<{}>({});
-
-  // console.log('getElapsedTime:', getElapsedTime());
   
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
@@ -190,12 +188,8 @@ function QueryDemo({
     );
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         setVisualizerQuery(query);
-        // if (setElapsed) {
-        //   setElapsed(getElapsedTime());
-        // };
-        // console.log('elapsed: ', elapsed);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
@@ -213,7 +207,7 @@ function QueryDemo({
         fetch ('/api/queryTime').then(res => res.json())
         .then((time) => {
           if (setElapsed){
-            console.log('time: ', time);
+            // console.log('time: ', time);
             setElapsed(time.time);
           }
         })
