@@ -23,11 +23,9 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
   // The useEffect parse the query and generate the operation order
   useEffect(() => {
     const operation = parseQuery(query);
-    // if (operation) {
-      // setElapsedTime(elapsed);
+      setElapsedTime(elapsed);
       const operationOrder = generateOperationOrder(operation);
       setQueryOperations(operationOrder);
-    // }
   }, [elapsedTime]);
 
   // parses the query
@@ -56,10 +54,6 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
     operation.selections.forEach((selection: { name: { value: any; }; selectionSet: OperationDefinitionNode | SelectionSetNode; }) => {
       if ('name' in selection) {
         let fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
-        // console.log('selection.name.value', selection.name.value);
-        // console.log('elapsedTime: ', elapsedTime);
-        // console.log('elapsedTime[selection.name.value]: ',elapsedTime[selection.name.value]);
-        // console.log('fieldName', fieldName);
         if (elapsedTime[selection.name.value] && operationOrder.length > 1) {
           const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
           operationOrder.push(newName);

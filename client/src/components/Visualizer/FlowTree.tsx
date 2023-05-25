@@ -32,6 +32,8 @@ interface FlowElement extends NodeData {
     color?: string;
   } | string;
   style?: any;
+  labelStyle?: any;
+  labelBgBorderRadius?: any;
 }
 
 interface Position {
@@ -58,21 +60,21 @@ const getNode = (
   const label = node.kind === 'Field' ? node.name.value : node.kind;
   const id = `${node.loc?.start}-${node.loc?.end}`;
   const parentX = parentPosition ? (parentPosition as PositionWithX).x : 0;
-  const x = ((siblingIndex + 0.5) / numSiblings) * 500 + 100;
+  const x = ((siblingIndex + 0.3) / 3) * 400 + 230 ;
   return {
     id: id!,
     data: {label},
     position: {
       y: 100 + depth * 100,
-      x: parentX + x - (numSiblings / 2) * 275,
+      x: parentX + x - (numSiblings / 2) * 290,
     },
     style:  {
       width: 125, 
       height: 30, 
       fontSize: 18, 
       border: `none`, 
-      borderRadius: 10, 
-      boxShadow: `0px 0px 3px gray`,
+      borderRadius: 12, 
+      boxShadow: `0px 0px 3px #11262C`,
       padding: `2px 0px 0px 0px`
     }
   };
@@ -101,6 +103,10 @@ const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowEle
       strokeWidth: 2,
       stroke: '#03C6FF'
     },
+    labelStyle: {
+      fontSize: 14,
+    },
+    labelBgBorderRadius: 10,
   };
 
   const childNode = child as FieldNode;
@@ -143,11 +149,10 @@ const buildTree = (
 
 
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
-const astToTree = (query: string, elapsed: {} ): { nodes: NodeData[]; edges: FlowElement[] } => {
-  // parses query to AST
+const astToTree = (query: string, elapsed: {}): { nodes: NodeData[]; edges: FlowElement[] } => {
   const ast: DocumentNode = parse(query);
   const operation = ast.definitions.find(
-    def => def.kind === 'OperationDefinition' && def.selectionSet
+    (def) => def.kind === 'OperationDefinition' && def.selectionSet
   );
   if (!operation) {
     throw new Error('No operation definition found in query');
@@ -155,11 +160,23 @@ const astToTree = (query: string, elapsed: {} ): { nodes: NodeData[]; edges: Flo
   const selections = (operation as OperationDefinitionNode).selectionSet.selections;
   const nodes: NodeData[] = [];
   const edges: FlowElement[] = [];
-  selections.forEach(selection => {
-    buildTree(selection, nodes, edges, elapsed);
+  let currentX = 0; // Adjust the initial x position for the first tree
+  let currentY = 0; // Adjust the initial y position for the first tree
+
+  selections.forEach((selection, index) => {
+    const numSiblings = selections.length;
+    const siblingIndex = index;
+    const x = ((siblingIndex + 0.5) / numSiblings) * 900 + currentX;
+    const y = 100 + currentY;
+
+    buildTree(selection, nodes, edges, elapsed, 0, siblingIndex, numSiblings, { x, y });
+
   });
+
   return { nodes, edges };
 };
+
+
 
 
 
@@ -170,8 +187,6 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
 
 // update the state of nodes and edges when query changes
   useEffect(() => {
-  // only update if the query is different from the currentQuery
-  // if (query !== currentQuery) {
     const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
     const nodes = newNodes.map(node => ({
       id: node.id,
@@ -183,12 +198,11 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
     setEdges(newEdges);
     setCurrentQuery(query);
     setElapsedTime(elapsed);
-  // };
-  // console.log('elapsed in flowtree: ', elapsed);
+
 } , [query, currentQuery, elapsed, elapsedTime]);
-  // console.log(query);
+
+
   const { nodes, edges } = astToTree(query, elapsedTime);
-  // console.log(nodes);
 
   // storing the initial values of the nodes and edges
   const [newNodes, setNodes] = useState<NodeData[]>(nodes);
