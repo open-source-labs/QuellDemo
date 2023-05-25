@@ -56,7 +56,7 @@ app.get('/api/clearCache', quellCache.clearCache, (req, res) => {
 app.use(
   '/api/redis',
   quellCache.getRedisInfo({
-    getStats: false,
+    getStats: true,
     getKeys: true,
     getValues: true
   }),
