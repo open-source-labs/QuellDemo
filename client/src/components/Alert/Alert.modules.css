@@ -4,7 +4,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
-  justify-content: end;
+  justify-content: flex-end;
   left: 50%;
   height: 70%;
   margin-bottom: 0.1vh;

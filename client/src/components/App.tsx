@@ -1,9 +1,10 @@
-import '../stylesheets/App.css';
+// import '../stylesheets/App.css';
 import React, { useState, useEffect, Suspense } from 'react';
 import { Navbar } from './NavBar/Navbar';
 import Demo from './Demo/Demo';
-import About from './About/About';
+import { Hero } from './Hero/Hero';
 import Footer from './Footer/Footer';
+
 
 const LazyLoadTeam = React.lazy(() => import('./TeamCards/TeamCards'));
 
@@ -20,19 +21,19 @@ function App() {
   useEffect(() => {}, [teamComp]);
 
   return (
-    <>
+    <div className="m-0 p-0 bg-background flex flex-col h-screen w-full">
       <Navbar teamComp={teamComp} toggleRenderTeam={toggleRenderTeam} />
       {/* conditionally renders between the team page and the main page. */}
       <Suspense fallback={<div>Loading..</div>}>
         {teamComp ? <LazyLoadTeam /> : null}
       </Suspense>
+      <Hero />
       <div className="main" id={renderFx}>
-        {!teamComp && <About />}
         {!teamComp && <hr style={{width: '60%'}}/>}
         {!teamComp && <Demo />}
       </div>
       <Footer />
-    </>
+    </div>
   );
 }
 
