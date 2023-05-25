@@ -182,13 +182,11 @@ function QueryDemo({
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
-    //TODO edit this? clear server cache
     fetch('/api/clearCache').then((res) =>
       console.log('Cleared Server Cache!')
     );
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        // console.log(res);
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
@@ -213,7 +211,6 @@ function QueryDemo({
         fetch ('/api/queryTime').then(res => res.json())
         .then((time) => {
           if (setElapsed){
-            // console.log('time: ', time);
             setElapsed(time.time);
           }
         })

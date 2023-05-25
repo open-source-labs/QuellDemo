@@ -7,7 +7,7 @@
 }
 
 .flowTree {
-    height: 600px; 
+    min-height: 600px; 
     border: 3px solid lightGray;
     border-radius: 10px; 
     background:#474F57
