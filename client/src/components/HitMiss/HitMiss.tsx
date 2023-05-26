@@ -17,7 +17,7 @@ export function HitMiss({ cacheMiss, cacheHit }: HitMissProps) {
     ],
   };
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col items-center p-2 m-2 text-white">
       <h3>Cache Hit vs. Cache Miss</h3>
       <Doughnut data={data} />
     </div>

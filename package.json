@@ -60,6 +60,8 @@
     "react-collapse": "^5.1.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.2",
+    "react-router-hash-link": "^2.4.3",
+    "react-scroll": "^1.8.9",
     "react-textarea-autosize": "^8.4.1",
     "reactflow": "^11.7.0",
     "recharts": "^2.1.16",

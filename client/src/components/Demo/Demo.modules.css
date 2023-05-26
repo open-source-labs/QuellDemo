@@ -8,6 +8,7 @@
 
 #header {
   font-size: 4rem;
+  color: white;
   margin: 0;
 }
 
@@ -20,7 +21,7 @@
   align-items: center;
   border-radius: 30px;
   box-shadow: 0px 5px 20px 0px rgb(133, 133, 133);
-  background-color: #dedede;
+  background-color: #242424;
   border: none;
   justify-content: space-between;
   overflow: hidden;
@@ -97,8 +98,9 @@
 .button {
   border: none;
   text-align: center;
-  min-height: 40px;
+  min-height: 20px;
   font-size: 0.85rem;
+  
 }
 
 #queryText {
@@ -115,7 +117,7 @@
 #queryInput {
   font-size: 0.8rem;
   min-width: 100%;
-  background-color: #474f57;
+  background-color: #3c6d9e;
   font-family: Monaco;
 }
 

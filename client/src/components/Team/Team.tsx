@@ -6,7 +6,6 @@ import { TeamArr } from '../teaminfo';
 
 export const Team = () => {
 
-
   return (
     <section id ="team">
       <div className="container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 ">
@@ -21,7 +20,7 @@ export const Team = () => {
         {/* grid classifies what it is, default 1; uses responsive design; gap-4 creates a gap of 1rm between profile */}
         <div className = " grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-white">
           {TeamArr.map((member, index) => (
-            <div key={index} className="profile border border-gray-500 rounded p-5 flex flex-col gap-y-4 items-center justify-center">
+            <div key={index} className="profile border border-darkgrey rounded p-5 flex flex-col gap-y-4 items-center justify-center">
               <div className="relative border-2 border-cyan-900 w-32 h-32 rounded-full overflow-hidden">
                 <img src={member.src} alt={member.name} className='absolute inset-0 w-1000 h-1000' />
               </div>
@@ -29,12 +28,12 @@ export const Team = () => {
               <div className="flex flex-row gap-4">
                 <a href={member.linkedin} target='_blank'>
                   <button className="w-7 h-7 hover:blur-xs">
-                    <img src='https://cdn-icons-png.flaticon.com/512/174/174857.png' ></img>
+                    <img src={Linkedin} ></img>
                   </button>
                 </a>
                 <a href={member.github} target='_blank'>
                   <button className="w-7 h-7 hover:blur-xs">
-                    <img src='https://cdn-icons-png.flaticon.com/512/25/25231.png'></img>
+                    <img src={Github}></img>
                   </button>
                 </a>
               </div>

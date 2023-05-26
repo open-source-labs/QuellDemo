@@ -71,22 +71,25 @@ const Demo = memo(() => {
   
 
   return (
-    <div id="demo" className={styles.section}>
+    <div id="demo" className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0">
       <div id={styles.demoHeader} className="scrollpoint">
         <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
+            className="text-white font-sans"
             label="Server-side caching"
             control={<Switch checked={isToggled} onChange={handleToggle} />}
           />
           <FormControlLabel
+          className="text-white font-sans"
             label="Visualizer"
             control={<Switch checked={isVisualizer} onChange={handleVisualizerToggle} />}
           />
         </Box>
       </div>
-      <div className={styles.container}>
+      <div className="flex flex-col gap-10 lg:flex-row">
+        <div className="leftContainer flex-1">
         <QueryDemo
           maxDepth={maxDepth}
           maxCost={maxCost}
@@ -110,15 +113,16 @@ const Demo = memo(() => {
           setElapsed={setElapsed}
           elapsed={elapsed}
         />
+        </div>
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
-        <div className={styles.rightContainer}>
+        <div className="flex-1">
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}
             elapsed={elapsed}
             />
           ) : (
-            <div className={styles.rightContainerHeader}>
+            <div >
               <CacheControls
                 setDepth={setDepth}
                 setCost={setCost}
@@ -265,7 +269,7 @@ function QueryDemo({
   }
 
   return (
-    <div spellCheck="false" className={styles.leftContainer}>
+    <div spellCheck="false" >
       <DemoControls
         selectedQuery={selectedQuery}
         setQueryChoice={setQueryChoice}
@@ -299,7 +303,7 @@ const DemoControls = ({
   submitQuery
 }: DemoControls) => {
   return (
-    <div className={styles.dropDownContainer}>
+    <div className="min-w-full flex flex-col gap-5 text-white items-center">
       <h3>Select a query to test: </h3>
       <QuerySelect
         setQueryChoice={setQueryChoice}
@@ -309,7 +313,7 @@ const DemoControls = ({
         endIcon={<ForwardRoundedIcon />}
         id={styles.submitQuery}
         onClick={() => submitQuery()}
-        size="medium"
+        size="small"
         color="secondary"
         variant="contained"
       >
@@ -359,6 +363,7 @@ const CacheControls = ({
         <Button
           className={styles.button}
           onClick={isToggled ? clearServerCache : clearClientCache}
+          size="small"
           color="secondary"
           variant="contained"
         >
@@ -367,7 +372,7 @@ const CacheControls = ({
         <Button
           onClick={resetGraph}
           className={styles.button}
-          size="medium"
+          size="small"
           color="secondary"
           variant="contained"
         >
@@ -414,12 +419,12 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   };
 
   return (
-    <Box className={styles.queryMenu}>
+    <Box className="text-center min-w-[90%] text-white">
       <FormControl fullWidth>
         <InputLabel id="demo-simple-select-label">Query</InputLabel>
         <Select
           labelId="demo-simple-select-label"
-          id={styles.demoSelect}
+          className="min-w-[90%] text-white color-white"
           value={selectedQuery}
           defaultValue={selectedQuery}
           label="Query"

@@ -15,7 +15,7 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   const query = querySamples[selectedQuery];
 
   return (
-    <div className={styles.container}>
+    <div className="h-64 border-1 border-white p-5">
       <ControlledEditor
         className={styles.editor}
         defaultLanguage="graphql"

@@ -86,7 +86,7 @@ export function Graph({
 
   
   return (
-    <div className={styles.container}>
+    <div className="graph h-80 text-white">
       <Bar
         options={options}
         data={{

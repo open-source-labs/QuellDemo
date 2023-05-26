@@ -17,7 +17,7 @@ const toggleFeature = (text: string) => {
     <section id="Features">
         <div className="grow relative pt-14">
           <div className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0">
-            <div className="flex flex-col lg:pl-8">
+            <div className="flex flex-col lg:pl-8 pt-6">
             <h1 className="leading-snug text-3xl font-sans font-semibold text-white mb-4">
             A Javascript library to simplify GraphQL caching
             </h1>
@@ -33,7 +33,7 @@ const toggleFeature = (text: string) => {
             </p>
             </div>
               {selectedFeature === 'Text 1' && (
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row pb-6">
                   <div className="flex flex-col">    
                     <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
@@ -54,12 +54,12 @@ const toggleFeature = (text: string) => {
                      </div>
                 </div>
                 <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2">Robust caching strategies </p>
-                        <p className="font-sans font-extralight text-white">Quell's cache invalidation and normalization strategies means your app will stay fast at call, without any bloat.</p>
+                        <p className="font-sans font-semibold text-white py-2">Robust Caching Strategies</p>
+                        <p className="font-sans font-extralight text-white">Quell's cache invalidation and normalization strategies means your app will always stay fast, without any bloat.</p>
                      </div>
                 </div>
                 </div>
@@ -69,7 +69,7 @@ const toggleFeature = (text: string) => {
                 </div>
               )}
               {selectedFeature === 'Text 2' && (
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row pb-6">
                   <div className="flex flex-col">    
                     <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
@@ -105,7 +105,7 @@ const toggleFeature = (text: string) => {
                 </div>
               )}
               {selectedFeature === 'Text 3' && (
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row pb-6">
                   <div className="flex flex-col">    
                     <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
