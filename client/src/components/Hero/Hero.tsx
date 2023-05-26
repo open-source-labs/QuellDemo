@@ -5,19 +5,21 @@ import heroGraphic from '/client/src/assets/images/graphics/QUELL-hero-graphic.s
 export const Hero = () => {
   return (
     <section id="hero">
-      <div className="container bg-background flex flex-col items-center px-6 mx-auto pt-10 space-y-0 md:flex-row md:space-y-0">
-        <div className="flex flex-col mb-32 space-y-12 md:w-1/2">
-          <h1 className="leading-snug max-w-lg text-4xl font-sans font-semibold text-white md:text-5xl md:leading-snug">
+      <div className="grow relative pt-6 md:pt-14">
+      <div className="container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 md:flex-row md:space-y-0 md:gap-12 xl:justify-between">
+        <div className="flex flex-col mb-32 space-y-12 md:w-1/2 md:space-y-8">
+          <h1 className="leading-snug text-4xl font-sans font-semibold text-white md:text-2xl md:leading-snug lg:text-4xl lg:leading-snug xl:text-5xl xl:leading-snug xl:w-full">
             The lightweight caching solution for GraphQL developers
           </h1>
-          <div className="flex flex-col justify-center gap-4 md:gap-12 md:justify-start md:flex-row">
-            <button className="bg-lightblue text-white font-sans py-3 px-14 rounded hover:bg-altblue md:text-xl">Try Demo</button>
-            <button className="bg-transparent border border-lightblue text-lightblue font-sans py-3 px-14 rounded hover:bg-lightblue hover:text-white md:text-xl">npm install</button>
+          <div className="flex flex-col justify-center gap-4 lg:gap-12 lg:justify-start lg:flex-row">
+            <button className="bg-lightblue text-white font-sans py-3 px-14 rounded hover:bg-altblue md:text-base xl:text-xl">Try Demo</button>
+            <button className="bg-transparent border border-lightblue text-lightblue font-sans py-3 px-14 rounded hover:bg-lightblue hover:text-white xl:text-xl">npm install</button>
           </div>
         </div>
-        <div className="md:w-1/2">
-          <img src={heroGraphic} alt="Hero Graphic"/>
+        <div className="md:self-start xl:pr-16">
+          <img className="w-full h-auto xl:w-auto xl:h-full" src={heroGraphic} alt="Hero Graphic"/>
         </div>
+      </div>
       </div>
     </section>
   );

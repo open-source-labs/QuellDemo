@@ -1,9 +1,10 @@
 import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg';
-
+import React from 'react';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
 export const Navbar = () => {
   return (
-    <nav className="relative container mx-auto bg-background w-full p-8 text-white">
+    <nav className="relative container mx-auto bg-background w-full p-8 text-white xl:max-w-10xl">
       <div className="flex items-center justify-between">
         <div className="pt-2">
           <img className="bird-icon" src={quellLogo} />

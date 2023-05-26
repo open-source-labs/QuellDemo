@@ -1,43 +1,112 @@
-import Nick from '../assets/images/profile_pics/QUELL-headshot w border-Nick.png';
-import Mike from '../assets/images/profile_pics/QUELL-headshot w border-Mike.png';
-import Rob from '../assets/images/profile_pics/QUELL-headshot w border-Rob.png';
-import Justin from '../assets/images/profile_pics/QUELL-headshot w border-Justin.png';
-import Andrei from '../assets/images/profile_pics/QUELL-headshot w border-Andrei.png';
-import Dasha from '../assets/images/profile_pics/QUELL-headshot w border-Dasha.png';
-import Derek from '../assets/images/profile_pics/QUELL-headshot w border-Derek.png';
-import Xiao from '../assets/images/profile_pics/QUELL-headshot w border-Xiao.png';
-import Robleh from '../assets/images/profile_pics/QUELL-headshot w border-Robleh.png';
-import Thomas from '../assets/images/profile_pics/QUELL-headshot w border-Thomas.png';
-import Angela from '../assets/images/profile_pics/QUELL-headshot w border-Angela.png';
-import Ken from '../assets/images/profile_pics/QUELL-headshot w border-Ken.png';
-import Jinhee from '../assets/images/profile_pics/QUELL-headshot w border-Jinhee.png';
-import Nayan from '../assets/images/profile_pics/QUELL-headshot w border-Nayan.png';
-import Tash from '../assets/images/profile_pics/QUELL-headshot w border-Tash.png';
-import Tim from '../assets/images/profile_pics/QUELL-headshot w border-Tim.png';
-import Chang from '../assets/images/profile_pics/QUELL-headshot w border-Chang.png';
-import Josh from '../assets/images/profile_pics/QUELL-headshot w border-Josh.png';
-import Robert from '../assets/images/profile_pics/QUELL-headshot w border-Robert.png';
-import DavidLopez from '../assets/images/profile_pics/QUELL-headshot w border-DavidLopez.png';
-import IdanMichael from '../assets/images/profile_pics/QUELL-headshot w border-IdanMichael.png';
-import SercanTuna from '../assets/images/profile_pics/QUELL-headshot w border-SercanTuna.png';
-import ThomasPryor from '../assets/images/profile_pics/QUELL-headshot w border-ThomasPryor.png';
-import ZoeH from '../assets/images/profile_pics/QUELL-headshot ZoeH.png';
-import JackieHe from '../assets/images/profile_pics/QUELL-headshot JackieHe.png';
-import CeraB from '../assets/images/profile_pics/QUELL-headshot CeraB.png';
-import AlexMartinez from '../assets/images/profile_pics/QUELL-headshot AlexM.png';
-import RylanW from '../assets/images/profile_pics/QUELL-headshot w border-RylanW.png';
-import SarahC from '../assets/images/profile_pics/QUELL-headshot w border-SarahC.png';
-import HannahS from '../assets/images/profile_pics/QUELL-headshot w border-HannahS.png';
-import KatieS from '../assets/images/profile_pics/QUELL-headshot w border-KatieS.png';
-import Garik from '../assets/images/profile_pics/QUELL-headshot w border-GarikA.png';
-import AngeloC from '../assets/images/profile_pics/QUELL-headshot w border-Angelo.png';
-import EmilyH from '../assets/images/profile_pics/QUELL-headshot w border-EmilyH.png';
-import KeelyT from '../assets/images/profile_pics/QUELL-headshot w border-Keely.png';
-import YusufB from '../assets/images/profile_pics/QUELL-headshot w border-Yusuf.png';
+// import Nick from '../assets/images/profile_pics/QUELL-headshot w border-Nick.png';
+// import Mike from '../assets/images/profile_pics/QUELL-headshot w border-Mike.png';
+// import Rob from '../assets/images/profile_pics/QUELL-headshot w border-Rob.png';
+// import Justin from '../assets/images/profile_pics/QUELL-headshot w border-Justin.png';
+// import Andrei from '../assets/images/profile_pics/QUELL-headshot w border-Andrei.png';
+// import Dasha from '../assets/images/profile_pics/QUELL-headshot w border-Dasha.png';
+// import Derek from '../assets/images/profile_pics/QUELL-headshot w border-Derek.png';
+// import Xiao from '../assets/images/profile_pics/QUELL-headshot w border-Xiao.png';
+// import Robleh from '../assets/images/profile_pics/QUELL-headshot w border-Robleh.png';
+// import Thomas from '../assets/images/profile_pics/QUELL-headshot w border-Thomas.png';
+// import Angela from '../assets/images/profile_pics/QUELL-headshot w border-Angela.png';
+// import Ken from '../assets/images/profile_pics/QUELL-headshot w border-Ken.png';
+// import Jinhee from '../assets/images/profile_pics/QUELL-headshot w border-Jinhee.png';
+// import Nayan from '../assets/images/profile_pics/QUELL-headshot w border-Nayan.png';
+// import Tash from '../assets/images/profile_pics/QUELL-headshot w border-Tash.png';
+// import Tim from '../assets/images/profile_pics/QUELL-headshot w border-Tim.png';
+// import Chang from '../assets/images/profile_pics/QUELL-headshot w border-Chang.png';
+// import Josh from '../assets/images/profile_pics/QUELL-headshot w border-Josh.png';
+// import Robert from '../assets/images/profile_pics/QUELL-headshot w border-Robert.png';
+// import DavidLopez from '../assets/images/profile_pics/QUELL-headshot w border-DavidLopez.png';
+// import IdanMichael from '../assets/images/profile_pics/QUELL-headshot w border-IdanMichael.png';
+// import SercanTuna from '../assets/images/profile_pics/QUELL-headshot w border-SercanTuna.png';
+// import ThomasPryor from '../assets/images/profile_pics/QUELL-headshot w border-ThomasPryor.png';
+// import ZoeH from '../assets/images/profile_pics/QUELL-headshot ZoeH.png';
+// import JackieHe from '../assets/images/profile_pics/QUELL-headshot JackieHe.png';
+// import CeraB from '../assets/images/profile_pics/QUELL-headshot CeraB.png';
+// import AlexMartinez from '../assets/images/profile_pics/QUELL-headshot AlexM.png';
+// import RylanW from '../assets/images/profile_pics/QUELL-headshot w border-RylanW.png';
+// import SarahC from '../assets/images/profile_pics/QUELL-headshot w border-SarahC.png';
+// import HannahS from '../assets/images/profile_pics/QUELL-headshot w border-HannahS.png';
+// import KatieS from '../assets/images/profile_pics/QUELL-headshot w border-KatieS.png';
+// import Garik from '../assets/images/profile_pics/QUELL-headshot w border-GarikA.png';
+// import AngeloC from '../assets/images/profile_pics/QUELL-headshot w border-Angelo.png';
+// import EmilyH from '../assets/images/profile_pics/QUELL-headshot w border-EmilyH.png';
+// import KeelyT from '../assets/images/profile_pics/QUELL-headshot w border-Keely.png';
+// import YusufB from '../assets/images/profile_pics/QUELL-headshot w border-Yusuf.png';
+
+import Nick from '../assets/images/new_profile_pics/Nick-Kruckenberg.jpeg';
+import Mike from '../assets/images/new_profile_pics/Mike-Lauri.png';
+import Rob from '../assets/images/new_profile_pics/Rob-Nobile.jpeg';
+import Justin from '../assets/images/new_profile_pics/Justin-Jaeger.jpeg';
+import Andrei from '../assets/images/new_profile_pics/Andrei-Cabrera.jpeg';
+import Dasha from '../assets/images/new_profile_pics/Dasha-Kondratenko.jpeg';
+import Derek from '../assets/images/new_profile_pics/Derek-Sirola.jpeg';
+import Xiao from '../assets/images/new_profile_pics/Xiao-Yu-Omeara.jpeg';
+import Robleh from '../assets/images/new_profile_pics/Robleh-Farah.jpeg';
+import Thomas from '../assets/images/new_profile_pics/Thomas-Reeder.jpeg';
+import Angela from '../assets/images/new_profile_pics/Angela-Franco.jpeg';
+import Ken from '../assets/images/new_profile_pics/Ken-Litton.jpeg';
+import Jinhee from '../assets/images/new_profile_pics/Jinhee-Choi.jpeg';
+import Nayan from '../assets/images/new_profile_pics/Nayan-Parmar.jpeg';
+import Tash from '../assets/images/new_profile_pics/Tashrif-Sanil.png';
+import Tim from '../assets/images/new_profile_pics/Tim-Frenzel.jpeg';
+import Chang from '../assets/images/new_profile_pics/Chang-Ca.jpeg';
+import Josh from '../assets/images/new_profile_pics/Josh-Jordan.jpeg';
+import Robert from '../assets/images/new_profile_pics/Robert-Howton.jpeg';
+import DavidLopez from '../assets/images/new_profile_pics/David-Lopez.jpeg';
+import IdanMichael from '../assets/images/new_profile_pics/Idan-Michael.jpeg';
+import SercanTuna from '../assets/images/new_profile_pics/Sercan-Tuna.jpeg';
+import ThomasPryor from '../assets/images/new_profile_pics/Thomas-Pryor.jpeg';
+import ZoeH from '../assets/images/new_profile_pics/Zoe-Harper.jpeg';
+import JackieHe from '../assets/images/new_profile_pics/Jackie-He.jpeg';
+import CeraB from '../assets/images/new_profile_pics/Cera-Barrow.jpeg';
+import AlexMartinez from '../assets/images/new_profile_pics/Alexander-Martinez.jpeg';
+import RylanW from '../assets/images/new_profile_pics/Rylan-Wessel.jpeg';
+import SarahC from '../assets/images/new_profile_pics/Sarah-Cynn.jpeg';
+import HannahS from '../assets/images/new_profile_pics/Hannah-Spencer.jpeg';
+import KatieS from '../assets/images/new_profile_pics/Katie-Sandfort.jpeg';
+import Garik from '../assets/images/new_profile_pics/Garik-Asplund.jpeg';
+import AngeloC from '../assets/images/new_profile_pics/Angelo-Chengcuenca.jpeg';
+import EmilyH from '../assets/images/new_profile_pics/Emily-Hoang.jpeg';
+import KeelyT from '../assets/images/new_profile_pics/Keely-Timms.jpeg';
+import YusufB from '../assets/images/new_profile_pics/Yusuf-Bhaiyat.jpeg';
+import JonahW from '../assets/images/new_profile_pics/Jonah-Weinbaum.jpg';
+import LennyL from '../assets/images/new_profile_pics/Lenny-Yambao.jpeg';
+import JustinH from '../assets/images/new_profile_pics/Justin-Hua.jpeg';
+import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg'
 
 /* 
   Reusable component to generate each team member
 */
+const JONAHW = {
+  name: 'Angelo Chengcuenca',
+  src: JonahW,
+  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
+  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
+  github: 'https://github.com/amchengcuenca',
+};
+const LENNYL = {
+  name: 'Angelo Chengcuenca',
+  src: LennyL,
+  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
+  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
+  github: 'https://github.com/amchengcuenca',
+};
+const JUSTINH = {
+  name: 'Angelo Chengcuenca',
+  src: JustinH,
+  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
+  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
+  github: 'https://github.com/amchengcuenca',
+};
+const MICHAELL = {
+  name: 'Angelo Chengcuenca',
+  src: MichaelL,
+  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
+  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
+  github: 'https://github.com/amchengcuenca',
+};
 const ANGELOC = {
   name: 'Angelo Chengcuenca',
   src: AngeloC,
@@ -291,6 +360,10 @@ const JUSTINJAEGAR = {
   github: 'https://github.com/justinjaeger',
 };
 export const TeamArr = [
+  JONAHW,
+  LENNYL,
+  JUSTINH,
+  MICHAELL,
   ANGELOC,
   EMILYH,
   KEELYT,
