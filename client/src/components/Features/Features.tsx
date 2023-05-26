@@ -19,9 +19,9 @@ const toggleFeature = (text: string) => {
           <div className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0">
             <div className="flex flex-col lg:pl-8">
             <h1 className="leading-snug text-3xl font-sans font-semibold text-white mb-4">
-              Lorem ipsum dolor sit amet
+            A Javascript library to simplify GraphQL caching
             </h1>
-            <div className="flex flex-row space-x-6 mb-4">
+            <div className="flex flex-row space-x-6 mb-6">
             <p className={`font-sans cursor-pointer text-white font-semibold hover:underline underline-offset-8 decoration-lightblue ${selectedFeature === 'Text 1' ? 'underline' : ''}`} onClick={() => toggleFeature('Text 1')}>
               Fast & Accurate Caching
             </p>
@@ -39,27 +39,27 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                      <div className="flex flex-col mb-3 md:w-2/3">
+                        <p className="font-sans font-semibold text-white py-2">Lightning-fast Caching</p>
+                        <p className="font-sans font-extralight text-white">Cache both client-side and server-side GraphQL queries with speed and simplicity.</p>
                       </div>
                     </div>
                   <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                      <div className="flex flex-col mb-3 md:w-2/3">
+                        <p className="font-sans font-semibold text-white py-2">Enhanced Query Efficiency</p>
+                        <p className="font-sans font-extralight text-white">Make precise queries to retrieve your data with reduced cache misses.</p>
                      </div>
                 </div>
                 <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                      <div className="flex flex-col mb-3 md:w-2/3">
+                        <p className="font-sans font-semibold text-white py-2">Robust caching strategies </p>
+                        <p className="font-sans font-extralight text-white">Quell's cache invalidation and normalization strategies means your app will stay fast at call, without any bloat.</p>
                      </div>
                 </div>
                 </div>
@@ -75,16 +75,16 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                      <div className="flex flex-col mb-3 md:w-2/3">
+                        <p className="font-sans font-semibold text-white py-2">Enhanced Query Efficiency</p>
+                        <p className="font-sans font-extralight text-white">Quell's cache invalidation and normalization strategies means your app will stay fast at call, without any bloat.</p>
                       </div>
                     </div>
                   <div className="flex flex-row">
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
+                      <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
                         <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
                      </div>
@@ -93,7 +93,7 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
+                      <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
                         <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
                      </div>
@@ -111,7 +111,7 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
+                      <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
                         <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
                       </div>
@@ -120,7 +120,7 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
+                      <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
                         <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
                      </div>
@@ -129,7 +129,7 @@ const toggleFeature = (text: string) => {
                       <div className="self-start mt-3 mr-2">
                         <img src={lightningIcon}/>
                       </div>
-                      <div className="flex flex-col md:w-2/3">
+                      <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
                         <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
                      </div>

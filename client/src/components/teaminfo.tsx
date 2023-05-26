@@ -80,32 +80,32 @@ import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg'
   Reusable component to generate each team member
 */
 const JONAHW = {
-  name: 'Angelo Chengcuenca',
+  name: 'Jonah Weinbaum',
   src: JonahW,
-  bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
-  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
-  github: 'https://github.com/amchengcuenca',
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/jonah-weinbaum/',
+  github: 'https://github.com/jonahpw',
 };
 const LENNYL = {
-  name: 'Angelo Chengcuenca',
+  name: 'Lenny Yambao',
   src: LennyL,
   bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
-  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
-  github: 'https://github.com/amchengcuenca',
+  linkedin: 'https://www.linkedin.com/in/lenny-yambao/',
+  github: 'https://github.com/lennin6',
 };
 const JUSTINH = {
-  name: 'Angelo Chengcuenca',
+  name: 'Justin Hua',
   src: JustinH,
   bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
-  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
-  github: 'https://github.com/amchengcuenca',
+  linkedin: 'https://www.linkedin.com/in/justinfhua/',
+  github: 'https://github.com/justinfhua',
 };
 const MICHAELL = {
-  name: 'Angelo Chengcuenca',
+  name: 'BIG MIKE',
   src: MichaelL,
   bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
-  linkedin: 'https://www.linkedin.com/in/angelotmchengcuenca/',
-  github: 'https://github.com/amchengcuenca',
+  linkedin: 'https://www.linkedin.com/in/michael-lav/',
+  github: 'https://github.com/mikelav258',
 };
 const ANGELOC = {
   name: 'Angelo Chengcuenca',

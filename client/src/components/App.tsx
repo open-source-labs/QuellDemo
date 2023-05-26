@@ -1,6 +1,6 @@
 // import '../stylesheets/App.css';
 import React, { useState, useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import { Navbar } from './NavBar/Navbar';
 import Demo from './Demo/Demo';
 import { Hero } from './Hero/Hero';
@@ -32,13 +32,15 @@ function App() {
         {teamComp ? <LazyLoadTeam /> : null}
       </Suspense>
       <Hero />
+      {/* <Route path="/" Component={Hero} /> */}
       <Features />
       <Team/>
-      {/* <Route path='/team' Component={Team}/> */}
-      <div className="main" id={renderFx}>
+      {/* <Route path='/team' element={Team}/> */}
+      {/* <div className="main" id={renderFx}>
         {!teamComp && <hr style={{width: '60%'}}/>}
         {!teamComp && <Demo />}
-      </div>
+      </div> */}
+      <Demo/>
       <Footer />
       </Router>
     </div>

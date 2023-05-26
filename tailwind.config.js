@@ -20,6 +20,12 @@ module.exports = {
         lg: '976px',
         xl: '1440px'
       },
+      blur: {
+        xs: '1px'
+      },
+      dropShadow: {
+        icon: '0 0 2px rgb(37,46,58)'
+      }
     },
   },
   variants: {},
