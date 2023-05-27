@@ -253,6 +253,14 @@ function QueryDemo({
         if (res.queryResponse.cached === true) setCacheHit(cacheHit + 1);
         else setCacheMiss(cacheMiss + 1);
       })
+      .then(() => {
+        fetch ('/api/queryTime').then(res => res.json())
+        .then((time) => {
+          if (setElapsed){
+            setElapsed(time.time);
+          }
+        })
+      })
       .catch((err) => {
         const error = {
           log: 'Error when trying to fetch to GraphQL endpoint',
