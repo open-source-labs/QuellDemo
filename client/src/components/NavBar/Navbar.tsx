@@ -13,13 +13,8 @@ export const Navbar = () => {
           </Link>
         </div>
         <div className="hidden font-sans font-light space-x-12 md:flex">
-          <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
-          {/* <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Team</a> */}
-          <Link to="/team">
-          <button className="hover:underline underline-offset-8 decoration-lightblue">
-            Team
-          </button>
-        </Link>
+          <a href="https://github.com/open-source-labs/Quell#quell" className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
+          <Link to="/team"><a className="hover:underline underline-offset-8 decoration-lightblue">Team</a></Link>
           <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
           <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Try Demo</a>
         </div>

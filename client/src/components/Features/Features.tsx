@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import lightningIcon from '/client/src/assets/images/graphics/lightning.svg';
+import cacheGraphic from '/client/src/assets/images/graphics/cache-graphic.svg';
 import heroGraphic from '/client/src/assets/images/graphics/QUELL-hero-graphic.svg';
 
 export const Features: React.FC = () => {
@@ -26,7 +27,7 @@ const toggleFeature = (text: string) => {
               Fast & Accurate Caching
             </p>
             <p className={`font-sans cursor-pointer text-white font-semibold hover:underline underline-offset-8 decoration-lightblue ${selectedFeature === 'Text 2' ? 'underline' : ''}`} onClick={() => toggleFeature('Text 2')}>
-              Easy Installation
+              Easy Onboarding
             </p>
             <p className={`font-sans cursor-pointer text-white font-semibold hover:underline underline-offset-8 decoration-lightblue ${selectedFeature === 'Text 3' ? 'underline' : ''}`} onClick={() => toggleFeature('Text 3')}>
               Built-in Security
@@ -64,7 +65,7 @@ const toggleFeature = (text: string) => {
                 </div>
                 </div>
                 <div className="pt-4 md:self-start md:pt-6 lg:pt-0">
-               <img className="w-full h-auto xl:w-auto xl:h-full" src={heroGraphic} alt="Hero Graphic"/>
+               <img className="w-full h-auto xl:w-auto xl:h-full" src={cacheGraphic} alt="Cache Graphic"/>
              </div>
                 </div>
               )}
@@ -76,8 +77,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2">Enhanced Query Efficiency</p>
-                        <p className="font-sans font-extralight text-white">Quell's cache invalidation and normalization strategies means your app will stay fast at call, without any bloat.</p>
+                        <p className="font-sans font-semibold text-white py-2">Simple Installation</p>
+                        <p className="font-sans font-extralight text-white">Install our client or server-side npm package for easy and quick integratoin into your existing GraphQL projects.</p>
                       </div>
                     </div>
                   <div className="flex flex-row">
@@ -85,8 +86,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                        <p className="font-sans font-semibold text-white py-2">Detailed Documentation</p>
+                        <p className="font-sans font-extralight text-white">Get a comprehensive guide for seamless implementation and tutorials on maximizing caching benefits.</p>
                      </div>
                 </div>
                 <div className="flex flex-row">
@@ -94,8 +95,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                        <p className="font-sans font-semibold text-white py-2">Chrome Extension</p>
+                        <p className="font-sans font-extralight text-white">Download our Chrome extension to get additional developor tools for better debugging and analysis on your queries.</p>
                      </div>
                 </div>
                 </div>
@@ -112,8 +113,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                        <p className="font-sans font-semibold text-white py-2">Security Middleware</p>
+                        <p className="font-sans font-extralight text-white">Easily integrate Quell's built-in security middleware into your GraphQL server.</p>
                       </div>
                     </div>
                   <div className="flex flex-row">
@@ -121,8 +122,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                        <p className="font-sans font-semibold text-white py-2">Rate Limiting</p>
+                        <p className="font-sans font-extralight text-white">Quell protects your app against abuse and DoS attacks with robust rate limiting.</p>
                      </div>
                 </div>
                 <div className="flex flex-row">
@@ -130,8 +131,8 @@ const toggleFeature = (text: string) => {
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
-                        <p className="font-sans font-semibold text-white py-2"> Lorem ipsum dolor sit amet</p>
-                        <p className="font-sans font-extralight text-white">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</p>
+                        <p className="font-sans font-semibold text-white py-2"> Data Protection</p>
+                        <p className="font-sans font-extralight text-white">Use Quell to safeguard your data and granular access controls and authorization.</p>
                      </div>
                 </div>
                 </div>

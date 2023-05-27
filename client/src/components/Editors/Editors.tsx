@@ -15,9 +15,9 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   const query = querySamples[selectedQuery];
 
   return (
-    <div className="h-64 border-1 border-white p-5">
+    <div className="h-64 p-5 rounded-xl overflow-hidden">
       <ControlledEditor
-        className={styles.editor}
+        // className={styles.editor}
         defaultLanguage="graphql"
         value={query}
         onChange={handleChange}
@@ -30,21 +30,21 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   );
 };
 
-export const ResponseEditor = ({ response }: ResponseEditorProps) => {
-  return (
-    <div className={styles.container}>
-      <ControlledEditor
-        className={styles.editor}
-        defaultLanguage="graphql"
-        value={response}
-        // onChange={null}
-        options={{
-          scrollBeyondLastLine: true,
-        }}
-      />
-    </div>
-  );
-};
+// export const ResponseEditor = ({ response }: ResponseEditorProps) => {
+//   return (
+//     <div className="h-20 border-1 border-white p-5 overflow-scroll">
+//       <ControlledEditor
+//         className="overflow-scroll"
+//         defaultLanguage="graphql"
+//         value={response}
+//         // onChange={null}
+//         options={{
+//           scrollBeyondLastLine: true,
+//         }}
+//       />
+//     </div>
+//   );
+// };
 
 interface QueryEditorProps {
   setQuery: React.Dispatch<React.SetStateAction<string>>;

@@ -10,12 +10,3 @@
     border-radius: 10px; 
     background:#474F57
 }
-
-.flowTable {
-    margin-top: 0;
-    height: 200px;
-    width: 100%;
-    padding: 5px;
-    border-radius: 10px;
-    border: 1px solid rgb(161, 183, 202);
-}

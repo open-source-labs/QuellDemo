@@ -50,12 +50,13 @@ export function Graph({
   };
 
   const options = {
+    color: 'white',
     maintainAspectRatio: false,
     responsive: true,
     scales: {
       y: {
         min: 0,
-        max: 750,
+        max: 800,
         display: true,
         align: 'center',
         text: 'Response times in ms',
@@ -63,6 +64,7 @@ export function Graph({
           callback: function (value: number | string) {
             return value + ' ms';
           },
+          color: 'white',
         },
       },
     },
@@ -70,11 +72,12 @@ export function Graph({
       title: {
         display: true,
         text: 'Fetch Speeds',
+        color: 'white'
       },
       tooltip: {
         callbacks: {
           title: titleTooltip,
-          label: labelTooltip
+          label: labelTooltip,
         },
       },
     },
@@ -86,7 +89,7 @@ export function Graph({
 
   
   return (
-    <div className="graph h-80 text-white">
+    <div className="graph h-80 pt-1">
       <Bar
         options={options}
         data={{

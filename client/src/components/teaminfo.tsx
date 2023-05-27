@@ -124,7 +124,7 @@ const EMILYH = {
 const KEELYT = {
   name: 'Keely Timms',
   src: KeelyT,
-  bio: "Keely Timms is a versatile full-stack developer who excels in React, SQL, and TypeScript. With a keen eye for detail and a passion for solving complex problems, she enjoys building applications that can make a positive impact on the world. When she's not coding, Keely can be found snowboarding, baking, or playing with her two cats, Oscar and Keety.",
+  bio: "Full-stack developer proficient in React, SQL, and TypeScript. Detail-oriented problem solver passionate about impactful applications. Enjoys snowboarding, baking, and spending time with her cats.",
   linkedin: 'https://www.linkedin.com/in/keelyt/',
   github: 'https://github.com/keelyt',
 };

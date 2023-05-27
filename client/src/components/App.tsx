@@ -4,11 +4,13 @@ import { BrowserRouter as Router, Routes, Route, Outlet} from 'react-router-dom'
 import { Navbar } from './NavBar/Navbar';
 import Demo from './Demo/Demo';
 import { Hero } from './Hero/Hero';
-import Footer from './Footer/Footer';
+import { Footer } from './Footer/Footer';
 import { Team } from './Team/Team'
 import { Features } from './Features/Features';
 import { FeatureCallouts } from './Feature-Callouts/Feature-Callouts';
 import { CTA } from './CTA/CTA';
+import { DemoHeader } from './Demo/Demo-Header';
+
 
 
 const LazyLoadTeam = React.lazy(() => import('./TeamCards/TeamCards'));
@@ -31,18 +33,17 @@ function App() {
       <Router>
         <Navbar teamComp={teamComp} toggleRenderTeam={toggleRenderTeam} />
         <Routes>
-          <Route path="/" element={<Hero />} />
-          {/* <Route path="/team" element={<Outlet />}>
-            <Route index element={<Team />} />
-            <Route path="/" element={<Navbar teamComp={teamComp} toggleRenderTeam={toggleRenderTeam} />} />
-          </Route> */}
+          <Route path="/" element={
+          <>
+            <Hero /> 
+            <Features />
+            <DemoHeader/>
+          <Demo/>
+          <FeatureCallouts/>
+          <CTA/>
+          </>} />
+          <Route path="/team" element={<Team />} />
         </Routes>
-        {/* <Hero /> */}
-        <Features />
-        <FeatureCallouts/>
-        {/* <Team /> */}
-        <CTA/>
-        <Demo/>
         <Footer />
       </Router>
     </div>

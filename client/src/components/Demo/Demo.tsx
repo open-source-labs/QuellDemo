@@ -88,8 +88,8 @@ const Demo = memo(() => {
           />
         </Box>
       </div>
-      <div className="flex flex-col gap-10 lg:flex-row">
-        <div className="leftContainer flex-1">
+      <div className="flex flex-col pt-9 gap-10 lg:flex-row">
+        <div className="leftContainer flex-1 flex-shrink">
         <QueryDemo
           maxDepth={maxDepth}
           maxCost={maxCost}
@@ -115,7 +115,7 @@ const Demo = memo(() => {
         />
         </div>
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
-        <div className="flex-1">
+        <div className="flex-1 flex-grow">
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}
@@ -134,7 +134,7 @@ const Demo = memo(() => {
                 setCacheMiss={setCacheMiss}
                 isToggled={isToggled}
               />
-              <Divider orientation="horizontal" />
+              <Divider className="p-1" orientation="horizontal" />
               <Graph
                 responseTimes={responseTimes}
                 selectedQuery={selectedQuery}
@@ -269,21 +269,23 @@ function QueryDemo({
   }
 
   return (
-    <div spellCheck="false" >
+    <div  spellCheck="false" >
       <DemoControls
         selectedQuery={selectedQuery}
         setQueryChoice={setQueryChoice}
         submitQuery={isToggled ? submitServerQuery : submitClientQuery}
       />
+      <div>
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
-      <h3>See your query results: </h3>
-      <div id={styles.response}>
+      </div>
+      <h3 className="text-white text-center">See your query results: </h3>
+      <div className="max-h-30 border-1 border-white p-5">
         <TextField
           id={styles.queryText}
           multiline={true}
           fullWidth={true}
           InputProps={{ className: styles.queryInput }}
-          rows="50"
+          rows="20"
           value={response}
         ></TextField>
       </div>
@@ -419,25 +421,25 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   };
 
   return (
-    <Box className="text-center min-w-[90%] text-white">
+    <Box className="text-center min-w-[90%]">
       <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Query</InputLabel>
+        <InputLabel id="demo-simple-select-label" style={{ color: 'white', borderStyle: 'white' }}>Query</InputLabel>
         <Select
+          style={{ color: 'white' }}
           labelId="demo-simple-select-label"
-          className="min-w-[90%] text-white color-white"
           value={selectedQuery}
           defaultValue={selectedQuery}
           label="Query"
           onChange={handleChange}
         >
-          <MenuItem value={'2depth'}>2-Depth</MenuItem>
-          <MenuItem value={'3depth'}>3-Depth Country and Cities</MenuItem>
-          <MenuItem value={'costly'}>Costly</MenuItem>
-          <MenuItem value={'nested'}>Nested</MenuItem>
-          <MenuItem value={'fragment'}>Fragment</MenuItem>
-          <MenuItem value={'mutation'}>Mutation</MenuItem>
-          <MenuItem value={'countryMut'}>Mutation Country</MenuItem>
-          <MenuItem value={'delete'}>Mutation Delete City</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'2depth'}>2-Depth</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'3depth'}>3-Depth Country and Cities</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'costly'}>Costly</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'nested'}>Nested</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'fragment'}>Fragment</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'mutation'}>Mutation</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'countryMut'}>Mutation Country</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'delete'}>Mutation Delete City</MenuItem>
         </Select>
       </FormControl>
     </Box>
