@@ -115,7 +115,7 @@ const Demo = memo(() => {
         />
         </div>
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
-        <div className="flex-1 flex-grow">
+        <div className="flex-1 flex-grow overflow-x-auto">
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}

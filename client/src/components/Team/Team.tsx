@@ -12,8 +12,8 @@ export const Team = () => {
         <div className="leading-snug text-xl font-sans font-semibold text-white sm:text-3xl md:text-4xl xl:text-5xl md:leading-snug xl:leading-snug">
           Meet the Quell Team
         </div>
-        <div className="leading-snug text-lg font-sans font-semibold text-white sm:text-2xl md:text-2xl xl:text-4xl md:leading-snug xl:leading-snug">
-          Subheader
+        <div className="pt-4 leading-snug text-lg font-sans font-light text-white items-center text-center md:text-2xl md:leading-snug xl:leading-snug xl:w-3/4">
+          Quell is an open-source platform with room for many more features. We welcome contributors in joining us!
         </div>
         <Link to="https://github.com/open-source-labs/Quell">
           <button className="m-6 bg-lightblue hover:bg-altblue text-black py-2 px-4 rounded md:text-base xl:text-xl">
@@ -21,7 +21,7 @@ export const Team = () => {
           </button>
         </Link>
         {/* grid classifies what it is, default 1; uses responsive design; gap-4 creates a gap of 1rm between profile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-white" >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-white py-8" >
           {TeamArr.map((member, index) => (
             <div key={index} 
               className={`profile rounded-lg bg-zinc-700 drop-shadow-lg p-5 flex flex-col gap-y-4 items-center justify-center relative `} 
