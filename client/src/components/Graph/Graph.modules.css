@@ -3,8 +3,6 @@
   max-width: 97%;
   max-height: 50%;
   display: flex;
-  border-top: 1px solid rgb(161, 183, 202);
-  border-bottom: 1px solid rgb(161, 183, 202);
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */

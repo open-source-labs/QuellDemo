@@ -216,7 +216,7 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
   const proOptions = { hideAttribution: true };
   
   return (
-    <ReactFlow  
+    <ReactFlow 
     nodes={newNodes as Node<any, string | undefined>[]} 
     edges={newEdges as Edge<any>[]} 
     onNodesChange={onNodesChange}
@@ -226,7 +226,7 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
     >
           <Background />
           <Controls />  
-          <MiniMap style={{height: 100, width: 100}}/>
+          <MiniMap style={{height: 75, width: 75}}/>
     </ReactFlow>
   );
 };

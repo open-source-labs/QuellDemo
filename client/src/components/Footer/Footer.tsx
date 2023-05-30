@@ -1,24 +1,39 @@
-import styles from './Footer.modules.css';
-import quellBirdIcon from '/client/src/assets/images/quell_logos/quell-bird.svg';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import MediumIcon from '/client/src/assets/images/icons/medium-icon.png';
-import { memo } from 'react';
+import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg';
+import React from 'react';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+// import { HashLink } from 'react-router-hash-link'; 
 
-const Footer = memo(() => {
+export const Footer = () => {
+
+  const scrollToTeamSection = () => {
+    const teamSection = document.getElementById('team');
+    if (teamSection) {
+      window.scrollTo({
+        top: teamSection.offsetTop,
+        behavior: 'smooth',
+      });
+    }
+  };
+  
   return (
-    <div className={styles.container}>
-      <img className="bird-icon" src={quellBirdIcon} />
-      <p className={styles.text}>{'\u00A9'}2023 Quell | MIT License</p>
-      <div id={styles.links}>
-        <a href="https://github.com/open-source-labs/Quell">
-          <GitHubIcon className={styles.githubIcon} />
-        </a>
-        <a href="https://medium.com/@quellcache/boost-graphql-performance-with-quell-a-powerful-developer-friendly-caching-solution-4b32218dc640">
-          <img className={styles.mediumIcon} src={MediumIcon} />
-        </a>
+    <nav className="relative container mx-auto bg-background w-full p-8 text-white md:mt-14 md:mb-28 xl:max-w-10xl">
+      <div className="flex items-center justify-between">
+        <div className="pt-2">
+          <Link to="/">
+          <img className="bird-icon" src={quellLogo} />
+          </Link>
+        </div>
+        <div className="hidden font-sans font-light space-x-12 md:flex">
+          <a href="https://github.com/open-source-labs/Quell#quell" className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
+          {/* <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Team</a> */}
+          <Link to="/team" onClick={scrollToTeamSection}>
+          <button className="hover:underline underline-offset-8 decoration-lightblue" onClick={scrollToTeamSection}>
+            Team
+          </button>
+        </Link>
+          <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+        </div>
       </div>
-    </div>
+    </nav>
   );
-});
-
-export default Footer;
+};

@@ -25,6 +25,6 @@
       "*": ["node_modules/*"]
     }
   },
-  "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts"],
+  "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts", "tailwind.config.js"],
   "exclude": ["node_modules", "target"]
 }

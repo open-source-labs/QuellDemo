@@ -71,22 +71,25 @@ const Demo = memo(() => {
   
 
   return (
-    <div id="demo" className={styles.section}>
+    <div id="demo" className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0">
       <div id={styles.demoHeader} className="scrollpoint">
         <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
+            className="text-white font-sans"
             label="Server-side caching"
             control={<Switch checked={isToggled} onChange={handleToggle} />}
           />
           <FormControlLabel
+          className="text-white font-sans"
             label="Visualizer"
             control={<Switch checked={isVisualizer} onChange={handleVisualizerToggle} />}
           />
         </Box>
       </div>
-      <div className={styles.container}>
+      <div className="flex flex-col pt-9 gap-10 xl:flex-row">
+        <div className="leftContainer flex-1 flex-shrink">
         <QueryDemo
           maxDepth={maxDepth}
           maxCost={maxCost}
@@ -110,15 +113,16 @@ const Demo = memo(() => {
           setElapsed={setElapsed}
           elapsed={elapsed}
         />
+        </div>
         <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
-        <div className={styles.rightContainer}>
+        <div className="flex-1 flex-grow overflow-x-auto">
           {isVisualizer ? (
             <Visualizer 
             query={visualizerQuery}
             elapsed={elapsed}
             />
           ) : (
-            <div className={styles.rightContainerHeader}>
+            <div >
               <CacheControls
                 setDepth={setDepth}
                 setCost={setCost}
@@ -130,7 +134,7 @@ const Demo = memo(() => {
                 setCacheMiss={setCacheMiss}
                 isToggled={isToggled}
               />
-              <Divider orientation="horizontal" />
+              <Divider className="p-1" orientation="horizontal" />
               <Graph
                 responseTimes={responseTimes}
                 selectedQuery={selectedQuery}
@@ -276,21 +280,23 @@ function QueryDemo({
   }
 
   return (
-    <div spellCheck="false" className={styles.leftContainer}>
+    <div  spellCheck="false" >
       <DemoControls
         selectedQuery={selectedQuery}
         setQueryChoice={setQueryChoice}
         submitQuery={isToggled ? submitServerQuery : submitClientQuery}
       />
+      <div>
       <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
-      <h3>See your query results: </h3>
-      <div id={styles.response}>
+      </div>
+      <h3 className="text-white text-center">See your query results: </h3>
+      <div className="max-h-30 border-1 border-white p-5">
         <TextField
           id={styles.queryText}
           multiline={true}
           fullWidth={true}
           InputProps={{ className: styles.queryInput }}
-          rows="50"
+          rows="20"
           value={response}
         ></TextField>
       </div>
@@ -310,7 +316,7 @@ const DemoControls = ({
   submitQuery
 }: DemoControls) => {
   return (
-    <div className={styles.dropDownContainer}>
+    <div className="min-w-full flex flex-col gap-5 text-white items-center">
       <h3>Select a query to test: </h3>
       <QuerySelect
         setQueryChoice={setQueryChoice}
@@ -320,7 +326,7 @@ const DemoControls = ({
         endIcon={<ForwardRoundedIcon />}
         id={styles.submitQuery}
         onClick={() => submitQuery()}
-        size="medium"
+        size="small"
         color="secondary"
         variant="contained"
       >
@@ -370,6 +376,7 @@ const CacheControls = ({
         <Button
           className={styles.button}
           onClick={isToggled ? clearServerCache : clearClientCache}
+          size="small"
           color="secondary"
           variant="contained"
         >
@@ -378,7 +385,7 @@ const CacheControls = ({
         <Button
           onClick={resetGraph}
           className={styles.button}
-          size="medium"
+          size="small"
           color="secondary"
           variant="contained"
         >
@@ -425,25 +432,25 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   };
 
   return (
-    <Box className={styles.queryMenu}>
+    <Box className="text-center min-w-[90%]">
       <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Query</InputLabel>
+        <InputLabel id="demo-simple-select-label" style={{ color: 'white', borderStyle: 'white' }}>Query</InputLabel>
         <Select
+          style={{ color: 'white' }}
           labelId="demo-simple-select-label"
-          id={styles.demoSelect}
           value={selectedQuery}
           defaultValue={selectedQuery}
           label="Query"
           onChange={handleChange}
         >
-          <MenuItem value={'2depth'}>2-Depth</MenuItem>
-          <MenuItem value={'3depth'}>3-Depth Country and Cities</MenuItem>
-          <MenuItem value={'costly'}>Costly</MenuItem>
-          <MenuItem value={'nested'}>Nested</MenuItem>
-          <MenuItem value={'fragment'}>Fragment</MenuItem>
-          <MenuItem value={'mutation'}>Mutation</MenuItem>
-          <MenuItem value={'countryMut'}>Mutation Country</MenuItem>
-          <MenuItem value={'delete'}>Mutation Delete City</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'2depth'}>2-Depth</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'3depth'}>3-Depth Country and Cities</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'costly'}>Costly</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'nested'}>Nested</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'fragment'}>Fragment</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'mutation'}>Mutation</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'countryMut'}>Mutation Country</MenuItem>
+          <MenuItem style={{ color: 'white' }} value={'delete'}>Mutation Delete City</MenuItem>
         </Select>
       </FormControl>
     </Box>

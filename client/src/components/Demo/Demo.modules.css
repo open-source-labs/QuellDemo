@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
 .section {
   max-width: 100%;
   display: flex;
@@ -8,6 +10,7 @@
 
 #header {
   font-size: 4rem;
+  color: white;
   margin: 0;
 }
 
@@ -20,7 +23,7 @@
   align-items: center;
   border-radius: 30px;
   box-shadow: 0px 5px 20px 0px rgb(133, 133, 133);
-  background-color: #dedede;
+  background-color: #242424;
   border: none;
   justify-content: space-between;
   overflow: hidden;
@@ -97,26 +100,24 @@
 .button {
   border: none;
   text-align: center;
-  min-height: 40px;
+  height: 30px;
   font-size: 0.85rem;
 }
 
 #queryText {
+  justify-self:center;
   border: 1px solid rgb(125,208,233);
-  border-radius: 10px;
   color: rgb(255, 255, 255);
-  border-style: inset;
-  font-family: Monaco;
-  font-size: 0.8rem;
-  padding: 3px;
+  font-family: Inter;
+  font-size: 0.9rem;
   overflow: scroll;
 }
 
 #queryInput {
   font-size: 0.8rem;
   min-width: 100%;
-  background-color: #474f57;
-  font-family: Monaco;
+  background-color: #3c6d9e;
+  font-family: Inter;
 }
 
 .queryMenu {
