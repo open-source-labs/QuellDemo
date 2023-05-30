@@ -32,12 +32,12 @@ export const Team = () => {
               <div className="drop-shadow-lg">{member.name}</div>
               <div className="flex flex-row gap-4">
                 <a href={member.linkedin} target='_blank'>
-                  <button className="w-7 h-7 drop-shadow-lg hover:blur-xs">
+                  <button className="w-7 h-7 drop-shadow-lg hover:brightness-xl">
                     <img src={Linkedin} alt="LinkedIn"/>
                   </button>
                 </a>
                 <a href={member.github} target='_blank'>
-                  <button className="w-7 h-7 drop-shadow-lg hover:blur-xs">
+                  <button className="w-7 h-7 drop-shadow-lg hover:shadow-xl">
                     <img src={Github} alt="Github"/>
                   </button>
                 </a>

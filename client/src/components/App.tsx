@@ -51,12 +51,3 @@ function App() {
 }
 
 export default App;
-
-      {/* <div className="main" id={renderFx}>
-        {!teamComp && <hr style={{width: '60%'}}/>}
-        {!teamComp && <Demo />}
-      </div> */}
-            {/* conditionally renders between the team page and the main page. */}
-        {/* <Suspense fallback={<div>Loading..</div>}>
-          {teamComp ? <LazyLoadTeam /> : null}
-        </Suspense> */}
