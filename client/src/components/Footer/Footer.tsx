@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
-    <nav className="relative container mx-auto bg-background w-full p-8 text-white md:mb-28 xl:max-w-10xl">
+    <nav className="relative container mx-auto bg-background w-full p-8 text-white md:mt-14 md:mb-28 xl:max-w-10xl">
       <div className="flex items-center justify-between">
         <div className="pt-2">
           <Link to="/">
@@ -22,19 +22,6 @@ export const Footer = () => {
         </Link>
           <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
           <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Try Demo</a>
-        </div>
-       <button id="menu-btn" className="block hambuger md:hidden focus:outline-none">
-          <span className='hamburger-top'></span>
-          <span className='hamburger-middle'></span>
-          <span className='hamburger-bottom'></span>
-        </button>  
-      </div>
-      <div className="md:hidden">
-        <div id="menu" className="absolute flex flex-col items-center hidden self-end py-8 mt-10 space-y-6 bg-background sm:w-auto sm:self-center left-6 right-6 drop-shadow-md">
-          <a href='#'>Docs</a>
-          <a href='#'>Team</a>
-          <a href='#'>Blog</a>
-          <a href='#'>Try Demo</a>
         </div>
       </div>
     </nav>

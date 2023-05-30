@@ -59,7 +59,7 @@ export const Navbar: React.FC = () => {
           <a href='#' className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
           <Link to="/team" onClick={closeMenu}><a href='#' className="hover:underline underline-offset-8 decoration-lightblue">Team</a></Link>
           <a href='#' className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
-          <a href='#' className="hover:underline underline-offset-8 decoration-lightblue">Try Demo</a>
+          <a href='#demo' className="hover:underline underline-offset-8 decoration-lightblue">Try Demo</a>
         </div>
       </div>
     </nav>
