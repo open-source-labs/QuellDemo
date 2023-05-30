@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 // import { HashLink } from 'react-router-hash-link'; 
 
 export const Footer = () => {
+
+  
   return (
     <nav className="relative container mx-auto bg-background w-full p-8 text-white md:mt-14 md:mb-28 xl:max-w-10xl">
       <div className="flex items-center justify-between">
@@ -21,7 +23,6 @@ export const Footer = () => {
           </button>
         </Link>
           <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
-          <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Try Demo</a>
         </div>
       </div>
     </nav>

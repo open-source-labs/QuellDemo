@@ -8,7 +8,7 @@ export const Team = () => {
 
   return (
     <section id ="team">
-      <div className="container bg-background flex flex-col w-[110%] items-center px-6 mx-auto pt-10 content-start space-y-0 ">
+      <div className="container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 ">
         <div className="leading-snug text-xl font-sans font-semibold text-white sm:text-3xl md:text-4xl xl:text-5xl md:leading-snug xl:leading-snug">
           Meet the Quell Team
         </div>
@@ -16,7 +16,7 @@ export const Team = () => {
           Quell is an open-source platform with room for many more features. We welcome contributors in joining us!
         </div>
         <Link to="https://github.com/open-source-labs/Quell">
-          <button className="m-6 bg-lightblue hover:bg-altblue text-black py-2 px-4 rounded md:text-base xl:text-xl">
+          <button className="m-6 bg-lightblue hover:bg-altblue text-black py-4 px-6 rounded md:text-base xl:text-xl">
             See Quell GitHub
           </button>
         </Link>
