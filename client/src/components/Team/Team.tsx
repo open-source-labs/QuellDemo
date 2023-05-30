@@ -9,8 +9,11 @@ export const Team = () => {
   return (
     <section id ="team">
       <div className="container bg-background flex flex-col w-[110%] items-center px-6 mx-auto pt-10 content-start space-y-0 ">
-        <div className="leading-snug text-xl font-sans font-semibold text-white md:text-4xl md:leading-snug xl:text-3xl xl:leading-snug">
+        <div className="leading-snug text-xl font-sans font-semibold text-white sm:text-2xl md:text-4xl xl:text-3xl md:leading-snug xl:leading-snug">
           Meet the Quell Team
+        </div>
+        <div className="leading-snug text-lg font-sans font-semibold text-white sm:text-xl md:text-2xl xl:text-3xl md:leading-snug xl:leading-snug">
+          Subheader
         </div>
         <Link to="https://github.com/open-source-labs/Quell">
           <button className="m-6 bg-lightblue hover:bg-altblue text-black py-2 px-4 rounded md:text-base xl:text-xl">

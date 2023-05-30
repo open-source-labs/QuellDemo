@@ -57,6 +57,7 @@ module.exports = {
       publicPath: '/dist',
       directory: path.resolve(__dirname, 'dist'),
     },
+    historyApiFallback: true,
     proxy: {
       '/api': 'http://localhost:3000',
       '/api/graphql': 'http://localhost:3000',
