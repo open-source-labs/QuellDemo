@@ -88,7 +88,7 @@ const Demo = memo(() => {
           />
         </Box>
       </div>
-      <div className="flex flex-col pt-9 gap-10 lg:flex-row">
+      <div className="flex flex-col pt-9 gap-10 xl:flex-row">
         <div className="leftContainer flex-1 flex-shrink">
         <QueryDemo
           maxDepth={maxDepth}

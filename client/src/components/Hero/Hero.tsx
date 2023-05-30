@@ -1,5 +1,6 @@
 import React from 'react';
 import heroGraphic from '/client/src/assets/images/graphics/QUELL-hero-graphic.svg';
+import clipboardGraphic from '/client/src/assets/images/graphics/clipboard.svg';
 
 
 export const Hero = () => {
@@ -7,13 +8,16 @@ export const Hero = () => {
     <section id="hero">
       <div className="grow relative pt-6 md:pt-14">
       <div className="container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 md:flex-row md:space-y-0 md:gap-12 xl:justify-between">
-        <div className="flex flex-col mb-32 space-y-12 md:w-1/2 md:space-y-8">
+        <div className="flex flex-col mb-16 md:mb-32 space-y-12 md:w-1/2 md:space-y-8">
           <h1 className="leading-snug text-4xl font-sans font-semibold text-white md:text-2xl md:leading-snug lg:text-4xl lg:leading-snug xl:text-5xl xl:leading-snug xl:w-full">
             The lightweight caching solution for GraphQL developers
           </h1>
           <div className="flex flex-col justify-center gap-4 lg:gap-12 lg:justify-start lg:flex-row">
             <button className="bg-lightblue text-white font-sans py-3 px-14 rounded hover:bg-altblue md:text-base xl:text-xl">Try Demo</button>
-            <button className="bg-transparent border border-lightblue text-lightblue font-sans py-3 px-14 rounded hover:bg-lightblue hover:text-white xl:text-xl">npm install</button>
+            <div className="flex flex-row rounded bg-transparent border border-lightblue">
+              <div className="flex justify-start text-white font-courier py-3 px-14 tracking-tighter xl:text-lg">npm install @quell/client</div>
+              <img className="w-6 h-auto"src={clipboardGraphic} alt="Clipboard Graphic"/>
+          </div>
           </div>
         </div>
         <div className="md:self-start xl:pr-16">

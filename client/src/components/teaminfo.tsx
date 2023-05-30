@@ -101,7 +101,7 @@ const JUSTINH = {
   github: 'https://github.com/justinfhua',
 };
 const MICHAELL = {
-  name: 'BIG MIKE',
+  name: 'Michael Lav',
   src: MichaelL,
   bio: 'Angelo is a dynamic full-stack engineer that specializes in React, Express, TypeScript, and GraphQL. His goal for Quell was to achieve type safety across the entire codebase to create an application that was more maintainable and less susceptible to silent errors from type coercion. In his free time, Angelo likes going on long walks with his loyal companions, Barry and Bonnie, playing pickup basketball, and watching movies or tv shows with his partner.',
   linkedin: 'https://www.linkedin.com/in/michael-lav/',

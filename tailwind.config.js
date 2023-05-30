@@ -9,10 +9,12 @@ module.exports = {
         lightblue: "#7DD0E9",
         darkblue: "#252E3A",
         darkgrey: "#676464",
-        altblue: "#4A788D"
+        altblue: "#4A788D",
+        lightgrey: "#f0f0f0"
       },
       fontFamily: {
         'sans': ['Inter', 'sans-serif'],
+        'courier': ['Courier New', 'monospace'],
       },
       screens: {
         sm: '480px',

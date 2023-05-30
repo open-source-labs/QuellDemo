@@ -2,7 +2,9 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import lightningIcon from '/client/src/assets/images/graphics/lightning.svg';
 import cacheGraphic from '/client/src/assets/images/graphics/cache-graphic.svg';
-import heroGraphic from '/client/src/assets/images/graphics/QUELL-hero-graphic.svg';
+import npmInstallGraphic from '/client/src/assets/images/graphics/npm-install-graphic.svg'
+import securityGraphic from '/client/src/assets/images/graphics/security.svg';
+import securityAltGraphic from '/client/src/assets/images/graphics/security-alt.svg';
 
 export const Features: React.FC = () => {
 
@@ -35,9 +37,9 @@ const toggleFeature = (text: string) => {
             </div>
               {selectedFeature === 'Text 1' && (
                 <div className="flex flex-col md:flex-row pb-6">
-                  <div className="flex flex-col">    
+                  <div className="flex flex-col md:w-3/4 xl:w-1/2">    
                     <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                      <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -46,7 +48,7 @@ const toggleFeature = (text: string) => {
                       </div>
                     </div>
                   <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                  <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -55,7 +57,7 @@ const toggleFeature = (text: string) => {
                      </div>
                 </div>
                 <div className="flex flex-row">
-                <div className="self-start mt-3 mr-2">
+                <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -65,24 +67,24 @@ const toggleFeature = (text: string) => {
                 </div>
                 </div>
                 <div className="pt-4 md:self-start md:pt-6 lg:pt-0">
-               <img className="w-full h-auto xl:w-auto xl:h-full" src={cacheGraphic} alt="Cache Graphic"/>
+               <img className="w-full h-auto pt-8 xl:w-auto xl:h-full md:h-full xl:pt-0" src={cacheGraphic} alt="Cache Graphic"/>
              </div>
                 </div>
               )}
               {selectedFeature === 'Text 2' && (
                 <div className="flex flex-col md:flex-row pb-6">
-                  <div className="flex flex-col">    
+                  <div className="flex flex-col md:w-1/2">    
                     <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                    <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
                         <p className="font-sans font-semibold text-white py-2">Simple Installation</p>
-                        <p className="font-sans font-extralight text-white">Install our client or server-side npm package for easy and quick integratoin into your existing GraphQL projects.</p>
+                        <p className="font-sans font-extralight text-white">Install our client or server-side npm package for easy and quick integration into your existing GraphQL projects.</p>
                       </div>
                     </div>
                   <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                  <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -91,7 +93,7 @@ const toggleFeature = (text: string) => {
                      </div>
                 </div>
                 <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -101,7 +103,7 @@ const toggleFeature = (text: string) => {
                 </div>
                 </div>
                 <div className="pt-4 md:self-start md:pt-6 lg:pt-0">
-               <img className="w-full h-auto xl:w-auto xl:h-full" src={heroGraphic} alt="Hero Graphic"/>
+               <img className="w-full h-auto xl:w-auto xl:h-full md:pt-8" src={npmInstallGraphic} alt="NPM Install Graphic"/>
              </div>
                 </div>
               )}
@@ -109,7 +111,7 @@ const toggleFeature = (text: string) => {
                 <div className="flex flex-col md:flex-row pb-6">
                   <div className="flex flex-col">    
                     <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                    <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -118,7 +120,7 @@ const toggleFeature = (text: string) => {
                       </div>
                     </div>
                   <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                  <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -127,7 +129,7 @@ const toggleFeature = (text: string) => {
                      </div>
                 </div>
                 <div className="flex flex-row">
-                      <div className="self-start mt-3 mr-2">
+                <div className="self-start mt-3 mr-2 hidden md:block">
                         <img src={lightningIcon}/>
                       </div>
                       <div className="flex flex-col mb-3 md:w-2/3">
@@ -136,8 +138,8 @@ const toggleFeature = (text: string) => {
                      </div>
                 </div>
                 </div>
-                <div className="pt-4 md:self-start md:pt-6 lg:pt-0">
-               <img className="w-full h-auto xl:w-auto xl:h-full" src={heroGraphic} alt="Hero Graphic"/>
+                <div className="flex flex-col items-center center-self pt-4 md:self-start md:pt-6 lg:pt-0 xl:pt-0">
+               <img className="w-3/4 h-auto xl:1/2 xl:ml-16 xl:pl-8" src={securityGraphic} alt="Security Graphic"/>
              </div>
                 </div>
               )}

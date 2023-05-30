@@ -38,9 +38,9 @@ function App() {
             <Hero /> 
             <Features />
             <DemoHeader/>
-          <Demo/>
-          <FeatureCallouts/>
-          <CTA/>
+            <Demo/>
+            <FeatureCallouts/>
+            <CTA/>
           </>} />
           <Route path="/team" element={<Team />} />
         </Routes>

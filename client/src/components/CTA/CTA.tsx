@@ -3,7 +3,7 @@ import React from 'react';
 export const CTA = () => {
   return (
   <section id="CTA">
-  <div className="grow relative py-18 md:py-24 lg:py-36">
+  <div className="grow relative py-24 md:py-24 lg:py-36">
     <div className="container bg-background flex flex-col mx-auto px-6 py-8 space-y-0 lg:flex-row lg:justify-around">
       <div className="flex flex-col mb-3 lg:w-1/2">
           <h1 className="leading-snug text-3xl font-sans font-semibold text-white mb-4 lg:text-4xl ">Query without worry</h1>
