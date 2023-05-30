@@ -186,20 +186,24 @@ function QueryDemo({
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
-    //TODO edit this? clear server cache
     fetch('/api/clearCache').then((res) =>
       console.log('Cleared Server Cache!')
     );
     Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
       .then((res) => {
-        // console.log(res);
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
         const queryType: string = selectedQuery;
         addQueryTypes([...queryTypes, queryType]);
         if (Array.isArray(res)) {
-          setResponse(JSON.stringify(res[0], null, 2));
+          let responseObj = res[0];
+          // remove "$loki" property from cached response
+          if (responseObj.hasOwnProperty('$loki')) {
+            delete responseObj['$loki'];
+          }
+          let cachedResponse = JSON.stringify(responseObj, null, 2);
+          setResponse(cachedResponse);
           if (res[1] === false) {
             setCacheMiss(cacheMiss + 1);
           } else if (res[1] === true) {
@@ -211,7 +215,6 @@ function QueryDemo({
         fetch ('/api/queryTime').then(res => res.json())
         .then((time) => {
           if (setElapsed){
-            // console.log('time: ', time);
             setElapsed(time.time);
           }
         })
@@ -253,6 +256,14 @@ function QueryDemo({
         setResponse(JSON.stringify(res.queryResponse.data, null, 2));
         if (res.queryResponse.cached === true) setCacheHit(cacheHit + 1);
         else setCacheMiss(cacheMiss + 1);
+      })
+      .then(() => {
+        fetch ('/api/queryTime').then(res => res.json())
+        .then((time) => {
+          if (setElapsed){
+            setElapsed(time.time);
+          }
+        })
       })
       .catch((err) => {
         const error = {
