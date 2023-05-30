@@ -1,9 +1,17 @@
 import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg';
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 // import { HashLink } from 'react-router-hash-link'; 
 
 export const Navbar = () => {
+
+  // state for checking if if the hamburger is open/closed
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // function to toggle the menu upon click
+  const toggleMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <nav className="relative container mx-auto bg-background w-full p-8 text-white xl:max-w-10xl">
       <div className="flex items-center justify-between">
