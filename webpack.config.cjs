@@ -35,19 +35,19 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
+              '@babel/preset-typescript',
               '@babel/preset-env',
               ['@babel/preset-react', { runtime: 'automatic' }],
-              '@babel/preset-typescript',
             ],
           },
         },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        use: ['style-loader', 'css-loader', 'postcss-loader',],
       },
       {
-        test: /\.(jpe?g|png|gif|svg|ico)$/i,
+        test: /\.(jpeg|jpg|png|gif|svg|ico)$/i,
         use: ['file-loader'],
       },
     ],
@@ -57,11 +57,13 @@ module.exports = {
       publicPath: '/dist',
       directory: path.resolve(__dirname, 'dist'),
     },
+    historyApiFallback: true,
     proxy: {
       '/api': 'http://localhost:3000',
       '/api/graphql': 'http://localhost:3000',
       '/api/clearCache': 'http://localhost:3000/',
       '/api/redis': 'http://localhost:3000/',
+      '/api/queryTime': 'http://localhost:3000/',
     },
     client: { overlay: false },
   },

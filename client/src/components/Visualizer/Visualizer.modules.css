@@ -1,0 +1,12 @@
+.graphContainer {
+    display: flex;
+    flex-direction: column;
+    gap:30px
+}
+
+.flowTree {
+    height: 400px; 
+    border: 3px solid lightGray;
+    border-radius: 10px; 
+    background:#474F57
+}

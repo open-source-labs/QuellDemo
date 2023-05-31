@@ -10,7 +10,9 @@ import {
   Tooltip,
   Legend,
   TimeScale,
+  TooltipItem
 } from 'chart.js';
+import { title } from 'process';
 
 ChartJS.register(
   CategoryScale,
@@ -32,13 +34,29 @@ export function Graph({
     datasets: responseTimes,
   };
 
+  // function to display accurate time in tooltip
+  const labelChart: string = 'Response Times';
+
+  const titleTooltip = (tooltipItems: TooltipItem<'bar'>[]): string => {
+    return labelChart;
+  };
+
+  const labelTooltip = (tooltipItem: TooltipItem<'bar'>): string | string[] => {
+    if (Array.isArray(tooltipItem)) {
+      return tooltipItem.map(() => '');
+    }
+    const responseTime = responseTimes[tooltipItem.dataIndex];
+    return `${responseTime} ms`;
+  };
+
   const options = {
+    color: 'white',
     maintainAspectRatio: false,
     responsive: true,
     scales: {
       y: {
         min: 0,
-        max: 750,
+        max: 800,
         display: true,
         align: 'center',
         text: 'Response times in ms',
@@ -46,6 +64,7 @@ export function Graph({
           callback: function (value: number | string) {
             return value + ' ms';
           },
+          color: 'white',
         },
       },
     },
@@ -53,22 +72,32 @@ export function Graph({
       title: {
         display: true,
         text: 'Fetch Speeds',
+        color: 'white'
+      },
+      tooltip: {
+        callbacks: {
+          title: titleTooltip,
+          label: labelTooltip,
+        },
       },
     },
   };
 
   useEffect(() => {}, [responseTimes]);
 
+
+
+  
   return (
-    <div className={styles.container}>
+    <div className="graph h-80 pt-1">
       <Bar
         options={options}
         data={{
           labels: [...Array(responseTimes.length + 1).keys()].slice(1),
           datasets: [
             {
-              label: 'Request',
-              data: responseTimes,
+              label: `Request ${responseTimes.length === 1 ? responseTimes[0] : responseTimes.slice(-1)}ms`,
+              data: responseTimes.map((time) => time < 10 ? 20 : time),
               backgroundColor: 'rgba(53, 162, 235,0.75)',
             },
           ],
