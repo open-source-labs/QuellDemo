@@ -485,7 +485,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
       </StyledDiv>
       <StyledDiv className={styles.limits}>
         <form>
-          <label>Max Cost:</label>
+          <label>Max Cost: </label>
           <input
             className={styles.limitsInput}
             type="number"
@@ -498,7 +498,7 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
       </StyledDiv>
       <StyledDiv className={styles.limits}>
         <form>
-          <label>Requests /s:</label>
+          <label>Requests /s: </label>
           <input
             className={styles.limitsInput}
             type="number"

@@ -53,7 +53,7 @@ export const Navbar: React.FC = () => {
           <Link to="/team">
             <a className="hover:underline underline-offset-8 decoration-lightblue">Team</a>
           </Link>
-          <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+          <a href="https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
         <div className="block cursor-pointer md:hidden" onClick={toggleMenu}>
           <img className="w-4 h-auto" src={hamburgerIcon} alt="Hamburger Icon" />
