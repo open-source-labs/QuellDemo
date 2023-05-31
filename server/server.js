@@ -1,16 +1,22 @@
-const schema = require('./schema/schema.js');
+const {
+  getElapsedTime,
+  clearElapsedTime,
+  graphqlSchema
+} = require('./schema/schema.js');
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyparser = require('body-parser');
 const mongoose = require('mongoose');
 const { QuellCache } = require('../quell-server/src/quell.js');
+const env = require('dotenv').config();
+const schema = graphqlSchema
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
-  redisPort: 13680,
-  redisHost: 'redis-13680.c8.us-east-1-3.ec2.cloud.redislabs.com',
-  redisPassword: '6uVbPwQU1rWm9cScHQU8YasjZ2lHeO8q'
+  redisPort: process.env.REDIS_PORT,
+  redisHost: process.env.REDIS_HOST,
+  redisPassword: process.env.REDIS_PASSWORD
 });
 
 app.use(express.json());
@@ -20,7 +26,7 @@ app.use(cors());
 
 mongoose
   .connect(
-    'mongodb+srv://quell:quell@quell.k3lr7lq.mongodb.net/?retryWrites=true&w=majority',
+    process.env.MONGO_URI,
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => console.log('Connected to MongoDB'))
@@ -30,8 +36,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static('./dist'));
 
+// clearElapsedTime so that elapsedTime doesn't persist old times for new queries
 app.use(
   '/api/graphql',
+  clearElapsedTime,
   quellCache.rateLimiter,
   quellCache.costLimit,
   quellCache.depthLimit,
@@ -48,7 +56,7 @@ app.get('/api/clearCache', quellCache.clearCache, (req, res) => {
 app.use(
   '/api/redis',
   quellCache.getRedisInfo({
-    getStats: false,
+    getStats: true,
     getKeys: true,
     getValues: true
   }),
@@ -56,6 +64,13 @@ app.use(
     return res.status(200).send(res.locals);
   }
 );
+
+app.use('/api/queryTime', getElapsedTime, (req, res) => {
+  // console.log('elapsed time', getElapsedTime);
+  // console.log('elapsed time', res.locals.time);
+  return res.status(200).send(res.locals);
+  // console.log('reached /api/queryTime');
+});
 
 app.use((req, res) =>
   res.status(404).send("This is not the page you're looking for...")
