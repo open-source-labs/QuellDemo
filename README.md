@@ -8,7 +8,7 @@ Welcome to the developer playground for GraphQL caching tool, Quell.</br>
 This app is currently deployed on our website: [Quell](https://quell.dev/)</br>
 
 </br></br>
-<img width="1511" alt="QuellSplashPage" src="./client/src/assets/images/screenshots/QuellDemo-LandingPage.png">
+<img width="1511" alt="QuellSplashPage" src="./client/src/assets/images/screenshots/QuellDemo-LandingPage.gif">
 
 </br>
 
@@ -17,7 +17,19 @@ This app is currently deployed on our website: [Quell](https://quell.dev/)</br>
 
 # New Features
 
-In a new and more improved manner, QuellDemo demonstrates the abilities of Quell-Client and Quell-Server with these new features:
+### The newest addition to our app is an Execution Context Visualizer to help outline your GraphQL queries!
+
+<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Visualizer.gif">
+
+</br>
+
+- Our execution context visualizer for GraphQL queries provides a clear and intuitive representation of the query execution process along with displaying field resolver resolution speeds, enabling developers to easily understand and debug complex query workflows.
+
+- Last but not least, users can enjoy the more sleek, modern look with an updated color scheme and styling features!
+
+</br>
+
+# Features
 
 - Users can utilize the new toggle button to separate client-side and server-side graphs and receive immediate feedback/demonstration of the corresponding Quell querying and caching logic.
 
@@ -31,13 +43,13 @@ In a new and more improved manner, QuellDemo demonstrates the abilities of Quell
 
 - The website facilitates a more intuitive user experience with new feature labeling and is also now mobile-friendly.
 
-- Last but not least, users can enjoy the more sleek, modern look with an updated color scheme and styling features.
+
 
 #### Quell-Client:
 
-![Client-side-caching](https://user-images.githubusercontent.com/107441308/228376189-6a0214f2-ee44-464b-a85b-a3104de18e57.gif)
+<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Client-Side.gif">
 
 #### Quell-Server:
 
-![Server-side-caching](https://user-images.githubusercontent.com/107441308/228376175-d095b697-4f15-4ec6-9bfa-7029ccd469ac.gif)
+<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Server-Side.gif">
 
