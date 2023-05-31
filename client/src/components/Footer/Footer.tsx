@@ -31,7 +31,7 @@ export const Footer = () => {
             Team
           </button>
         </Link>
-          <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+          <a href="https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
       </div>
     </nav>
