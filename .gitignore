@@ -3,3 +3,4 @@ node_modules/
 _redirects
 netifly.toml
 **/.DS_Store
+.env
