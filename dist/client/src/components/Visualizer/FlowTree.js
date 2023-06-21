@@ -33,37 +33,36 @@ const getNode = (node, depth, siblingIndex, numSiblings, numNodes, parentPositio
     const label = node.kind === 'Field' ? node.name.value : node.kind;
     const id = `${(_a = node.loc) === null || _a === void 0 ? void 0 : _a.start}-${(_b = node.loc) === null || _b === void 0 ? void 0 : _b.end}`;
     const parentX = parentPosition ? parentPosition.x : 0;
-    const x = ((siblingIndex + 0.5) / numSiblings) * 500 + 100;
+    const x = ((siblingIndex + 0.3) / 3) * 400 + 230;
     return {
         id: id,
         data: { label },
         position: {
             y: 100 + depth * 100,
-            x: parentX + x - (numSiblings / 2) * 275,
+            x: parentX + x - (numSiblings / 2) * 290,
         },
         style: {
             width: 125,
             height: 30,
             fontSize: 18,
             border: `none`,
-            borderRadius: 10,
-            boxShadow: `0px 0px 4px gray`,
+            borderRadius: 12,
+            boxShadow: `0px 0px 3px #11262C`,
             padding: `2px 0px 0px 0px`
         }
     };
 };
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
-const getEdge = (parent, child) => {
+const getEdge = (parent, child, elapsed) => {
     var _a, _b, _c, _d;
     const parentId = `${(_a = parent.loc) === null || _a === void 0 ? void 0 : _a.start}-${(_b = parent.loc) === null || _b === void 0 ? void 0 : _b.end}`;
     const childId = `${(_c = child.loc) === null || _c === void 0 ? void 0 : _c.start}-${(_d = child.loc) === null || _d === void 0 ? void 0 : _d.end}`;
-    return {
+    const edgeProps = {
         id: `${parentId}-${childId}`,
         source: parentId,
         target: childId,
-        animated: true,
-        label: 'time',
+        animated: false,
         markerEnd: {
             type: reactflow_1.MarkerType.ArrowClosed,
             width: 10,
@@ -72,12 +71,22 @@ const getEdge = (parent, child) => {
         },
         style: {
             strokeWidth: 2,
-            stroke: '#03C6FF',
+            stroke: '#03C6FF'
         },
+        labelStyle: {
+            fontSize: 14,
+        },
+        labelBgBorderRadius: 10,
     };
+    const childNode = child;
+    // console.log(childNode.name.value);
+    if (elapsed[childNode.name.value]) {
+        edgeProps.label = `${elapsed[childNode.name.value]}ms`;
+    }
+    return edgeProps;
 };
 // recursively constructs a tree structure from GraphQL AST
-const buildTree = (node, nodes, edges, depth = 0, siblingIndex = 0, numSiblings = 1, parentPosition) => {
+const buildTree = (node, nodes, edges, elapsed, depth = 0, siblingIndex = 0, numSiblings = 1, parentPosition) => {
     // gets the parent node and pushes it into the nodes array
     const parent = getNode(node, depth, siblingIndex, numSiblings, numSiblings, parentPosition);
     nodes.push(parent);
@@ -89,57 +98,59 @@ const buildTree = (node, nodes, edges, depth = 0, siblingIndex = 0, numSiblings 
         node.selectionSet.selections.forEach((childNode, i) => {
             const child = getNode(childNode, depth + 1, i, numChildren, numSiblings, parent.position);
             //pushes the child node and edge into the respective arrays
-            edges.push(getEdge(node, childNode));
-            buildTree(childNode, nodes, edges, depth + 1, i, numChildren, parent.position);
+            edges.push(getEdge(node, childNode, elapsed));
+            buildTree(childNode, nodes, edges, elapsed, depth + 1, i, numChildren, parent.position);
         });
     }
 };
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
-const astToTree = (query) => {
+const astToTree = (query, elapsed) => {
     const ast = (0, graphql_1.parse)(query);
-    const operation = ast.definitions.find(def => def.kind === 'OperationDefinition' && def.selectionSet);
+    const operation = ast.definitions.find((def) => def.kind === 'OperationDefinition' && def.selectionSet);
     if (!operation) {
         throw new Error('No operation definition found in query');
     }
     const selections = operation.selectionSet.selections;
     const nodes = [];
     const edges = [];
-    selections.forEach(selection => {
-        buildTree(selection, nodes, edges);
+    let currentX = 0; // Adjust the initial x position for the first tree
+    let currentY = 0; // Adjust the initial y position for the first tree
+    selections.forEach((selection, index) => {
+        const numSiblings = selections.length;
+        const siblingIndex = index;
+        const x = ((siblingIndex + 0.5) / numSiblings) * 900 + currentX;
+        const y = 100 + currentY;
+        buildTree(selection, nodes, edges, elapsed, 0, siblingIndex, numSiblings, { x, y });
     });
     return { nodes, edges };
 };
 // render a tree graph from GraphQL AST
-const FlowTree = ({ query }) => {
+const FlowTree = ({ query, elapsed }) => {
     const [currentQuery, setCurrentQuery] = (0, react_1.useState)(query);
+    const [elapsedTime, setElapsedTime] = (0, react_1.useState)(elapsed);
     // update the state of nodes and edges when query changes
     (0, react_1.useEffect)(() => {
-        // only update if the query is different from the currentQuery
-        if (query !== currentQuery) {
-            const { nodes: newNodes, edges: newEdges } = astToTree(query);
-            const nodes = newNodes.map(node => ({
-                id: node.id,
-                data: node.data,
-                position: node.position,
-                style: node.style
-            }));
-            setNodes(nodes);
-            setEdges(newEdges);
-            setCurrentQuery(query);
-        }
-    }, [query, currentQuery]);
-    // console.log(query);
-    const { nodes, edges } = astToTree(query);
-    // console.log(nodes);
+        const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
+        const nodes = newNodes.map(node => ({
+            id: node.id,
+            data: node.data,
+            position: node.position,
+            style: node.style
+        }));
+        setNodes(nodes);
+        setEdges(newEdges);
+        setCurrentQuery(query);
+        setElapsedTime(elapsed);
+    }, [query, currentQuery, elapsed, elapsedTime]);
+    const { nodes, edges } = astToTree(query, elapsedTime);
     // storing the initial values of the nodes and edges
     const [newNodes, setNodes] = (0, react_1.useState)(nodes);
     const [newEdges, setEdges] = (0, react_1.useState)(edges);
     // setNodes/setEdges updates the state of the component causing it to re-render
     const onNodesChange = (0, react_1.useCallback)((changes) => setNodes((nds) => (0, reactflow_1.applyNodeChanges)(changes, nds)), []);
     const onEdgesChange = (0, react_1.useCallback)((changes) => setEdges((eds) => (0, reactflow_1.applyEdgeChanges)(changes, eds)), []);
-    // console.log('ast: ', ast);
     // this is to remove the reactflow watermark
     const proOptions = { hideAttribution: true };
-    return ((0, jsx_runtime_1.jsxs)(reactflow_1.default, Object.assign({ nodes: newNodes, edges: newEdges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, fitView: true, proOptions: proOptions }, { children: [(0, jsx_runtime_1.jsx)(reactflow_1.Background, {}), (0, jsx_runtime_1.jsx)(reactflow_1.Controls, {}), (0, jsx_runtime_1.jsx)(reactflow_1.MiniMap, { style: { height: 100, width: 100 } })] })));
+    return ((0, jsx_runtime_1.jsxs)(reactflow_1.default, { nodes: newNodes, edges: newEdges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, fitView: true, proOptions: proOptions, children: [(0, jsx_runtime_1.jsx)(reactflow_1.Background, {}), (0, jsx_runtime_1.jsx)(reactflow_1.Controls, {}), (0, jsx_runtime_1.jsx)(reactflow_1.MiniMap, { style: { height: 75, width: 75 } })] }));
 };
 exports.default = FlowTree;

@@ -1,11 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Graph = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const Graph_modules_css_1 = __importDefault(require("./Graph.modules.css"));
 const react_1 = require("react");
 const react_chartjs_2_1 = require("react-chartjs-2");
 const chart_js_1 = require("chart.js");
@@ -29,12 +25,13 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
         return `${responseTime} ms`;
     };
     const options = {
+        color: 'white',
         maintainAspectRatio: false,
         responsive: true,
         scales: {
             y: {
                 min: 0,
-                max: 750,
+                max: 800,
                 display: true,
                 align: 'center',
                 text: 'Response times in ms',
@@ -42,6 +39,7 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
                     callback: function (value) {
                         return value + ' ms';
                     },
+                    color: 'white',
                 },
             },
         },
@@ -49,17 +47,18 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
             title: {
                 display: true,
                 text: 'Fetch Speeds',
+                color: 'white'
             },
             tooltip: {
                 callbacks: {
                     title: titleTooltip,
-                    label: labelTooltip
+                    label: labelTooltip,
                 },
             },
         },
     };
     (0, react_1.useEffect)(() => { }, [responseTimes]);
-    return ((0, jsx_runtime_1.jsx)("div", Object.assign({ className: Graph_modules_css_1.default.container }, { children: (0, jsx_runtime_1.jsx)(react_chartjs_2_1.Bar, { options: options, data: {
+    return ((0, jsx_runtime_1.jsx)("div", { className: "graph h-80 pt-1", children: (0, jsx_runtime_1.jsx)(react_chartjs_2_1.Bar, { options: options, data: {
                 labels: [...Array(responseTimes.length + 1).keys()].slice(1),
                 datasets: [
                     {
@@ -68,6 +67,6 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
                         backgroundColor: 'rgba(53, 162, 235,0.75)',
                     },
                 ],
-            } }) })));
+            } }) }));
 }
 exports.Graph = Graph;

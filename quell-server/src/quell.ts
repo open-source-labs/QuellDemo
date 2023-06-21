@@ -243,8 +243,6 @@ export class QuellCache {
    */
   async query(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Return an error if no query is found on the request.
-    console.log({'ASDFASDF'req})
-    console.log({res})
     if (!req.body.query) {
       const err: ServerErrorType = {
         log: 'Error: no GraphQL query found on request body',
@@ -800,9 +798,9 @@ export class QuellCache {
     protoField: ProtoObjType,
     currName: string
   ) {
-    // Loop through each resultName in response data
+    
     for (const resultName in responseData) {
-      // currField is assigned to the nestedObject on responseData
+    
       const currField = responseData[resultName];
       const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
       if (Array.isArray(currField)) {

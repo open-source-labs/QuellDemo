@@ -8,17 +8,21 @@ const react_1 = require("react");
 const graphql_1 = require("graphql");
 const react_2 = __importDefault(require("@monaco-editor/react"));
 // The FC stands for Function Component
-const FlowTable = ({ query }) => {
+const FlowTable = ({ query, elapsed }) => {
     const [queryOperations, setQueryOperations] = (0, react_1.useState)([]);
+    const [elapsedTime, setElapsedTime] = (0, react_1.useState)(elapsed);
     const editorRef = (0, react_1.useRef)(null);
+    // Set elapsed time
+    (0, react_1.useEffect)(() => {
+        setElapsedTime(elapsed);
+    }, [query, elapsed]);
     // The useEffect parse the query and generate the operation order
     (0, react_1.useEffect)(() => {
         const operation = parseQuery(query);
-        if (operation) {
-            const operationOrder = generateOperationOrder(operation);
-            setQueryOperations(operationOrder);
-        }
-    }, [query]);
+        setElapsedTime(elapsed);
+        const operationOrder = generateOperationOrder(operation);
+        setQueryOperations(operationOrder);
+    }, [elapsedTime]);
     // parses the query
     const parseQuery = (query) => {
         const ast = (0, graphql_1.parse)(query);
@@ -42,11 +46,19 @@ const FlowTable = ({ query }) => {
         // Iterate over the selection in the operation
         operation.selections.forEach((selection) => {
             if ('name' in selection) {
-                const fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
-                operationOrder.push(fieldName);
+                let fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
+                if (elapsedTime[selection.name.value] && operationOrder.length > 1) {
+                    const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
+                    operationOrder.push(newName);
+                }
+                else {
+                    operationOrder.push(fieldName);
+                }
+                ;
                 // Recursively generate the operation order for nested selection
                 if ('selectionSet' in selection) {
                     const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
+                    console.log('nestedSelections: ', nestedSelections);
                     operationOrder.push(...nestedSelections);
                 }
             }

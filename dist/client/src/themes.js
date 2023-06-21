@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.theme = void 0;
 const material_1 = require("@mui/material/");
+require("typeface-inter");
 exports.theme = (0, material_1.createTheme)({
     typography: {
         button: {
-            fontFamily: 'sofia-light',
+            fontFamily: 'Inter, Arial, sans-serif',
             cursor: 'pointer'
         },
     },
@@ -27,11 +28,11 @@ exports.theme = (0, material_1.createTheme)({
     palette: {
         primary: {
             main: '#484f57',
-            light: '#7cd0e9',
+            light: '#242424',
             // dark: '#4e90d6',
         },
         secondary: {
-            main: '#484f57',
+            main: '#7DD0E9',
         },
         // overrides: {
         //    MuiButton: {
@@ -39,8 +40,8 @@ exports.theme = (0, material_1.createTheme)({
         //       color: '',
         // },
         background: {
-            default: '#b6a9a6',
-            paper: '#bdbdbd',
+            default: '#242424',
+            paper: '#242424',
         },
         error: {
             main: '#ff5243',

@@ -127,6 +127,11 @@ export interface FetchObjType {
 export interface JSONObject {
   [k: string]: JSONValue;
 }
+
+export interface JSONObjectWithId {
+  id?: string;
+}
+
 export type JSONValue = JSONObject | JSONArray | JSONPrimitive;
 type JSONPrimitive = number | string | boolean | null;
 type JSONArray = JSONValue[];

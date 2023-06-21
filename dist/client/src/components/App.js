@@ -27,12 +27,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
-require("../stylesheets/App.css");
+// import '../stylesheets/App.css';
 const react_1 = __importStar(require("react"));
+const react_router_dom_1 = require("react-router-dom");
 const Navbar_1 = require("./NavBar/Navbar");
 const Demo_1 = __importDefault(require("./Demo/Demo"));
-const About_1 = __importDefault(require("./About/About"));
-const Footer_1 = __importDefault(require("./Footer/Footer"));
+const Hero_1 = require("./Hero/Hero");
+const Footer_1 = require("./Footer/Footer");
+const Team_1 = require("./Team/Team");
+const Features_1 = require("./Features/Features");
+const Feature_Callouts_1 = require("./Feature-Callouts/Feature-Callouts");
+const CTA_1 = require("./CTA/CTA");
+const Demo_Header_1 = require("./Demo/Demo-Header");
 const LazyLoadTeam = react_1.default.lazy(() => Promise.resolve().then(() => __importStar(require('./TeamCards/TeamCards'))));
 function App() {
     const [renderFx, toggleRenderFx] = (0, react_1.useState)('');
@@ -43,6 +49,6 @@ function App() {
         toggleRenderFx('rendered');
     }, []);
     (0, react_1.useEffect)(() => { }, [teamComp]);
-    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(Navbar_1.Navbar, { teamComp: teamComp, toggleRenderTeam: toggleRenderTeam }), (0, jsx_runtime_1.jsx)(react_1.Suspense, Object.assign({ fallback: (0, jsx_runtime_1.jsx)("div", { children: "Loading.." }) }, { children: teamComp ? (0, jsx_runtime_1.jsx)(LazyLoadTeam, {}) : null })), (0, jsx_runtime_1.jsxs)("div", Object.assign({ className: "main", id: renderFx }, { children: [!teamComp && (0, jsx_runtime_1.jsx)(About_1.default, {}), !teamComp && (0, jsx_runtime_1.jsx)("hr", { style: { width: '60%' } }), !teamComp && (0, jsx_runtime_1.jsx)(Demo_1.default, {})] })), (0, jsx_runtime_1.jsx)(Footer_1.default, {})] }));
+    return ((0, jsx_runtime_1.jsx)("div", { className: "m-0 p-0 bg-background flex flex-col w-full xl:pl-16 xl:pr-16", children: (0, jsx_runtime_1.jsxs)(react_router_dom_1.BrowserRouter, { children: [(0, jsx_runtime_1.jsx)(Navbar_1.Navbar, { teamComp: teamComp, toggleRenderTeam: toggleRenderTeam }), (0, jsx_runtime_1.jsxs)(react_router_dom_1.Routes, { children: [(0, jsx_runtime_1.jsx)(react_router_dom_1.Route, { path: "/", element: (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(Hero_1.Hero, {}), (0, jsx_runtime_1.jsx)(Features_1.Features, {}), (0, jsx_runtime_1.jsx)(Demo_Header_1.DemoHeader, {}), (0, jsx_runtime_1.jsx)(Demo_1.default, {}), (0, jsx_runtime_1.jsx)(Feature_Callouts_1.FeatureCallouts, {}), (0, jsx_runtime_1.jsx)(CTA_1.CTA, {})] }) }), (0, jsx_runtime_1.jsx)(react_router_dom_1.Route, { path: "/team", element: (0, jsx_runtime_1.jsx)(Team_1.Team, {}) })] }), (0, jsx_runtime_1.jsx)(Footer_1.Footer, {})] }) }));
 }
 exports.default = App;

@@ -10,6 +10,7 @@ import {
   JSONObject,
   JSONValue,
   ClientErrorType,
+  JSONObjectWithId
 } from './types';
 
 /** 
@@ -242,16 +243,23 @@ async function Quellify(
         mutationType.includes('update')
         ){
           console.log('MUTATION TYPE IS EDIT OR UPDATE')
-        // Execute a POST fetch request with the query.
+        // Execute a POST fetch request with the query. (mongoDB & edit update appropriately)
         const parsedData: JSONObject = await performFetch(postFetch);
         console.log('parsed data for edit/update', parsedData)
+        //we need to update entry in map & lrucache 
+
         if (parsedData) {
-          // Find the existing entry by its ID
+          //how can we update entry in map (before we were updating entry in loki); 
+            //map is storing: {key(query): {results of query}}
+            //we want to update value on map specific to the id? 
+            //
+
+            
+          // Find the existing entry by its ID (why?)
           // const cachedEntry = mapCache.get({ id: parsedData.id }); 
         
           //grab id from mongodb; 
           //update map at specific id? 
-          // MAYBE SEE IF THIS WORKS?
           // Search for an entry in the mapCache map based on a condition defined by the predicate function: 
           // (where the id property of the value matches the id property of parsedData).
           function findOne(map: any, predicate: any) {
@@ -262,13 +270,11 @@ async function Quellify(
             }
             return undefined; // Return undefined if no matching entry is found
           }
-          console.log("THIS IS PARSEDDATA.ID", parsedData[mutationType]?.id as string);
-          const cachedEntry = findOne(mapCache, (v: any, k: any, m: any) => v[mutationType].id === parsedData[mutationType]?.id)
+          const mutation = parsedData[mutationType] as JSONObjectWithId;
+          console.log("THIS IS PARSEDDATA.ID", mutation.id as string);
+          const cachedEntry = findOne(mapCache, (v: any, k: any, m: any) => v.id === mutation.id)
           console.log('This is new cachedEntry (map)', cachedEntry)
           console.log('typeof new cachedEntry', typeof cachedEntry)
-
-          // MAYBE SEE IF THIS WORKS --END
-
           // const cachedEntry = mapCache.get(parsedData.id); 
 
           if (cachedEntry) {
