@@ -1,70 +1,69 @@
 import { DocumentNode } from 'graphql';
-import { Collection } from 'lokijs';
 import { parse } from 'graphql/language/parser';
 import determineType from './helpers/determineType';
 import { LRUCache } from 'lru-cache';
-import Loki from 'lokijs';
+
 import {
   CostParamsType,
-  LokiGetType,
+  MapCacheType,
   FetchObjType,
   JSONObject,
   JSONValue,
-  ClientErrorType
+  ClientErrorType,
 } from './types';
 
-
-const lokidb: Loki = new Loki('client-cache');
-let lokiCache: Collection = lokidb.addCollection('loki-client-cache', {
-  disableMeta: true
-});
+/** 
+ * Initialize a new Map object with keys of type string and values
+ * @type {MapCacheType} - key: the GraphQL queries, value: the cached results
+ */
+const mapCache = new Map<string, MapCacheType>();
 
 /**
- * Function to manually removes item from cache
- */
+ * Function to manually removes item from cache 
+ * @param {string} query - the query that needs to be removed from the cache.
+*/
 const invalidateCache = (query: string): void => {
-  const cachedEntry = lokiCache.findOne({ query });
-  if (cachedEntry) {
+  // console.log('INSIDE OF INVALIDATE CACHE')
+  if (mapCache.has(query)) {
+    // console.log('INVALIDATE CACHE - MAP CACHE HAS THE QUERY')
     lruCache.delete(query);
-    lokiCache.remove(cachedEntry);
+    // mapCache.delete(query);
+    console.log(mapCache);
   }
 }
 
-/**
- * Implement LRU caching strategy
+/** 
+ * Implement LRU caching strategy 
+ * Set the maximum cache size on LRU cache
  */
-
-// Set the maximum cache size on LRU cache
-const MAX_CACHE_SIZE: number = 2;
-const lruCache = new LRUCache<string, LokiGetType>({
-  max: MAX_CACHE_SIZE,
-});
+const MAX_CACHE_SIZE: number = 3;
+const lruCache = new LRUCache<string, MapCacheType>({ max: MAX_CACHE_SIZE });
 
 // Track the order of accessed queries
 const lruCacheOrder: string[] = []; 
 
 // Function to update LRU Cache on each query
 const updateLRUCache = (query: string, results: JSONObject): void => {
+  // console.log('INSIDE OF UPDATE LRU CACHE')
   const cacheSize = lruCacheOrder.length;
   if (cacheSize >= MAX_CACHE_SIZE) {
+    // console.log('UPDATE LRU CACHE - CACHE SIZE IS OVER MAX')
     const leastRecentlyUsedQuery = lruCacheOrder.shift();
     if (leastRecentlyUsedQuery) {
+      // console.log(`LEAST RECENTLY USED QUERY: ${JSON.stringify(leastRecentlyUsedQuery)}`)
       invalidateCache(leastRecentlyUsedQuery);
     }
   }
   lruCacheOrder.push(query);
-  lruCache.set(query, results as LokiGetType);
+  lruCache.set(query, results as MapCacheType);
 };
-/**
- * Clears entire existing cache and ID cache and resets to a new cache.
- */
+
+/** Clears entire existing cache and ID cache and resets to a new cache. */
 const clearCache = (): void => {
-  lokidb.removeCollection('loki-client-cache');
-  lokiCache = lokidb.addCollection('loki-client-cache', {
-    disableMeta: true
-  });
+  // console.log('INSIDE OF CLEAR CACHE');
+  mapCache.clear();
   lruCache.clear();
-  console.log('Client cache has been cleared.');
+  console.log('Client cache has been cleared....');
 };
 
 
@@ -75,27 +74,26 @@ const clearCache = (): void => {
  *  @param {string} endPoint - The endpoint to send the GraphQL query or mutation to, e.g. '/graphql'.
  *  @param {string} query - The GraphQL query or mutation to execute.
  *  @param {object} costOptions - Any changes to the default cost options for the query or mutation.
- *
- *  default costOptions = {
-
- * }
- *
+ *  default costOptions = {}
  */
 async function Quellify(
   endPoint: string,
   query: string,
   costOptions: CostParamsType,
-  variables?: Record<string, any>
-) {
+  variables?: Record<string, any>) {
+  // console.log('INSIDE OF QUELLIFY')
 
   // Check the LRU cache before performing fetch request
   const cachedResults = lruCache.get(query);
   if (cachedResults) {
+    // console.log(`QUELLIFY - FOUND QUERY IN CACHE: ${JSON.stringify(cachedResults)}`)
     return [cachedResults, true];
   }
-  
-  /**
-   * Fetch configuration for post requests that is passed to the performFetch function.
+
+  // console.log(`QUELLIFY - NOT FOUND QUERY IN CACHE :(`)
+
+  /** 
+   * Fetch configuration for post requests that is passed to the performFetch function. 
    */
   const postFetch: FetchObjType = {
     method: 'POST',
@@ -104,6 +102,7 @@ async function Quellify(
     },
     body: JSON.stringify({ query, costOptions })
   };
+  
   /**
    * Fetch configuration for delete requests that is passed to the performFetch function.
    */
@@ -114,6 +113,7 @@ async function Quellify(
     },
     body: JSON.stringify({ query, costOptions })
   };
+
   /**
    * Makes requests to the GraphQL endpoint.
    * @param {FetchObjType} [fetchConfig] - (optional) Configuration options for the fetch call.
@@ -122,9 +122,13 @@ async function Quellify(
   const performFetch = async (
     fetchConfig?: FetchObjType
   ): Promise<JSONObject> => {
+    // console.log('INSIDE OF QUELLIFY - PERFORM FETCH')
     try {
       const data = await fetch(endPoint, fetchConfig);
+      console.log({data})
       const response = await data.json();
+      console.log({response})
+      console.log(`PERFORM FETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
       updateLRUCache(query, response.queryResponse.data);
       return response.queryResponse.data;
     } catch (error) {
@@ -141,8 +145,10 @@ async function Quellify(
   };
   // Refetch LRU cache
   const refetchLRUCache = async (): Promise<void> => {
+    console.log('QUELLIFY - REFETCH LRU CACHE')
     try {
       const cacheSize = lruCacheOrder.length;
+      console.log(`REFETCH LRU CACHE - CACHE SIZE: ${cacheSize}`)
       // i < cacheSize - 1 because the last query in the order array is the current query
       for (let i = 0; i < cacheSize - 1; i++) {
         const query = lruCacheOrder[i];
@@ -156,6 +162,7 @@ async function Quellify(
         // If the operation type is a query, refetch the query from the LRU cache
         const cachedResults = lruCache.get(query);
         if (cachedResults) {
+          console.log(`REFETCH LRU CACHE - FOUND QUERY IN CACHE: ${cachedResults}`)
           // Fetch configuration for post requests that is passed to the performFetch function.
           const fetchConfig: FetchObjType = {
             method: 'POST',
@@ -166,6 +173,7 @@ async function Quellify(
           };
           const data = await fetch(endPoint, fetchConfig);
           const response = await data.json();
+          console.log(`REFETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
           updateLRUCache(query, response.queryResponse.data);
         }
       }
@@ -189,53 +197,87 @@ async function Quellify(
 
   // Find operationType, proto using determineType
   const { operationType, proto } = determineType(AST);
+  console.log({operationType})
 
   if (operationType === 'unQuellable') {
-    /*
-     * If the operation is unQuellable (cannot be cached), fetch the data
-     * from the GraphQL endpoint.
+    /**
+     * If the operation is unQuellable (cannot be cached), fetch the data from the GraphQL endpoint.
+     * @return {Promise} - All returns in an async function return promises by default, therefore we are returning a promise that will resolve from perFormFetch.
      */
-    // All returns in an async function return promises by default;
-    // therefore we are returning a promise that will resolve from perFormFetch.
+
+    // console.log('OPERATION TYPE IS UNQUELLABLE')
+
     const parsedData: JSONValue = await performFetch(postFetch);
-    // The second element in the return array is a boolean that the data was not found in the lokiCache.
+    
+    // The second element in the return array is a boolean that the data was not found in the Cache.
     return [parsedData, false];
   } else if (operationType === 'mutation') {
-    // Assign mutationType
+    // console.log('OPERATION TYPE IS MUTATION')
+    // Assign mutationType:
     const mutationType: string = Object.keys(proto)[0];
+    console.log({mutationType})
+    console.log({proto})
 
-       // Check if mutation is an add mutation
+       // Check if mutation is an add mutation:
        if (
         mutationType.includes('add') ||
         mutationType.includes('new') ||
         mutationType.includes('create') ||
         mutationType.includes('make')
       ) {
-        // Execute a fetch request with the query
+        // console.log('MUTATION TYPE IS ADD, NEW, CREATE, OR MAKE')
+        // Execute a POST fetch request with the query.
         const parsedData: JSONObject = await performFetch(postFetch);
         if (parsedData) {
-          const addedEntry = lokiCache.insert(parsedData);
-          // Refetch each query in the LRU cache to update the cache
+          console.log('MUTATION(ADD, NEW, CREATE, OR MAKE) - parsedData', parsedData)
+          mapCache.set(query, parsedData)
           refetchLRUCache();
-          return [addedEntry, false];
+          return [parsedData, false];
         }
       }
 
-      // Check if mutation is an edit mutation
+      // Check if mutation type is an edit or update mutation.
       else if(
         mutationType.includes('edit') || 
         mutationType.includes('update')
         ){
-        // Execute a fetch request with the query
+          console.log('MUTATION TYPE IS EDIT OR UPDATE')
+        // Execute a POST fetch request with the query.
         const parsedData: JSONObject = await performFetch(postFetch);
+        console.log('parsed data for edit/update', parsedData)
         if (parsedData) {
           // Find the existing entry by its ID
-          const cachedEntry = lokiCache.findOne({ id: parsedData.id }); 
+          // const cachedEntry = mapCache.get({ id: parsedData.id }); 
+        
+          //grab id from mongodb; 
+          //update map at specific id? 
+          // MAYBE SEE IF THIS WORKS?
+          // Search for an entry in the mapCache map based on a condition defined by the predicate function: 
+          // (where the id property of the value matches the id property of parsedData).
+          function findOne(map: any, predicate: any) {
+            for (const [key, value] of map.entries()) {
+              if (predicate(value, key, map)) {
+                return value;
+              }
+            }
+            return undefined; // Return undefined if no matching entry is found
+          }
+          console.log("THIS IS PARSEDDATA.ID", parsedData[mutationType]?.id as string);
+          const cachedEntry = findOne(mapCache, (v: any, k: any, m: any) => v[mutationType].id === parsedData[mutationType]?.id)
+          console.log('This is new cachedEntry (map)', cachedEntry)
+          console.log('typeof new cachedEntry', typeof cachedEntry)
+
+          // MAYBE SEE IF THIS WORKS --END
+
+          // const cachedEntry = mapCache.get(parsedData.id); 
+
           if (cachedEntry) {
             // Update the existing entry with the new data
             Object.assign(cachedEntry, parsedData); 
-             // Update the entry in the Loki cache
-            lokiCache.update(cachedEntry);
+
+             // Update the entry in the map cache
+             mapCache.set(query, cachedEntry );
+
             // Update LRU Cache
             updateLRUCache(query, cachedEntry);
             refetchLRUCache();
@@ -244,19 +286,23 @@ async function Quellify(
       }
     }
     // Check if mutation is a delete mutation
-      else if (
-        mutationType.includes('delete') ||
-        mutationType.includes('remove')
-      )  {
+      else if (mutationType.includes('delete') || mutationType.includes('remove')) {
+        // console.log('MUTATION TYPE IS DELETE OR REMOVE')
         // Execute a fetch request with the query
+        console.log('we entered delete/remove mutationtype')
         const parsedData: JSONObject = await performFetch(deleteFetch);
+        // parsedData = response.queryResponse.data;
+        console.log(`THIS ISparsedData: `, parsedData)
         if (parsedData) {
+          console.log(`were insided parsedData: `, parsedData);
           // Find the existing entry by its ID
-          const cachedEntry = lokiCache.findOne({ id: parsedData.id });
+          const cachedEntry = parsedData;
+          console.log(cachedEntry)
+          //bool returning 
           if (cachedEntry) {
-          // Remove the item from cache
-          lokiCache.remove(cachedEntry);
+          // // Remove the item from cache
           invalidateCache(query);
+          mapCache.delete(query);
           // Refetch each query in the LRU cache to update the cache
           refetchLRUCache();
           return [cachedEntry, false];
@@ -268,17 +314,23 @@ async function Quellify(
     // Operation type does not meet mutation or unquellable types. 
     // In other words, it is a Query
   } else {
+    console.log('OPERATION TYPE IS QUERY!!')
         // If the query has not been made already, execute a fetch request with the query.
         const parsedData: JSONObject = await performFetch(postFetch);
-        // Add the new data to the lokiCache.
+        console.log("this is parsed Data from query: ", parsedData);
+        
+        // Add the new data to both client-side caches.
         if (parsedData) {
-          const addedEntry = lokiCache.insert(parsedData);
-          // Add query and results to lruCache
-          lruCache.set(query, addedEntry);
-          // The second element in the return array is a boolean that the data was not found in the lokiCache.
+          lruCache.set(query, parsedData);
+          mapCache.set(query, parsedData)
+          console.log("DIS DA MAPCACHE",mapCache)
+          const addedEntry = mapCache.get(query); 
+          
+          // Return the parsed data along with a flag indicating that the data was not found in the cache.
           return [addedEntry, false];
       }
     }
   }
 
-export { Quellify, clearCache as clearLokiCache, lruCache };
+
+export { Quellify, clearCache, lruCache };

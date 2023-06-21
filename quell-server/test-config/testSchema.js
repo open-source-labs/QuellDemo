@@ -64,12 +64,10 @@ const CountryType = new GraphQLObjectType({
     cities: {
       type: new GraphQLList(CityType),
       async resolve(parent, args) {
-        
         const citiesList = await db.query(
           `SELECT * FROM cities WHERE country_id = $1`,
           [Number(parent.id)]
         );
-
         return citiesList.rows;
       },
     },

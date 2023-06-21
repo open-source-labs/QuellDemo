@@ -51,7 +51,7 @@ export const Navbar: React.FC = () => {
         <div className="hidden font-sans font-light space-x-12 md:flex">
           <a href="https://github.com/open-source-labs/Quell#quell" className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
           <Link to="/team">
-            <a className="hover:underline underline-offset-8 decoration-lightblue">Team</a>
+            <span className="hover:underline underline-offset-8 decoration-lightblue">Team</span>
           </Link>
           <a href="https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
         <div ref={menuRef} id="menu" className={`absolute flex flex-col items-center self-end py-8 mt-10 space-y-6 bg-background sm:w-auto sm:self-center left-6 right-6 drop-shadow-md ${isMenuOpen ? '' : 'hidden'}`} style={{ zIndex: 9999 }}>
           <a href='https://github.com/open-source-labs/Quell#quell' className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
           <Link to="/team" onClick={closeMenu} >
-            <a className="hover:underline underline-offset-8 decoration-lightblue">Team</a>
+            <span className="hover:underline underline-offset-8 decoration-lightblue">Team</span>
           </Link>
           <a href='https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f' className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>

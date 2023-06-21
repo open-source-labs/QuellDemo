@@ -1,4 +1,4 @@
-import { Quellify, clearLokiCache, lruCache } from '../../client/src/quell-client/src/Quellify';
+import { Quellify, clearCache, lruCache } from '../../client/src/quell-client/src/Quellify';
 import { CostParamsType } from '../../client/src/quell-client/src/types';
 
 const defaultCostOptions: CostParamsType = {
@@ -18,7 +18,7 @@ const defaultCostOptions: CostParamsType = {
 describe('Quellify', () => {
   beforeEach(() => {
     // Clear the Loki cache before each test
-    clearLokiCache();
+    clearCache();
   });
 
     it('checks that caching queries is working correctly', async () => {

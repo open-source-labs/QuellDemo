@@ -225,6 +225,7 @@ var QuellCache = /** @class */ (function () {
      *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
      */
     QuellCache.prototype.query = function (req, res, next) {
+        console.log('quell.ts inside query function')
         var _a;
         return __awaiter(this, void 0, void 0, function () {
             var err, queryString, AST, _b, proto, operationType, frags, redisValue, mutationQueryObject_1, mutationName_1, mutationType_1, mutation, prototype_1, prototypeKeys, cacheResponse_1, mergedResponse_1, queryObject, newQueryString;
@@ -244,6 +245,7 @@ var QuellCache = /** @class */ (function () {
                             return [2 /*return*/, next(err)];
                         }
                         queryString = req.body.query;
+                        console.log('quell.ts - query string: ', queryString);
                         AST = res.locals.AST
                             ? res.locals.AST
                             : (0, parser_1.parse)(queryString);
@@ -328,6 +330,7 @@ var QuellCache = /** @class */ (function () {
                         mutationType_1 = '';
                         // Loop through the mutations in the mutationMap.
                         for (mutation in this.mutationMap) {
+                            console.log('looping through mutation map: ', mutation)
                             // If any mutation from the mutationMap is found on the proto, the query string includes
                             // a valid mutation. Update the mutation query object, name, type variables.
                             if (Object.prototype.hasOwnProperty.call(proto, mutation)) {
@@ -885,6 +888,7 @@ var QuellCache = /** @class */ (function () {
      * @param {Object} mutationQueryObject - Arguments and values for the mutation.
      */
     QuellCache.prototype.updateCacheByMutation = function (dbRespDataRaw, mutationName, mutationType, mutationQueryObject) {
+        console.log('Inside of QuellCache updateCacheByMutation Method')
         var _a;
         return __awaiter(this, void 0, void 0, function () {
             var fieldsListKey, dbRespId, dbRespData, queryKey, queryKeyType, removeFromFieldKeysList, deleteApprFieldKeys, updateApprFieldKeys, hypotheticalRedisKey, redisKey, removalFieldKeysList;
@@ -910,6 +914,7 @@ var QuellCache = /** @class */ (function () {
                             }
                         }
                         removeFromFieldKeysList = function (fieldKeysToRemove) { return __awaiter(_this, void 0, void 0, function () {
+                            console.log('Inside of removeFromFieldKeysList Function')
                             var cachedFieldKeysListRaw, cachedFieldKeysList_1;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -936,6 +941,7 @@ var QuellCache = /** @class */ (function () {
                             });
                         }); };
                         deleteApprFieldKeys = function () { return __awaiter(_this, void 0, void 0, function () {
+                            console.log('Inside of deleteApprFieldKeys Function')
                             var cachedFieldKeysListRaw, cachedFieldKeysList, fieldKeysToRemove, i, fieldKey, fieldKeyValueRaw, fieldKeyValue, remove, arg, argValue;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
@@ -973,6 +979,7 @@ var QuellCache = /** @class */ (function () {
                                                 }
                                             }
                                             if (remove === true) {
+                                                console.log('QUELL.JS - delete cache by id')
                                                 fieldKeysToRemove.add(fieldKey);
                                                 this.deleteCacheById(fieldKey.toLowerCase());
                                             }
@@ -1047,11 +1054,13 @@ var QuellCache = /** @class */ (function () {
                     case 1:
                         redisKey = _b.sent();
                         if (redisKey) {
+                            console.log('Key found in Redis Server Cache - Mutation is update or delete')
                             // If the key was found in the Redis server cache, the mutation is either update or delete mutation.
                             if (mutationQueryObject.__id) {
                                 // If the user specifies dbRespId as an argument in the mutation, then we only need to
                                 // update/delete a single cache entry by dbRespId.
                                 if (mutationName.substring(0, 3) === 'del') {
+                                    console.log('QUELL.JS - mutation name includes del')
                                     // If the first 3 letters of the mutationName are 'del' then the mutation is a delete mutation.
                                     // Users have to prefix their delete mutations with 'del' so that quell can distinguish between delete/update mutations.
                                     this.deleteCacheById("".concat(mutationType.toLowerCase(), "--").concat(mutationQueryObject.__id));
@@ -1065,6 +1074,7 @@ var QuellCache = /** @class */ (function () {
                             else {
                                 removalFieldKeysList = [];
                                 if (mutationName.substring(0, 3) === 'del') {
+                                    console.log('Key found in Redis Server Cache AND Mutation is delete')
                                     // Mutation is delete mutation
                                     deleteApprFieldKeys();
                                 }
@@ -1087,6 +1097,7 @@ var QuellCache = /** @class */ (function () {
      * @param {string} key - Unique id under which the cached data is stored that needs to be removed.
      */
     QuellCache.prototype.deleteCacheById = function (key) {
+        console.log('Inside QuellCache deleteCacheById Method')
         return __awaiter(this, void 0, void 0, function () {
             var error_5, err;
             return __generator(this, function (_a) {

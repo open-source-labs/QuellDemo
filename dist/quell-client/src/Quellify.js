@@ -346,4 +346,5 @@ function Quellify(endPoint, query, costOptions) {
         }
     });
 }
-export { Quellify, clearCache as clearLokiCache };
+export { Quellify, clearCache };
+//as clearLokiCache 

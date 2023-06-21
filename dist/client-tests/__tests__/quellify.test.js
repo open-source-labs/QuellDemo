@@ -24,7 +24,7 @@ const defaultCostOptions = {
 describe('Quellify', () => {
     beforeEach(() => {
         // Clear the Loki cache before each test
-        (0, Quellify_1.clearLokiCache)();
+        (0, Quellify_1.clearCache)();
     });
     // // Test: Checks that caching is working correctly
     //   it('should check the cache for the query, then add it to the cache after', async () => {

@@ -1,4 +1,4 @@
-import styles from './Demo.modules.css';
+import styles from "./Demo.modules.css";
 import {
   Box,
   Divider,
@@ -11,32 +11,32 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
-  TextField
-} from '@mui/material';
+  TextField,
+} from "@mui/material";
 import React, {
   Dispatch,
   memo,
   SetStateAction,
   useEffect,
-  useState
-} from 'react';
-import { QueryEditor } from '../Editors/Editors';
-import { querySamples } from '../helperFunctions';
-import ForwardRoundedIcon from '@mui/icons-material/ForwardRounded';
-import { Graph } from '../Graph/Graph';
-import { HitMiss } from '../HitMiss/HitMiss';
-import { SuccessfulQuery, BadQuery } from '../Alert/Alert';
-import { Quellify, clearLokiCache } from '../../quell-client/src/Quellify';
-import { styled } from '@mui/material/styles';
-import { Visualizer } from '../Visualizer/Visualizer';
-import { parse } from 'graphql/language/parser';
-import { DocumentNode } from 'graphql';
+  useState,
+} from "react";
+import { QueryEditor } from "../Editors/Editors";
+import { querySamples } from "../helperFunctions";
+import ForwardRoundedIcon from "@mui/icons-material/ForwardRounded";
+import { Graph } from "../Graph/Graph";
+import { HitMiss } from "../HitMiss/HitMiss";
+import { SuccessfulQuery, BadQuery } from "../Alert/Alert";
+import { Quellify, clearCache } from "../../quell-client/src/Quellify";
+import { styled } from "@mui/material/styles";
+import { Visualizer } from "../Visualizer/Visualizer";
+import { parse } from "graphql/language/parser";
+import { DocumentNode } from "graphql";
 // import { getElapsedTime } from '../../../../server/schema/schema';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
   const [errorAlerts, addErrorAlerts] = useState<string[]>([]);
-  const [selectedQuery, setQueryChoice] = useState<string>('2depth');
+  const [selectedQuery, setQueryChoice] = useState<string>("2depth");
   const [query, setQuery] = useState<string>(querySamples[selectedQuery]);
   const [queryTypes, addQueryTypes] = useState<string[]>([]);
   const [maxDepth, setDepth] = useState<number>(15);
@@ -46,7 +46,7 @@ const Demo = memo(() => {
   const [cacheHit, setCacheHit] = useState<number>(0);
   const [cacheMiss, setCacheMiss] = useState<number>(0);
   const [elapsed, setElapsed] = useState<{}>({});
-  
+
   // Hook for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
 
@@ -56,22 +56,26 @@ const Demo = memo(() => {
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
     // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
-      // Clear both cache on the toggle event
-      // clearLokiCache();
-      // fetch('/api/clearCache').then((res) =>
-      //   console.log('Cleared Server Cache!')
-      // );
+    // Clear both cache on the toggle event
+    // clearLokiCache();
+    // fetch('/api/clearCache').then((res) =>
+    //   console.log('Cleared Server Cache!')
+    // );
     setIsToggled(event.target.checked);
   }
 
   // Function to handle visualizer toggle
-  function handleVisualizerToggle(event: React.ChangeEvent<HTMLInputElement>): void {
+  function handleVisualizerToggle(
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void {
     setIsVisualizer(event.target.checked);
   }
-  
 
   return (
-    <div id="demo" className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0">
+    <div
+      id="demo"
+      className="container bg-darkblue flex flex-col px-6 py-8 mx-auto pt-10 rounded-lg content-start space-y-0"
+    >
       <div id={styles.demoHeader} className="scrollpoint">
         <div id="scroll-demo"></div>
         <h1 id={styles.header}>Demo</h1>
@@ -82,47 +86,49 @@ const Demo = memo(() => {
             control={<Switch checked={isToggled} onChange={handleToggle} />}
           />
           <FormControlLabel
-          className="text-white font-sans"
+            className="text-white font-sans"
             label="Visualizer"
-            control={<Switch checked={isVisualizer} onChange={handleVisualizerToggle} />}
+            control={
+              <Switch
+                checked={isVisualizer}
+                onChange={handleVisualizerToggle}
+              />
+            }
           />
         </Box>
       </div>
       <div className="flex flex-col pt-9 gap-10 xl:flex-row">
         <div className="leftContainer flex-1 flex-shrink">
-        <QueryDemo
-          maxDepth={maxDepth}
-          maxCost={maxCost}
-          ipRate={ipRate}
-          addErrorAlerts={addErrorAlerts}
-          responseTimes={responseTimes}
-          addResponseTimes={addResponseTimes}
-          selectedQuery={selectedQuery}
-          setQueryChoice={setQueryChoice}
-          query={query}
-          setQuery={setQuery}
-          queryTypes={queryTypes}
-          addQueryTypes={addQueryTypes}
-          cacheHit={cacheHit}
-          cacheMiss={cacheMiss}
-          setCacheHit={setCacheHit}
-          setCacheMiss={setCacheMiss}
-          isToggled={isToggled}
-          setVisualizerQuery={setVisualizerQuery}
-          visualizerQuery={visualizerQuery}
-          setElapsed={setElapsed}
-          elapsed={elapsed}
-        />
+          <QueryDemo
+            maxDepth={maxDepth}
+            maxCost={maxCost}
+            ipRate={ipRate}
+            addErrorAlerts={addErrorAlerts}
+            responseTimes={responseTimes}
+            addResponseTimes={addResponseTimes}
+            selectedQuery={selectedQuery}
+            setQueryChoice={setQueryChoice}
+            query={query}
+            setQuery={setQuery}
+            queryTypes={queryTypes}
+            addQueryTypes={addQueryTypes}
+            cacheHit={cacheHit}
+            cacheMiss={cacheMiss}
+            setCacheHit={setCacheHit}
+            setCacheMiss={setCacheMiss}
+            isToggled={isToggled}
+            setVisualizerQuery={setVisualizerQuery}
+            visualizerQuery={visualizerQuery}
+            setElapsed={setElapsed}
+            elapsed={elapsed}
+          />
         </div>
-        <Divider sx={{ zIndex: '50' }} flexItem={true} orientation="vertical" />
+        <Divider sx={{ zIndex: "50" }} flexItem={true} orientation="vertical" />
         <div className="flex-1 flex-grow overflow-x-auto">
           {isVisualizer ? (
-            <Visualizer 
-            query={visualizerQuery}
-            elapsed={elapsed}
-            />
+            <Visualizer query={visualizerQuery} elapsed={elapsed} />
           ) : (
-            <div >
+            <div>
               <CacheControls
                 setDepth={setDepth}
                 setCost={setCost}
@@ -142,15 +148,14 @@ const Demo = memo(() => {
               />
               <HitMiss cacheHit={cacheHit} cacheMiss={cacheMiss} />
             </div>
-            )
-          }
+          )}
         </div>
         <>
           {responseTimes.map((el, i) => {
             return <SuccessfulQuery key={i} />;
           })}
           {errorAlerts.map((el, i) => {
-            console.log('ERROR: ', el);
+            console.log("ERROR: ", el);
             return <BadQuery errorMessage={el} key={i} />;
           })}
         </>
@@ -180,16 +185,16 @@ function QueryDemo({
   visualizerQuery,
   setVisualizerQuery,
   setElapsed,
-  elapsed
+  elapsed,
 }: QueryDemoProps) {
-  const [response, setResponse] = useState<string>('');
+  const [response, setResponse] = useState<string>("");
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
-    fetch('/api/clearCache').then((res) =>
-      console.log('Cleared Server Cache!')
+    fetch("/api/clearCache").then((res) =>
+      console.log("Cleared Server Cache!")
     );
-    Quellify('/api/graphql', query, { maxDepth, maxCost, ipRate })
+    Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate })
       .then((res) => {
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
@@ -199,8 +204,8 @@ function QueryDemo({
         if (Array.isArray(res)) {
           let responseObj = res[0];
           // remove "$loki" property from cached response
-          if (responseObj.hasOwnProperty('$loki')) {
-            delete responseObj['$loki'];
+          if (responseObj.hasOwnProperty("$loki")) {
+            delete responseObj["$loki"];
           }
           let cachedResponse = JSON.stringify(responseObj, null, 2);
           setResponse(cachedResponse);
@@ -212,23 +217,24 @@ function QueryDemo({
         }
       })
       .then(() => {
-        fetch ('/api/queryTime').then(res => res.json())
-        .then((time) => {
-          if (setElapsed){
-            setElapsed(time.time);
-          }
-        })
+        fetch("/api/queryTime")
+          .then((res) => res.json())
+          .then((time) => {
+            if (setElapsed) {
+              setElapsed(time.time);
+            }
+          });
       })
       .catch((err) => {
         const error = {
-          log: 'Error when trying to fetch to GraphQL endpoint',
+          log: "Error when trying to fetch to GraphQL endpoint",
           status: 400,
           message: {
-            err: `Error in submitClientQuery. ${err}`
-          }
+            err: `Error in submitClientQuery. ${err}`,
+          },
         };
-        console.log('Error in fetch: ', error);
-        err = 'Invalid query';
+        console.log("Error in fetch: ", error);
+        err = "Invalid query";
         addErrorAlerts((prev) => [...prev, err]);
       });
   }
@@ -236,17 +242,17 @@ function QueryDemo({
   function submitServerQuery() {
     const startTime = new Date().getTime();
     const fetchOptions = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         query: query,
-        costOptions: { maxDepth, maxCost, ipRate }
-      })
+        costOptions: { maxDepth, maxCost, ipRate },
+      }),
     };
     let resError: string;
-    fetch('/api/graphql', fetchOptions)
+    fetch("/api/graphql", fetchOptions)
       .then((res) => res.json())
       .then((res) => {
         setVisualizerQuery(query);
@@ -258,36 +264,37 @@ function QueryDemo({
         else setCacheMiss(cacheMiss + 1);
       })
       .then(() => {
-        fetch ('/api/queryTime').then(res => res.json())
-        .then((time) => {
-          if (setElapsed){
-            setElapsed(time.time);
-          }
-        })
+        fetch("/api/queryTime")
+          .then((res) => res.json())
+          .then((time) => {
+            if (setElapsed) {
+              setElapsed(time.time);
+            }
+          });
       })
       .catch((err) => {
         const error = {
-          log: 'Error when trying to fetch to GraphQL endpoint',
+          log: "Error when trying to fetch to GraphQL endpoint",
           status: 400,
           message: {
-            err: `Error in submitClientQuery. ${err}`
-          }
+            err: `Error in submitClientQuery. ${err}`,
+          },
         };
-        console.log('Error in fetch: ', error);
+        console.log("Error in fetch: ", error);
         err = resError;
         addErrorAlerts((prev) => [...prev, err]);
       });
   }
 
   return (
-    <div  spellCheck="false" >
+    <div spellCheck="false">
       <DemoControls
         selectedQuery={selectedQuery}
         setQueryChoice={setQueryChoice}
         submitQuery={isToggled ? submitServerQuery : submitClientQuery}
       />
       <div>
-      <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
+        <QueryEditor selectedQuery={selectedQuery} setQuery={setQuery} />
       </div>
       <h3 className="text-white text-center">See your query results: </h3>
       <div className="max-h-30 border-1 border-white p-5">
@@ -313,7 +320,7 @@ interface DemoControls {
 const DemoControls = ({
   selectedQuery,
   setQueryChoice,
-  submitQuery
+  submitQuery,
 }: DemoControls) => {
   return (
     <div className="min-w-full flex flex-col gap-5 text-white items-center">
@@ -345,23 +352,23 @@ const CacheControls = ({
   setCacheMiss,
   cacheHit,
   cacheMiss,
-  isToggled
+  isToggled,
 }: CacheControlProps) => {
   function resetGraph() {
     addResponseTimes([]);
-    clearLokiCache();
+    clearCache();
     isToggled ? clearServerCache() : clearClientCache();
     setCacheHit((cacheHit = 0));
     setCacheMiss((cacheMiss = 0));
   }
 
   const clearClientCache = () => {
-    return clearLokiCache();
+    return clearCache();
   };
 
   const clearServerCache = () => {
-    fetch('/api/clearCache').then((res) =>
-      console.log('Cleared Server Cache!')
+    fetch("/api/clearCache").then((res) =>
+      console.log("Cleared Server Cache!")
     );
   };
 
@@ -380,7 +387,7 @@ const CacheControls = ({
           color="secondary"
           variant="contained"
         >
-          Clear {isToggled ? 'Server' : 'Client'} Cache
+          Clear {isToggled ? "Server" : "Client"} Cache
         </Button>
         <Button
           onClick={resetGraph}
@@ -395,10 +402,10 @@ const CacheControls = ({
       {isToggled ? (
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center'
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Limit
@@ -434,37 +441,58 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   return (
     <Box className="text-center min-w-[90%]">
       <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label" style={{ color: 'white', borderStyle: 'white' }}>Query</InputLabel>
+        <InputLabel
+          id="demo-simple-select-label"
+          style={{ color: "white", borderStyle: "white" }}
+        >
+          Query
+        </InputLabel>
         <Select
-          style={{ color: 'white' }}
+          style={{ color: "white" }}
           labelId="demo-simple-select-label"
           value={selectedQuery}
           defaultValue={selectedQuery}
           label="Query"
           onChange={handleChange}
         >
-          <MenuItem style={{ color: 'white' }} value={'2depth'}>2-Depth</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'3depth'}>3-Depth Country and Cities</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'costly'}>Costly</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'nested'}>Nested</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'fragment'}>Fragment</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'mutation'}>Mutation</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'countryMut'}>Mutation Country</MenuItem>
-          <MenuItem style={{ color: 'white' }} value={'delete'}>Mutation Delete City</MenuItem>
+          <MenuItem style={{ color: "white" }} value={"2depth"}>
+            2-Depth
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"3depth"}>
+            3-Depth Country and Cities
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"costly"}>
+            Costly
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"nested"}>
+            Nested
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"fragment"}>
+            Fragment
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"mutation"}>
+            Mutation
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"countryMut"}>
+            Mutation Country
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"delete"}>
+            Mutation Delete City
+          </MenuItem>
         </Select>
       </FormControl>
     </Box>
   );
 }
 
-const StyledDiv = styled('div')(({ theme }) => ({
+const StyledDiv = styled("div")(({ theme }) => ({
   ...theme.typography.button,
   backgroundColor: theme.palette.primary.main,
-  borderRadius: '5px',
-  fontSmooth: 'always',
-  color: 'white',
+  borderRadius: "5px",
+  fontSmooth: "always",
+  color: "white",
   boxShadow:
-    '0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)'
+    "0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)",
 }));
 
 function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {

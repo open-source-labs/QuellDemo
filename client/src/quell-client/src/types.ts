@@ -106,13 +106,19 @@ export interface CostParamsType {
   ipRate: number;
 }
 
-export interface IDLokiCacheType {
-  [k: string]: number;
+// export interface IDLokiCacheType {
+//   [k: string]: number;
+// }
+// export interface LokiGetType {
+//   $loki: number;
+//   [k: string]: JSONValue;
+// }
+
+export interface MapCacheType {
+  [key: string]: JSONValue;
 }
-export interface LokiGetType {
-  $loki: number;
-  [k: string]: JSONValue;
-}
+
+
 export interface FetchObjType {
   method?: string;
   headers: { 'Content-Type': string };
