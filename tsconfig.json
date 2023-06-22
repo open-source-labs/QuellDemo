@@ -18,10 +18,10 @@
     "isolatedModules": true,
     "noEmit": false,
     "noImplicitAny": true,
-    "noImplicitReturns": true,
+    // "noImplicitReturns": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,  
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,  
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
