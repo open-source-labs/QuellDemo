@@ -1220,84 +1220,98 @@
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/booksModel.js",
+      "file": "quell-server/test-config/booksModel.ts",
+      "line": 10,
+      "character": 7,
+      "text": "exports",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
+      "line": 0,
+      "character": 8,
+      "text": "Pool",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
+      "line": 1,
+      "character": 18,
+      "text": "config",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
+      "line": 5,
+      "character": 6,
+      "text": "pool",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
+      "line": 5,
+      "character": 17,
+      "text": "Pool",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
+      "line": 9,
+      "character": 7,
+      "text": "exports",
+      "kind": 1
+    },
+    {
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 10,
       "character": 10,
       "text": "text",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/booksModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 10,
       "character": 16,
       "text": "params",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/booksModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 10,
       "character": 24,
       "text": "callback",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/booksModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 11,
-      "character": 22,
-      "text": "text",
+      "character": 11,
+      "text": "pool",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/booksModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 11,
-      "character": 28,
-      "text": "params",
-      "kind": 1
-    },
-    {
-      "file": "quell-server/test-config/booksModel.js",
-      "line": 11,
-      "character": 36,
-      "text": "callback",
-      "kind": 1
-    },
-    {
-      "file": "quell-server/test-config/countriesModel.js",
-      "line": 10,
-      "character": 10,
-      "text": "text",
-      "kind": 1
-    },
-    {
-      "file": "quell-server/test-config/countriesModel.js",
-      "line": 10,
       "character": 16,
-      "text": "params",
+      "text": "query",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/countriesModel.js",
-      "line": 10,
-      "character": 24,
-      "text": "callback",
-      "kind": 1
-    },
-    {
-      "file": "quell-server/test-config/countriesModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 11,
       "character": 22,
       "text": "text",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/countriesModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 11,
       "character": 28,
       "text": "params",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/countriesModel.js",
+      "file": "quell-server/test-config/countriesModel.ts",
       "line": 11,
       "character": 36,
       "text": "callback",
@@ -2501,203 +2515,196 @@
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 9,
       "character": 2,
       "text": "GraphQLSchema",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 10,
       "character": 2,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 11,
       "character": 2,
       "text": "GraphQLList",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 12,
       "character": 2,
       "text": "GraphQLID",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 13,
       "character": 2,
       "text": "GraphQLString",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 14,
       "character": 2,
       "text": "GraphQLInt",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 15,
       "character": 2,
       "text": "GraphQLNonNull",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 26,
       "character": 6,
       "text": "BookShelfType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 26,
       "character": 26,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 31,
       "character": 6,
       "text": "BookType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 31,
       "character": 21,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 36,
       "character": 6,
       "text": "CountryType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 36,
       "character": 24,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 41,
       "character": 6,
       "text": "CityType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 41,
       "character": 21,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 52,
       "character": 6,
       "text": "RootQuery",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 52,
       "character": 22,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 61,
       "character": 6,
       "text": "RootMutation",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 61,
       "character": 25,
       "text": "GraphQLObjectType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 67,
-      "character": 7,
-      "text": "exports",
-      "kind": 1
-    },
-    {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
-      "line": 67,
-      "character": 21,
+      "character": 19,
       "text": "GraphQLSchema",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 68,
       "character": 2,
       "text": "query",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 68,
       "character": 9,
       "text": "RootQuery",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 69,
       "character": 2,
       "text": "mutation",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 69,
       "character": 12,
       "text": "RootMutation",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 70,
       "character": 10,
       "text": "CountryType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 70,
       "character": 23,
       "text": "CityType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 70,
       "character": 33,
       "text": "BookType",
       "kind": 1
     },
     {
-      "file": "quell-server/test-config/testSchemaWithoutFields.js",
+      "file": "quell-server/test-config/testSchemaWithoutFields.ts",
       "line": 70,
       "character": 43,
       "text": "BookShelfType",
@@ -4524,13 +4531,6 @@
       "kind": 1
     },
     {
-      "file": "quell-server/__tests__/helpers/getFieldsMap.test.js",
-      "line": 3,
-      "character": 6,
-      "text": "schemaWithoutFields",
-      "kind": 1
-    },
-    {
       "file": "quell-server/__tests__/helpers/getMutationMap.test.js",
       "line": 2,
       "character": 6,
@@ -5763,8 +5763,8 @@
       "kind": 1
     }
   ],
-  "percentage": 92.56146059291396,
-  "total": 11064,
-  "covered": 10241,
+  "percentage": 92.56011571144458,
+  "total": 11062,
+  "covered": 10239,
   "uncovered": 823
 }
