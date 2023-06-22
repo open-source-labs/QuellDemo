@@ -224,7 +224,12 @@ function Quellify(endPoint, query, costOptions, variables) {
                 const parsedData = yield performFetch(postFetch);
                 console.log('parsed data for edit/update', parsedData);
                 //we need to update entry in map & lrucache 
+                // We are currently clearing the cache for edit/update/delete queries as the cache becomes stale 
                 if (parsedData) {
+                    //clear LRU & Map cache as with mutation & delete; client stored cache is no longer up-to-date
+                    //OPPORUNITY: MUTATION & DELETE FEATURE TO STORE IN CLIENT CACHE
+                    clearCache();
+                    return [parsedData, false];
                     //how can we update entry in map (before we were updating entry in loki); 
                     //map is storing: {key(query): {results of query}}
                     //we want to update value on map specific to the id? 
@@ -235,30 +240,30 @@ function Quellify(endPoint, query, costOptions, variables) {
                     //update map at specific id? 
                     // Search for an entry in the mapCache map based on a condition defined by the predicate function: 
                     // (where the id property of the value matches the id property of parsedData).
-                    function findOne(map, predicate) {
-                        for (const [key, value] of map.entries()) {
-                            if (predicate(value, key, map)) {
-                                return value;
-                            }
-                        }
-                        return undefined; // Return undefined if no matching entry is found
-                    }
-                    const mutation = parsedData[mutationType];
-                    console.log("THIS IS PARSEDDATA.ID", mutation.id);
-                    const cachedEntry = findOne(mapCache, (v, k, m) => v.id === mutation.id);
-                    console.log('This is new cachedEntry (map)', cachedEntry);
-                    console.log('typeof new cachedEntry', typeof cachedEntry);
-                    // const cachedEntry = mapCache.get(parsedData.id); 
-                    if (cachedEntry) {
-                        // Update the existing entry with the new data
-                        Object.assign(cachedEntry, parsedData);
-                        // Update the entry in the map cache
-                        mapCache.set(query, cachedEntry);
-                        // Update LRU Cache
-                        updateLRUCache(query, cachedEntry);
-                        refetchLRUCache();
-                        return [cachedEntry, false];
-                    }
+                    //   function findOne(map: any, predicate: any) {
+                    //     for (const [key, value] of map.entries()) {
+                    //       if (predicate(value, key, map)) {
+                    //         return value;
+                    //       }
+                    //     }
+                    //     return undefined; // Return undefined if no matching entry is found
+                    //   }
+                    //   const mutation = parsedData[mutationType] as JSONObjectWithId;
+                    //   console.log("THIS IS PARSEDDATA.ID", mutation.id as string);
+                    //   const cachedEntry = findOne(mapCache, (v: any, k: any, m: any) => v.id === mutation.id)
+                    //   console.log('This is new cachedEntry (map)', cachedEntry)
+                    //   console.log('typeof new cachedEntry', typeof cachedEntry)
+                    //   // const cachedEntry = mapCache.get(parsedData.id); 
+                    //   if (cachedEntry) {
+                    //     // Update the existing entry with the new data
+                    //     Object.assign(cachedEntry, parsedData); 
+                    //      // Update the entry in the map cache
+                    //      mapCache.set(query, cachedEntry );
+                    //     // Update LRU Cache
+                    //     updateLRUCache(query, cachedEntry);
+                    //     refetchLRUCache();
+                    //     return [cachedEntry, false];
+                    // }
                 }
             }
             // Check if mutation is a delete mutation
@@ -270,22 +275,25 @@ function Quellify(endPoint, query, costOptions, variables) {
                 // parsedData = response.queryResponse.data;
                 console.log(`THIS ISparsedData: `, parsedData);
                 if (parsedData) {
-                    console.log(`were insided parsedData: `, parsedData);
-                    // Find the existing entry by its ID
-                    const cachedEntry = parsedData;
-                    console.log(cachedEntry);
-                    //bool returning 
-                    if (cachedEntry) {
-                        // // Remove the item from cache
-                        invalidateCache(query);
-                        mapCache.delete(query);
-                        // Refetch each query in the LRU cache to update the cache
-                        refetchLRUCache();
-                        return [cachedEntry, false];
-                    }
-                    else {
-                        return [null, false];
-                    }
+                    //clear LRU & Map cache as with mutation & delete; client stored cache is no longer up-to-date
+                    //OPPORUNITY: MUTATION & DELETE FEATURE TO STORE IN CLIENT CACHE
+                    clearCache();
+                    return [parsedData, false];
+                    //   console.log(`were insided parsedData: `, parsedData);
+                    //   // Find the existing entry by its ID
+                    //   const cachedEntry = parsedData;
+                    //   console.log(cachedEntry)
+                    //   //bool returning 
+                    //   if (cachedEntry) {
+                    //   // // Remove the item from cache
+                    //   invalidateCache(query);
+                    //   mapCache.delete(query);
+                    //   // Refetch each query in the LRU cache to update the cache
+                    //   refetchLRUCache();
+                    //   return [cachedEntry, false];
+                    // } else {
+                    //   return [null, false];
+                    // }
                 }
             }
             // Operation type does not meet mutation or unquellable types. 
@@ -295,12 +303,12 @@ function Quellify(endPoint, query, costOptions, variables) {
             console.log('OPERATION TYPE IS QUERY!!');
             // If the query has not been made already, execute a fetch request with the query.
             const parsedData = yield performFetch(postFetch);
-            console.log("this is parsed Data from query: ", parsedData);
+            // console.log("this is parsed Data from query: ", parsedData);
             // Add the new data to both client-side caches.
             if (parsedData) {
                 lruCache.set(query, parsedData);
                 mapCache.set(query, parsedData);
-                console.log("DIS DA MAPCACHE", mapCache);
+                // console.log("DIS DA MAPCACHE",mapCache)
                 const addedEntry = mapCache.get(query);
                 // Return the parsed data along with a flag indicating that the data was not found in the cache.
                 return [addedEntry, false];

@@ -219,13 +219,13 @@ function QueryDemo({
       .then(() => {
         fetch("/api/queryTime")
           .then((res) => res.json())
-          .then((time) => {
+          .then((time: { [key: string]: number }) => {
             if (setElapsed) {
               setElapsed(time.time);
             }
           });
       })
-      .catch((err) => {
+      .catch((err: string) => {
         const error = {
           log: "Error when trying to fetch to GraphQL endpoint",
           status: 400,
@@ -253,7 +253,7 @@ function QueryDemo({
     };
     let resError: string;
     fetch("/api/graphql", fetchOptions)
-      .then((res) => res.json())
+      .then((res: Response) => res.json())
       .then((res) => {
         setVisualizerQuery(query);
         resError = res;
@@ -266,13 +266,13 @@ function QueryDemo({
       .then(() => {
         fetch("/api/queryTime")
           .then((res) => res.json())
-          .then((time) => {
+          .then((time: { [key: string]: number }) => {
             if (setElapsed) {
               setElapsed(time.time);
             }
           });
       })
-      .catch((err) => {
+      .catch((err: string) => {
         const error = {
           log: "Error when trying to fetch to GraphQL endpoint",
           status: 400,

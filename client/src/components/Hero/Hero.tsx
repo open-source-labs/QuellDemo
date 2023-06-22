@@ -20,7 +20,7 @@ export const Hero = () => {
           setButtonText('npm install @quell/client')
         }, 2000);
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.log('Failed to copy text:', error);
       });
   };

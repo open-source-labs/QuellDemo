@@ -9,6 +9,7 @@ const react_1 = __importDefault(require("@monaco-editor/react"));
 const helperFunctions_1 = require("../helperFunctions");
 const QueryEditor = ({ setQuery, selectedQuery }) => {
     const handleChange = (value, ev) => {
+        console.log(value);
         setQuery(value);
     };
     const query = helperFunctions_1.querySamples[selectedQuery];

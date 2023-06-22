@@ -45,7 +45,7 @@ export function Graph({
     if (Array.isArray(tooltipItem)) {
       return tooltipItem.map(() => '');
     }
-    const responseTime = responseTimes[tooltipItem.dataIndex];
+    const responseTime: number = responseTimes[tooltipItem.dataIndex];
     return `${responseTime} ms`;
   };
 
@@ -97,7 +97,7 @@ export function Graph({
           datasets: [
             {
               label: `Request ${responseTimes.length === 1 ? responseTimes[0] : responseTimes.slice(-1)}ms`,
-              data: responseTimes.map((time) => time < 10 ? 20 : time),
+              data: responseTimes.map((time: number) => time < 10 ? 20 : time),
               backgroundColor: 'rgba(53, 162, 235,0.75)',
             },
           ],
