@@ -1,5 +1,5 @@
-const db = require('./countriesModel');
-const dbBooks = require('./booksModel');
+import db from './countriesModel';
+import dbBooks from './booksModel';
 
 const graphqlNodeModule =
   process.env.NODE_ENV === 'development'
@@ -65,7 +65,7 @@ const RootMutation = new GraphQLObjectType({
 });
 
 // imported into server.js
-module.exports = new GraphQLSchema({
+export default new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutation,
   types: [CountryType, CityType, BookType, BookShelfType]
