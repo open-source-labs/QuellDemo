@@ -8,13 +8,11 @@ import styles from './Visualizer.modules.css';
 // data describes the content of the node
 interface NodeData {
   id: string;
+  position?: XYPosition
   data?: { label: string } ;
-  position?: {
-    x: number;
-    y: number;
-  };
-  style?: React.CSSProperties;
   type?: string;
+  style?: React.CSSProperties;
+  label?: React.ReactNode;
 }
 
 // type for FlowElement
@@ -41,12 +39,10 @@ interface Position {
   y: number;
 }
 
-
 // declares prop x on Position
 interface PositionWithX extends Position {
   x: number;
 }
-
 
 // turns ast field to node
 const getNode = (
@@ -80,11 +76,8 @@ const getNode = (
   };
 };
 
-
-
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
-
 const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: { [key: string]: number }): FlowElement => {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
@@ -147,7 +140,6 @@ const buildTree = (
 };
 
 
-
 // takes the ast and returns nodes and edges as arrays for ReactFlow to render
 const astToTree = (query: string, elapsed: {}): { nodes: NodeData[]; edges: FlowElement[] } => {
   const ast: DocumentNode = parse(query);
@@ -177,9 +169,6 @@ const astToTree = (query: string, elapsed: {}): { nodes: NodeData[]; edges: Flow
 };
 
 
-
-
-
 // render a tree graph from GraphQL AST
 const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => {
   const [currentQuery, setCurrentQuery] = useState(query);
@@ -195,9 +184,9 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
       return {
         id: node.id,
         data: node.data,
-        position: node.position!,
+        position: node.position as XYPosition,
         style: node.style
-      }
+      } as Node<{ label: string } | undefined>;
     });
     setNodes(nodes);
     setEdges(newEdges);
@@ -206,12 +195,9 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
 
 } , [query, currentQuery, elapsed, elapsedTime]);
 
-
-  const { nodes, edges } = astToTree(query, elapsedTime);
-
   // storing the initial values of the nodes and edges
-  const [newNodes, setNodes] = useState<NodeData[]>(nodes);
-  const [newEdges, setEdges] = useState<FlowElement[]>(edges);
+  const [newNodes, setNodes] = useState<Node<{ label: string } | undefined>[]>([]);
+  const [newEdges, setEdges] = useState<Edge<{ label: string } | undefined>[]>([]);
 
   // setNodes/setEdges updates the state of the component causing it to re-render
   const onNodesChange = useCallback( (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),[] );
@@ -220,10 +206,12 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
   // this is to remove the reactflow watermark
   const proOptions = { hideAttribution: true };
   
+  // nodes={newNodes as Node<any, string | undefined>[]} 
+  //   edges={newEdges as Edge<any>[]} 
   return (
     <ReactFlow 
-    nodes={newNodes as Node<any, string | undefined>[]} 
-    edges={newEdges as Edge<any>[]} 
+    nodes={newNodes} 
+    edges={newEdges} 
     onNodesChange={onNodesChange}
     onEdgesChange={onEdgesChange}
     fitView

@@ -4,4 +4,5 @@ _redirects
 netifly.toml
 **/.DS_Store
 .env
-coverage-ts
+coverage-ts/
+dist/
