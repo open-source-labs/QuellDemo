@@ -1,5 +1,7 @@
-const {
-  GraphQLObjectType,
+import { NextFunction } from "express";
+import { GraphQLEnumType, GraphQLObjectType } from "graphql";
+
+import {
   GraphQLSchema,
   GraphQLString,
   GraphQLList,
@@ -8,7 +10,7 @@ const {
   buildSchema,
   GraphQLError,
   GraphQLInt,
-} = require("graphql");
+} from "graphql";
 const Songs = require("../models/songsModel.js");
 const Artist = require("../models/artistsModel.js");
 const Album = require("../models/albumsModel.js");
@@ -20,10 +22,22 @@ const Countries = require("../models/countriesModel.js");
 //THIS IS JUST ALL MOCK DATA AND MOCK TYPES
 //ALTERNATIVELY IN THE RESOLVER CHOOSE THE DB OF YOUR LIKING
 //WE USED MONGODB FOR TESTING PURPOSES BUT PSQL MAYBE BETTER!
+interface ElapsedTime {
+  albums?: number;
+  songs?: number;
+  country?: number;
+  attractions?: number;
+  cities?: number;
+}
 
-let elapsedTime = {};
+interface CustomError extends Error {
+  code: string;
+  http: { status: number };
+}
 
-const ArtistType = new GraphQLObjectType({
+let elapsedTime: ElapsedTime = {};
+
+const ArtistType: GraphQLObjectType = new GraphQLObjectType({
   name: "Artist",
   fields: () => ({
     id: { type: GraphQLID },
@@ -32,17 +46,17 @@ const ArtistType = new GraphQLObjectType({
       type: new GraphQLList(AlbumType),
       // a resolver function is responsible for return data for a specific field
       // this is where we can grab the specific timing for the field
-      resolve(parent, args) {
+      resolve(parent: { name: string }, args: any) {
         const startTime = new Date().getTime();
-        return Album.find({ artist: parent.name }).then((result) => {
-          // console.log(result);
-          console.log("artisttype result");
-          const endTime = new Date().getTime();
-          elapsedTime.albums = endTime - startTime;
-          console.log("elapsedTime: ", elapsedTime.albums, "ms");
-
-          return result;
-        });
+        return Album.find({ artist: parent.name }).then(
+          (result: GraphQLObjectType) => {
+            // console.log(result);
+            const endTime = new Date().getTime();
+            elapsedTime.albums = endTime - startTime;
+            console.log("elapsedTime: ", elapsedTime.albums, "ms");
+            return result;
+          }
+        );
       },
     },
   }),
@@ -56,10 +70,10 @@ const AlbumType = new GraphQLObjectType({
     artist: { type: GraphQLString },
     songs: {
       type: new GraphQLList(SongType),
-      resolve(parent, args) {
+      resolve(parent: { name: string }, args: any) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
-        return Songs.find({ album: parentName }).then((result) => {
+        return Songs.find({ album: parentName }).then((result: any) => {
           const endTime = new Date().getTime();
           elapsedTime.songs = endTime - startTime;
           console.log("elapsedTime: ", elapsedTime.songs, "ms");
@@ -71,7 +85,7 @@ const AlbumType = new GraphQLObjectType({
   }),
 });
 //when is this being run?
-const AttractionsType = new GraphQLObjectType({
+const AttractionsType: GraphQLObjectType = new GraphQLObjectType({
   name: "Attractions",
   fields: () => ({
     id: { type: GraphQLID },
@@ -79,16 +93,17 @@ const AttractionsType = new GraphQLObjectType({
     city: { type: GraphQLString },
     country: {
       type: CountryType,
-      resolve(parent, args) {
+      resolve(parent: { name: string; city: string }, args: any) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
         return Cities.findOne({ city: parent.city })
-          .then((city) => Countries.findOne({ country: city.country }))
-          .then((result) => {
+          .then((city: { country: string }) =>
+            Countries.findOne({ country: city.country })
+          )
+          .then((result: GraphQLObjectType) => {
             const endTime = new Date().getTime();
             elapsedTime.country = endTime - startTime;
             console.log("elapsedTime: ", elapsedTime.country, "ms");
-            // console.log(result);
             return result;
           });
       },
@@ -104,17 +119,18 @@ const CityType = new GraphQLObjectType({
     country: { type: GraphQLString },
     attractions: {
       type: new GraphQLList(AttractionsType),
-      resolve(parent, args) {
+      resolve(parent: { name: string }, args: any) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
-        return Attractions.find({ city: parent.name }).then((result) => {
-          const endTime = new Date().getTime();
-          elapsedTime.attractions = endTime - startTime;
-          console.log("elapsedTime: ", elapsedTime.attractions, "ms");
-          // console.log(result);
-
-          return result;
-        });
+        return Attractions.find({ city: parent.name }).then(
+          (result: GraphQLObjectType) => {
+            const endTime = new Date().getTime();
+            elapsedTime.attractions = endTime - startTime;
+            console.log("elapsedTime: ", elapsedTime.attractions, "ms");
+            // console.log(result);
+            return result;
+          }
+        );
       },
     },
   }),
@@ -127,16 +143,18 @@ const CountryType = new GraphQLObjectType({
     name: { type: GraphQLString },
     cities: {
       type: new GraphQLList(CityType),
-      async resolve(parent, args) {
+      async resolve(parent: { name: string }, args: any) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
-        return Cities.find({ country: parent.name }).then((result) => {
-          const endTime = new Date().getTime();
-          elapsedTime.cities = endTime - startTime;
-          console.log("elapsedTime.cities: ", elapsedTime.cities, "ms");
-          // console.log(result);
-          return result;
-        });
+        return Cities.find({ country: parent.name }).then(
+          (result: GraphQLObjectType) => {
+            const endTime = new Date().getTime();
+            elapsedTime.cities = endTime - startTime;
+            console.log("elapsedTime.cities: ", elapsedTime.cities, "ms");
+            // console.log(result);
+            return result;
+          }
+        );
       },
     },
   }),
@@ -157,7 +175,7 @@ const RootQuery = new GraphQLObjectType({
     song: {
       type: SongType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const song = Songs.findOne({ name: args.name });
         return song;
       },
@@ -165,7 +183,7 @@ const RootQuery = new GraphQLObjectType({
     album: {
       type: AlbumType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const album = Album.findOne({ name: args.name });
         return album;
       },
@@ -173,16 +191,15 @@ const RootQuery = new GraphQLObjectType({
     artist: {
       type: ArtistType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const artist = await Artist.findOne({ name: args.name });
-
         return artist;
       },
     },
     country: {
       type: CountryType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const country = await Countries.findOne({ name: args.name });
         return country;
       },
@@ -190,7 +207,7 @@ const RootQuery = new GraphQLObjectType({
     city: {
       type: CityType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const city = await Cities.findOne({ name: args.name });
         return city;
       },
@@ -198,7 +215,7 @@ const RootQuery = new GraphQLObjectType({
     attractions: {
       type: AttractionsType,
       args: { name: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string }) {
         const attractions = await Attractions.findOne({ name: args.name });
         return attractions;
       },
@@ -216,7 +233,10 @@ const RootMutations = new GraphQLObjectType({
         album: { type: GraphQLString },
         artist: { type: GraphQLString },
       },
-      async resolve(parent, args) {
+      async resolve(
+        parent: any,
+        args: { name: string; album: string; artist: string }
+      ) {
         const song = await Songs.create({
           name: args.name,
           album: args.album,
@@ -225,10 +245,11 @@ const RootMutations = new GraphQLObjectType({
         return song;
       },
     },
+
     addAttraction: {
       type: AttractionsType,
       args: { name: { type: GraphQLString }, city: { type: GraphQLString } },
-      async resolve(parent, args) {
+      async resolve(parent: any, args: { name: string; city: string }) {
         const checkCity = await Cities.findOne({ name: args.city });
         if (checkCity) {
           const newAttraction = await Attractions.create({
@@ -237,13 +258,13 @@ const RootMutations = new GraphQLObjectType({
           });
           return newAttraction;
         } else {
-          throw new Error(
-            `City not found in database, add city and country first.`,
-            {
-              code: "COST_LIMIT_EXCEEDED",
-              http: { status: 406 },
-            }
-          );
+          const error: CustomError = new Error(
+            `City not found in database, add city and country first.`
+          ) as CustomError;
+          error.code = "COST_LIMIT_EXCEEDED";
+          error.http = { status: 406 };
+
+          throw error;
         }
       },
     },
@@ -321,13 +342,24 @@ const RootMutations = new GraphQLObjectType({
   },
 });
 
-const getElapsedTime = (req, res, next) => {
+interface ElapsedTimeResponse {
+  locals: {
+    time?: ElapsedTime;
+  };
+}
+
+const getElapsedTime = (
+  req: Request,
+  res: ElapsedTimeResponse,
+  next: NextFunction
+) => {
   console.log("elapsed time in mid: ", elapsedTime);
+
   res.locals.time = elapsedTime;
   return next();
 };
 
-const clearElapsedTime = (req, res, next) => {
+const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
   elapsedTime = {};
   console.log(elapsedTime);
   return next();
