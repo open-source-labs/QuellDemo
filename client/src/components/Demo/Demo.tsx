@@ -33,6 +33,16 @@ import { parse } from "graphql/language/parser";
 import { DocumentNode } from "graphql";
 // import { getElapsedTime } from '../../../../server/schema/schema';
 
+// interface JSONObject {
+//   [k: string]: JSONValue;
+// };
+
+// type JSONValue = JSONObject | JSONArray | JSONPrimitive;
+// type JSONPrimitive = number | string | boolean | null;
+// type JSONArray = JSONValue[];
+
+// type ResponseTuple = [JSONObject, boolean];
+
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
   const [errorAlerts, addErrorAlerts] = useState<string[]>([]);
@@ -191,7 +201,7 @@ function QueryDemo({
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
-    fetch("/api/clearCache").then((res) =>
+    fetch("/api/clearCache").then(() =>
       console.log("Cleared Server Cache!")
     );
     Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate })
@@ -202,10 +212,9 @@ function QueryDemo({
         const queryType: string = selectedQuery;
         addQueryTypes([...queryTypes, queryType]);
         if (Array.isArray(res)) {
-          let responseObj = res[0];
-          // remove "$loki" property from cached response
-          if (responseObj.hasOwnProperty("$loki")) {
-            delete responseObj["$loki"];
+          let responseObj = res[0] as Record<string, any>;
+          if (responseObj && responseObj.hasOwnProperty('key')) {
+            delete responseObj['key'];
           }
           let cachedResponse = JSON.stringify(responseObj, null, 2);
           setResponse(cachedResponse);
@@ -239,6 +248,19 @@ function QueryDemo({
       });
   }
 
+  type QueryResponse = {
+    data: {
+      [key: string]: unknown;
+    };
+    cached: boolean;
+  };
+  
+  type ApiResponse = {
+    response: {
+      queryResponse: QueryResponse;
+    };
+  };
+
   function submitServerQuery() {
     const startTime = new Date().getTime();
     const fetchOptions = {
@@ -254,13 +276,13 @@ function QueryDemo({
     let resError: string;
     fetch("/api/graphql", fetchOptions)
       .then((res: Response) => res.json())
-      .then((res) => {
+      .then((res: ApiResponse) => {
+        console.log(res)
         setVisualizerQuery(query);
-        resError = res;
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
-        setResponse(JSON.stringify(res.queryResponse.data, null, 2));
-        if (res.queryResponse.cached === true) setCacheHit(cacheHit + 1);
+        setResponse(JSON.stringify(res.response.queryResponse.data, null, 2));
+        if (res.response.queryResponse.cached === true) setCacheHit(cacheHit + 1);
         else setCacheMiss(cacheMiss + 1);
       })
       .then(() => {

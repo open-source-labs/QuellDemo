@@ -1,14 +1,18 @@
-import { Pool, QueryResult } from 'pg';
-require('dotenv').config();
+
+import { Pool } from 'pg'
+import dotenv from 'dotenv'
+dotenv.config()
+
 
 const URI = process.env.PG_URI;
 
 const pool = new Pool({
   connectionString: URI
 });
-type ParamsType = number | string;
-module.exports = {
-  query: (text: string, params: ParamsType[]): Promise<QueryResult> => {
+
+
+export default {
+  query: (text: string, params?: (number | string)[] ) => {
     return pool.query(text, params);
   }
 };
