@@ -1,0 +1,91 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Navbar.tsx</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/NavBar/Navbar.tsx</td><td class="">98.44%</td><td class="">80%</td><td class="">128</td><td class="">126</td><td class="">2</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import quellLogo from &#x27;/client/src/assets/images/quell_logos/quell-logo-side.svg&#x27;;
+import hamburgerIcon from &#x27;/client/src/assets/images/graphics/hamburger.svg&#x27;;
+import React, { useState, useEffect, useRef } from &#x27;react&#x27;;
+import { BrowserRouter as Router, Route, Link, HashRouter, useNavigate } from &#x27;react-router-dom&#x27;;
+// import { HashLink } from &#x27;react-router-hash-link&#x27;; 
+
+export const Navbar: React.FC = () =&gt; {
+
+  // Hook for navigating to different routes
+  const navigate = useNavigate();
+
+  // State for checking if if the hamburger is open/closed
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef&lt;HTMLDivElement&gt;(null);
+
+  // Function to toggle the menu upon click
+  const toggleMenu = (event: React.MouseEvent&lt;HTMLDivElement&gt;) =&gt; {
+    event.stopPropagation();
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Function close menu when clicking on nav bar item
+  const closeMenu = () =&gt; {
+    setIsMenuOpen(false);
+  };
+
+  // Function to close menu when clicking outside of the menu
+  useEffect(() =&gt; {
+    const handleClickOutside = (event: MouseEvent) =&gt; {
+      if (menuRef.current &amp;&amp; !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener(&#x27;click&#x27;, handleClickOutside);
+
+    return () =&gt; {
+      window.removeEventListener(&#x27;click&#x27;, handleClickOutside);
+    };
+  }, []);
+
+  
+  return (
+    &lt;nav className=&quot;relative container mx-auto bg-background w-full p-8 text-white xl:max-w-10xl&quot;&gt;
+      &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+        &lt;div className=&quot;pt-2&quot;&gt;
+          &lt;Link to=&quot;/&quot; onClick={closeMenu}&gt;
+            &lt;img className=&quot;bird-icon&quot; src={quellLogo} alt=&quot;Quell Logo&quot; /&gt;
+          &lt;/Link&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;hidden font-sans font-light space-x-12 md:flex&quot;&gt;
+          &lt;a href=&quot;https://github.com/open-source-labs/Quell#quell&quot; className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Docs&lt;/a&gt;
+          &lt;Link to=&quot;/team&quot;&gt;
+            &lt;span className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Team&lt;/span&gt;
+          &lt;/Link&gt;
+          &lt;a href=&quot;https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f&quot; className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Blog&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;block cursor-pointer md:hidden&quot; onClick={toggleMenu}&gt;
+          &lt;img className=&quot;w-4 h-auto&quot; src={hamburgerIcon} alt=&quot;Hamburger Icon&quot; /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div className={`md:hidden ${isMenuOpen ? &#x27;&#x27; : &#x27;hidden&#x27;}`}&gt;
+        &lt;div ref={menuRef} id=&quot;menu&quot; className={`absolute flex flex-col items-center self-end py-8 mt-10 space-y-6 bg-background sm:w-auto sm:self-center left-6 right-6 drop-shadow-md ${isMenuOpen ? &#x27;&#x27; : &#x27;hidden&#x27;}`} style={{ zIndex: 9999 }}&gt;
+          &lt;a href=&#x27;https://github.com/open-source-labs/Quell#quell&#x27; className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Docs&lt;/a&gt;
+          &lt;Link to=&quot;/team&quot; onClick={closeMenu} &gt;
+            &lt;span className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Team&lt;/span&gt;
+          &lt;/Link&gt;
+          &lt;a href=&#x27;https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f&#x27; className=&quot;hover:underline underline-offset-8 decoration-lightblue&quot;&gt;Blog&lt;/a&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/nav&gt;
+  );
+};
+</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/NavBar/Navbar.tsx&quot;,&quot;line&quot;:0,&quot;character&quot;:7,&quot;text&quot;:&quot;quellLogo&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/NavBar/Navbar.tsx&quot;,&quot;line&quot;:1,&quot;character&quot;:7,&quot;text&quot;:&quot;hamburgerIcon&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

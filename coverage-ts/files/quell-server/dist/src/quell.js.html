@@ -1,0 +1,1524 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>quell.js</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="negative"><td class="">quell-server/dist/src/quell.js</td><td class="">76.52%</td><td class="">80%</td><td class="">2036</td><td class="">1558</td><td class="">478</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">&quot;use strict&quot;;
+var __awaiter = (this &amp;&amp; this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator[&quot;throw&quot;](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, &quot;__esModule&quot;, { value: true });
+exports.QuellCache = void 0;
+const parser_1 = require(&quot;graphql/language/parser&quot;);
+const graphql_1 = require(&quot;graphql&quot;);
+const redis_1 = require(&quot;redis&quot;);
+const quellHelpers_1 = require(&quot;./helpers/quellHelpers&quot;);
+/*
+ * Note: This file is identical to the main quell-server file, except that the
+ * rateLimiter, depthLimit, and costLimit have been modified to allow the limits
+ * to be set in the request body to allow for demoing these features.
+*/
+const defaultCostParams = {
+    maxCost: 5000,
+    mutationCost: 5,
+    objectCost: 2,
+    scalarCost: 1,
+    depthCostFactor: 1.5,
+    maxDepth: 10,
+    ipRate: 3 // requests allowed per second
+};
+let idCache = {};
+/**
+ * Creates a QuellCache instance that provides middleware for caching between the graphQL endpoint and
+ * front-end requests, connects to redis cloud store via user-specified parameters.
+ *    - If there is no cache expiration provided by the user, cacheExpiration defaults to 14 days in seconds.
+ *    - If there are no cost parameters provided by the user, costParameters is given the default values.
+ *    - If redisPort, redisHost, and redisPassword are omitted, will use local Redis instance.
+ *     See https://redis.io/docs/getting-started/installation/ for instructions on installing Redis and starting a Redis server.
+ *  @param {ConstructorOptions} options - The options to use for the cache.
+ *  @param {GraphQLSchema} options.schema - GraphQL defined schema that is used to facilitate caching by providing valid queries,
+ *  mutations, and fields.
+ *  @param {number} [options.cacheExpiration=1209600] - Time in seconds for redis values to be evicted from the cache. Defaults to 14 days.
+ *  @param {CostParamsType} [options.costParameters=defaultCostParams] - The cost parameters to use for caching. Defaults to:
+ *    - maxCost: 5000 (maximum cost allowed before a request is rejected)
+ *    - mutationCost: 5 (cost of a mutation)
+ *    - objectCost: 2 (cost of retrieving an object)
+ *    - scalarCost: 1 (cost of retrieving a scalar)
+ *    - depthCostFactor: 1.5 (multiplicative cost of each depth level)
+ *    - maxDepth: 10 (depth limit parameter)
+ *    - ipRate: 3 (requests allowed per second)
+ *  @param {number} options.redisPort - (optional) The Redis port to connect to.
+ *  @param {string} options.redisHost - (optional) The Redis host URI to connect to.
+ *  @param {string} options.redisPassword - (optional) The Redis password to the host URI.
+ *  @example // Omit redisPort, redisHost, and redisPassword to use a local Redis instance.
+ *  const quellCache = new QuellCache({
+ *    schema: schema,
+ *    cacheExpiration: 3600, // 1 hour in seconds
+ *    });
+ */
+class QuellCache {
+    constructor({ schema, cacheExpiration = 1209600, // Default expiry time is 14 days in seconds
+    costParameters = defaultCostParams, redisPort, redisHost, redisPassword }) {
+        this.idCache = idCache;
+        this.schema = schema;
+        this.costParameters = Object.assign(defaultCostParams, costParameters);
+        this.depthLimit = this.depthLimit.bind(this);
+        this.costLimit = this.costLimit.bind(this);
+        this.rateLimiter = this.rateLimiter.bind(this);
+        this.queryMap = (0, quellHelpers_1.getQueryMap)(schema);
+        this.mutationMap = (0, quellHelpers_1.getMutationMap)(schema);
+        this.fieldsMap = (0, quellHelpers_1.getFieldsMap)(schema);
+        this.cacheExpiration = cacheExpiration;
+        this.redisReadBatchSize = 10;
+        this.redisCache = (0, redis_1.createClient)({
+            socket: { host: redisHost, port: redisPort },
+            password: redisPassword
+        });
+        this.query = this.query.bind(this);
+        this.clearCache = this.clearCache.bind(this);
+        this.buildFromCache = this.buildFromCache.bind(this);
+        this.generateCacheID = this.generateCacheID.bind(this);
+        this.updateCacheByMutation = this.updateCacheByMutation.bind(this);
+        this.deleteCacheById = this.deleteCacheById.bind(this);
+        this.getStatsFromRedis = this.getStatsFromRedis.bind(this);
+        this.getRedisInfo = this.getRedisInfo.bind(this);
+        this.getRedisKeys = this.getRedisKeys.bind(this);
+        this.getRedisValues = this.getRedisValues.bind(this);
+        this.redisCache
+            .connect()
+            .then(() =&gt; {
+            console.log(&#x27;Connected to redisCache&#x27;);
+        })
+            .catch((error) =&gt; {
+            const err = {
+                log: `Error when trying to connect to redisCache, ${error}`,
+                status: 400,
+                message: {
+                    err: &#x27;Could not connect to redisCache. Check server log for more details.&#x27;
+                }
+            };
+            console.log(err);
+        });
+    }
+    /**
+     * A redis-based IP rate limiter middleware function that limits the number of requests per second based on IP address using Redis.
+     *  @param {Request} req - Express request object, including request body with GraphQL query string.
+     *  @param {Response} res - Express response object, will carry query response to next middleware.
+     *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
+     *  @returns {void} Passes an error to Express if no query was included in the request or if the number of requests by the current IP
+     *  exceeds the IP rate limit.
+     */
+    rateLimiter(req, res, next) {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            // Set ipRate to the ipRate limit from the request body or use default.
+            const ipRateLimit = (_b = (_a = req.body.costOptions) === null || _a === void 0 ? void 0 : _a.ipRate) !== null &amp;&amp; _b !== void 0 ? _b : this.costParameters.ipRate;
+            // Get the IP address from the request.
+            const ipAddress = req.ip;
+            // Get the current time in seconds.
+            const currentTimeSeconds = Math.floor(Date.now() / 1000);
+            // Create a Redis IP key using the IP address and current time.
+            const redisIpTimeKey = `${ipAddress}:${currentTimeSeconds}`;
+            // Return an error if no query is found on the request.
+            if (!req.body.query) {
+                const err = {
+                    log: &#x27;Error: no GraphQL query found on request body, inside rateLimiter&#x27;,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in rateLimiter: Bad Request. Check server log for more details.&#x27;
+                    }
+                };
+                return next(err);
+            }
+            try {
+                // Create a Redis multi command queue.
+                const redisRunQueue = this.redisCache.multi();
+                // Add to queue: increment the key associated with the current IP address and time in Redis.
+                redisRunQueue.incr(redisIpTimeKey);
+                // Add to queue: set the key to expire after 1 second.
+                redisRunQueue.expire(redisIpTimeKey, 1);
+                // Execute the Redis multi command queue.
+                const redisResponse = (yield redisRunQueue.exec()).map((result) =&gt; JSON.stringify(result));
+                // Save result of increment command, which will be the number of requests made by the current IP address in the last second.
+                // Since the increment command was the first command in the queue, it will be the first result in the returned array.
+                const numRequestsString = (_c = redisResponse[0]) !== null &amp;&amp; _c !== void 0 ? _c : &#x27;0&#x27;;
+                const numRequests = parseInt(numRequestsString, 10);
+                // If the number of requests is greater than the IP rate limit, throw an error.
+                if (numRequests &gt; ipRateLimit) {
+                    const err = {
+                        log: `Redis cache error: Express error handler caught too many requests from this IP address (${ipAddress}): limit is: ${ipRateLimit} requests per second, inside rateLimiter`,
+                        status: 429,
+                        message: {
+                            err: &#x27;Error in rateLimiter middleware. Check server log for more details.&#x27;
+                        }
+                    };
+                    return next(err);
+                }
+                console.log(`IP ${ipAddress} made a request. Limit is: ${ipRateLimit} requests per second. Result: OK.`);
+                return next();
+            }
+            catch (error) {
+                const err = {
+                    log: `Catch block in rateLimiter middleware, ${error}`,
+                    status: 500,
+                    message: {
+                        err: &#x27;IPRate Limiting Error. Check server log for more details.&#x27;
+                    }
+                };
+                return next(err);
+            }
+        });
+    }
+    /**
+     * The class&#x27;s controller method. It:
+     *    - reads the query string from the request object,
+     *    - tries to construct a response from cache,
+     *    - reformulates a query for any data not in cache,
+     *    - passes the reformulated query to the graphql library to resolve,
+     *    - joins the cached and uncached responses,
+     *    - decomposes and caches the joined query, and
+     *    - attaches the joined response to the response object before passing control to the next middleware.
+     *  @param {Request} req - Express request object, including request body with GraphQL query string.
+     *  @param {Response} res - Express response object, will carry query response to next middleware.
+     *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
+     */
+    query(req, res, next) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            // Return an error if no query is found on the request.
+            if (!req.body.query) {
+                const err = {
+                    log: &#x27;Error: no GraphQL query found on request body&#x27;,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in quellCache.query: Check server log for more details.&#x27;
+                    }
+                };
+                return next(err);
+            }
+            // Retrieve GraphQL query string from request body.
+            const queryString = req.body.query;
+            // Create the abstract syntax tree with graphql-js parser.
+            // If depth limit or cost limit were implemented, then we can get the AST and parsed AST from res.locals.
+            const AST = res.locals.AST
+                ? res.locals.AST
+                : (0, parser_1.parse)(queryString);
+            // Create response prototype, operation type, and fragments object.
+            // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
+            const { proto, operationType, frags } = (_a = res.locals.parsedAST) !== null &amp;&amp; _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST);
+            // Determine if Quell is able to handle the operation.
+            // Quell can handle mutations and queries.
+            if (operationType === &#x27;unQuellable&#x27;) {
+                /*
+                 * If the operation is unQuellable (cannot be cached), execute the operation,
+                 * add the result to the response, and return.
+                 */
+                (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
+                    .then((queryResult) =&gt; {
+                    res.locals.queryResponse = queryResult;
+                    return next();
+                })
+                    .catch((error) =&gt; {
+                    const err = {
+                        log: `Error inside catch block of operationType === unQuellable of query, ${error}`,
+                        status: 400,
+                        message: {
+                            err: &#x27;GraphQL query Error: Check server log for more details.&#x27;
+                        }
+                    };
+                    return next(err);
+                });
+            }
+            else if (operationType === &#x27;noID&#x27;) {
+                /*
+                 * If ID was not included in the query, it will not be included in the cache. Execute the GraphQL
+                 * operation without writing the result to cache and return.
+                 */
+                // FIXME: Can possibly modify query to ALWAYS have an ID but not necessarily return it back to client
+                // unless they also queried for it.
+                (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
+                    .then((queryResult) =&gt; {
+                    res.locals.queryResponse = queryResult;
+                    return next();
+                })
+                    .catch((error) =&gt; {
+                    const err = {
+                        log: `Error inside catch block of operationType === noID of query, ${error}`,
+                        status: 400,
+                        message: {
+                            err: &#x27;GraphQL query Error: Check server log for more details.&#x27;
+                        }
+                    };
+                    return next(err);
+                });
+                /*
+                 * The code from here to the end of the current if block was left over from a previous
+                 * implementation and is not currently being used.
+                 * For the previous implementation: if the ID was not included, used the cache result
+                 * if the query string was found in the Redis cache. Otherwise, used the result of
+                 * executing the operation and stored the result in cache.
+                 */
+                // Check Redis for the query string .
+                let redisValue = yield this.getFromRedis(queryString);
+                if (redisValue != null) {
+                    // If the query string is found in Redis, add the result to the response and return.
+                    redisValue = JSON.parse(redisValue);
+                    res.locals.queriesResponse = redisValue;
+                    return next();
+                }
+                else {
+                    // Execute the operation, add the result to the response, write the query string and result to cache, and return.
+                    (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
+                        .then((queryResult) =&gt; {
+                        res.locals.queryResponse = queryResult;
+                        this.writeToCache(queryString, queryResult);
+                        return next();
+                    })
+                        .catch((error) =&gt; {
+                        const err = {
+                            log: `Error inside catch block of operationType === noID of query, graphQL query failed, ${error}`,
+                            status: 400,
+                            message: {
+                                err: &#x27;GraphQL query Error: Check server log for more details.&#x27;
+                            }
+                        };
+                        return next(err);
+                    });
+                }
+            }
+            else if (operationType === &#x27;mutation&#x27;) {
+                // TODO: If the operation is a mutation, we are currently clearing the cache because it is stale.
+                // The goal would be to instead have a normalized cache and update the cache following a mutation.
+                this.redisCache.flushAll();
+                idCache = {};
+                // Determine if the query string is a valid mutation in the schema.
+                // Declare variables to store the mutation proto, mutation name, and mutation type.
+                let mutationQueryObject;
+                let mutationName = &#x27;&#x27;;
+                let mutationType = &#x27;&#x27;;
+                // Loop through the mutations in the mutationMap.
+                for (const mutation in this.mutationMap) {
+                    // If any mutation from the mutationMap is found on the proto, the query string includes
+                    // a valid mutation. Update the mutation query object, name, type variables.
+                    if (Object.prototype.hasOwnProperty.call(proto, mutation)) {
+                        mutationName = mutation;
+                        mutationType = this.mutationMap[mutation];
+                        mutationQueryObject = proto[mutation];
+                        break;
+                    }
+                }
+                // Execute the operation and add the result to the response.
+                (0, graphql_1.graphql)({ schema: this.schema, source: queryString })
+                    .then((databaseResponse) =&gt; {
+                    res.locals.queryResponse = databaseResponse;
+                    // If there is a mutation, update the cache with the response.
+                    // We don&#x27;t need to wait until writeToCache is finished.
+                    if (mutationQueryObject) {
+                        this.updateCacheByMutation(databaseResponse, mutationName, mutationType, mutationQueryObject);
+                    }
+                    return next();
+                })
+                    .catch((error) =&gt; {
+                    const err = {
+                        log: `Error inside catch block of operationType === mutation of query, ${error}`,
+                        status: 400,
+                        message: {
+                            err: &#x27;GraphQL query (mutation) Error: Check server log for more details.&#x27;
+                        }
+                    };
+                    return next(err);
+                });
+            }
+            else {
+                /*
+                 * Otherwise, the operation type is a query.
+                 */
+                // Combine fragments on prototype so we can access fragment values in cache.
+                console.log(&#x27;idCache:&#x27;, idCache);
+                const prototype = Object.keys(frags).length &gt; 0
+                    ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
+                    : proto;
+                // Create a list of the keys on prototype that will be passed to buildFromCache.
+                const prototypeKeys = Object.keys(prototype);
+                // Check the cache for the requested values.
+                // buildFromCache will modify the prototype to mark any values not found in the cache
+                // so that they may later be retrieved from the database.
+                const cacheResponse = yield this.buildFromCache(prototype, prototypeKeys);
+                console.log(&#x27;cacheResponse:&#x27;, cacheResponse);
+                // Create merged response object to merge the data from the cache and the data from the database.
+                let mergedResponse;
+                // Create query object containing the fields that were not found in the cache.
+                // This will be used to create a new GraphQL string.
+                const queryObject = (0, quellHelpers_1.createQueryObj)(prototype);
+                // If the cached response is incomplete, reformulate query,
+                // handoff query, join responses, and cache joined responses.
+                if (Object.keys(queryObject).length &gt; 0) {
+                    // Create a new query string that contains only the fields not found in the cache so that we can
+                    // request only that information from the database.
+                    const newQueryString = (0, quellHelpers_1.createQueryStr)(queryObject, operationType);
+                    // Execute the query using the new query string.
+                    (0, graphql_1.graphql)({ schema: this.schema, source: newQueryString })
+                        .then((databaseResponseRaw) =&gt; __awaiter(this, void 0, void 0, function* () {
+                        // The GraphQL must be parsed in order to join with it with the data retrieved from
+                        // the cache before sending back to user.
+                        const databaseResponse = JSON.parse(JSON.stringify(databaseResponseRaw));
+                        // Check if the cache response has any data by iterating over the keys in cache response.
+                        let cacheHasData = false;
+                        for (const key in cacheResponse.data) {
+                            if (Object.keys(cacheResponse.data[key]).length &gt; 0) {
+                                cacheHasData = true;
+                            }
+                        }
+                        // Create merged response object to merge the data from the cache and the data from the database.
+                        // If the cache response does not have data then just use the database response.
+                        mergedResponse = cacheHasData
+                            ? (0, quellHelpers_1.joinResponses)(cacheResponse.data, databaseResponse.data, prototype)
+                            : databaseResponse;
+                        const currName = &#x27;string it should not be again&#x27;;
+                        yield this.normalizeForCache(mergedResponse.data, this.queryMap, prototype, currName);
+                        // The response is given a cached key equal to false to indicate to the front end of the demo site that the
+                        // information was *NOT* entirely found in the cache.
+                        mergedResponse.cached = false;
+                        res.locals.queryResponse = Object.assign({}, mergedResponse);
+                        return next();
+                    }))
+                        .catch((error) =&gt; {
+                        const err = {
+                            log: `Error inside catch block of operationType === query of query, ${error}`,
+                            status: 400,
+                            message: {
+                                err: &#x27;GraphQL query Error: Check server log for more details.&#x27;
+                            }
+                        };
+                        return next(err);
+                    });
+                }
+                else {
+                    // If the query object is empty, there is nothing left to query and we can send the information from cache.
+                    // The response is given a cached key equal to true to indicate to the front end of the demo site that the
+                    // information was entirely found in the cache.
+                    cacheResponse.cached = true;
+                    res.locals.queryResponse = Object.assign({}, cacheResponse);
+                    return next();
+                }
+            }
+        });
+    }
+    /**
+     * Reads from Redis cache and returns a promise (Redis v4 natively returns a promise).
+     * @param {string} key - The key for Redis lookup.
+     * @returns {Promise} A promise representing the value from the redis cache with the provided key.
+     */
+    getFromRedis(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (typeof key !== &#x27;string&#x27; || key === undefined)
+                    return;
+                const lowerKey = key.toLowerCase();
+                const redisResult = yield this.redisCache.get(lowerKey);
+                return redisResult;
+            }
+            catch (error) {
+                const err = {
+                    log: `Error in QuellCache trying to getFromRedis, ${error}`,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in getFromRedis. Check server log for more details.&#x27;
+                    }
+                };
+                console.log(&#x27;err in getFromRedis: &#x27;, err);
+            }
+        });
+    }
+    /**
+     * Finds any requested information in the cache and assembles it on the cacheResponse.
+     * Uses the prototype as a template for cacheResponse and marks any data not found in the cache
+     * on the prototype for future retrieval from database.
+     * @param {Object} prototype - Unique id under which the cached data will be stored.
+     * @param {Array} prototypeKeys - Keys in the prototype.
+     * @param {Object} itemFromCache - Item to be cached.
+     * @param {boolean} firstRun - Boolean indicated if this is the first run.
+     * @param {boolean|string} subID - Used to pass id to recursive calls.
+     * @returns {Object} cacheResponse, mutates prototype.
+     */
+    buildFromCache(prototype, prototypeKeys, itemFromCache = {}, firstRun = true, subID = false) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const typeKey in prototype) {
+                // If the current key is a root query, check cache and set any results to itemFromCache.
+                if (prototypeKeys.includes(typeKey)) {
+                    // Create a variable cacheID, used to determine what ID should be used for the Redis lookup.
+                    let cacheID;
+                    if (typeof subID === &#x27;string&#x27;) {
+                        // Use the subID argument if it is a string (used for recursive calls within buildFromCache).
+                        cacheID = subID;
+                    }
+                    else {
+                        cacheID = this.generateCacheID(prototype[typeKey]);
+                    }
+                    let keyName;
+                    // Value won&#x27;t always be at .name on the args object
+                    if (((_a = prototype[typeKey]) === null || _a === void 0 ? void 0 : _a.__args) === null) {
+                        keyName = undefined;
+                    }
+                    else {
+                        keyName = Object.values((_b = prototype[typeKey]) === null || _b === void 0 ? void 0 : _b.__args)[0];
+                    }
+                    if (idCache[keyName] &amp;&amp; idCache[keyName][cacheID]) {
+                        cacheID = idCache[keyName][cacheID];
+                    }
+                    // Capitalize first letter of cache ID just in case
+                    const capitalized = cacheID.charAt(0).toUpperCase() + cacheID.slice(1);
+                    if (idCache[keyName] &amp;&amp;
+                        idCache[keyName][capitalized]) {
+                        cacheID = idCache[keyName][capitalized];
+                    }
+                    const cacheResponse = yield this.getFromRedis(cacheID);
+                    itemFromCache[typeKey] = cacheResponse ? JSON.parse(cacheResponse) : {};
+                }
+                // If itemFromCache at the current key is an array, iterate through and gather data.
+                if (Array.isArray(itemFromCache[typeKey])) {
+                    // Create a new Redis run queue.
+                    let redisRunQueue = this.redisCache.multi();
+                    for (let i = 0; i &lt; itemFromCache[typeKey].length; i++) {
+                        if (typeof itemFromCache[typeKey] === &#x27;string&#x27;) {
+                            /**
+                             * Helper function that will be called for each response in the
+                             * array of responses returned by Redis&#x27; exec() command within buildFromCache.
+                             * @param {string} cacheResponse - Response from one of the get commands in the Redis queue.
+                             */
+                            const getCommandCallback = (cacheResponse) =&gt; {
+                                const tempObj = {};
+                                if (cacheResponse) {
+                                    const interimCache = JSON.parse(cacheResponse);
+                                    for (const property in prototype[typeKey]) {
+                                        // If property exists, set on tempObj
+                                        if (Object.prototype.hasOwnProperty.call(interimCache, property) &amp;&amp;
+                                            !property.includes(&#x27;__&#x27;)) {
+                                            tempObj[property] = interimCache[property];
+                                        }
+                                        // If prototype is nested at this field, recurse
+                                        else if (!property.includes(&#x27;__&#x27;) &amp;&amp;
+                                            typeof prototype[typeKey][property] ===
+                                                &#x27;object&#x27;) {
+                                            this.buildFromCache(prototype[typeKey][property], prototypeKeys, {}, false, `${currTypeKey}--${property}`).then((tempData) =&gt; (tempObj[property] = tempData.data));
+                                        }
+                                        // If cache does not have property, set to false on prototype so that it is sent to GraphQL
+                                        else if (!property.includes(&#x27;__&#x27;) &amp;&amp;
+                                            typeof prototype[typeKey][property] !==
+                                                &#x27;object&#x27;) {
+                                            prototype[typeKey][property] = false;
+                                        }
+                                    }
+                                    itemFromCache[typeKey][i] = tempObj;
+                                }
+                                // If there is nothing in the cache for this key, toggle all fields to false so they will be fetched later.
+                                else {
+                                    for (const property in prototype[typeKey]) {
+                                        if (!property.includes(&#x27;__&#x27;) &amp;&amp;
+                                            typeof prototype[typeKey][property] !==
+                                                &#x27;object&#x27;) {
+                                            prototype[typeKey][property] = false;
+                                        }
+                                    }
+                                }
+                            };
+                            const currTypeKey = itemFromCache[typeKey][i];
+                            // If the size of the current batch equals the redisReadBatchSize in the constructor
+                            // execute the current batch and reset the queue.
+                            if (i !== 0 &amp;&amp; i % this.redisReadBatchSize === 0) {
+                                try {
+                                    const cacheResponseRaw = yield redisRunQueue.exec();
+                                    cacheResponseRaw.forEach((cacheResponse) =&gt; getCommandCallback(JSON.stringify(cacheResponse)));
+                                }
+                                catch (error) {
+                                    const err = {
+                                        log: `Error inside 1st-catch block of buildFromCache, ${error}`,
+                                        status: 400,
+                                        message: {
+                                            err: &#x27;Error in buildFromCache. Check server log for more details.&#x27;
+                                        }
+                                    };
+                                    console.log(err);
+                                }
+                                redisRunQueue = this.redisCache.multi();
+                            }
+                            // Add a get command for the current type key to the queue.
+                            redisRunQueue.get(currTypeKey.toLowerCase());
+                            // Execute any remnants in redis run queue.
+                            try {
+                                const cacheResponseRaw = yield redisRunQueue.exec();
+                                cacheResponseRaw.forEach((cacheResponse) =&gt; getCommandCallback(JSON.stringify(cacheResponse)));
+                            }
+                            catch (error) {
+                                const err = {
+                                    log: `Error inside 2nd-catch block of buildFromCache, ${error}`,
+                                    status: 400,
+                                    message: {
+                                        err: &#x27;Error in buildFromCache. Check server log for more details.&#x27;
+                                    }
+                                };
+                                console.log(err);
+                            }
+                        }
+                    }
+                }
+                // Recurse through buildFromCache using typeKey and prototype.
+                // If itemFromCache is empty, then check the cache for data; otherwise, persist itemFromCache
+                // if this iteration is a nested query (i.e. if typeKey is a field in the query)
+                else if (firstRun === false) {
+                    // If this field is not in the cache, then set this field&#x27;s value to false.
+                    if ((itemFromCache === null ||
+                        !Object.prototype.hasOwnProperty.call(itemFromCache, typeKey)) &amp;&amp;
+                        typeof prototype[typeKey] !== &#x27;object&#x27; &amp;&amp;
+                        !typeKey.includes(&#x27;__&#x27;) &amp;&amp;
+                        !itemFromCache[0]) {
+                        prototype[typeKey] = false;
+                    }
+                    // If this field is a nested query, then recurse the buildFromCache function and iterate through the nested query.
+                    if (!(Object.keys(itemFromCache).length &gt; 0) &amp;&amp;
+                        typeof itemFromCache === &#x27;object&#x27; &amp;&amp;
+                        !typeKey.includes(&#x27;__&#x27;) &amp;&amp;
+                        typeof prototype[typeKey] === &#x27;object&#x27;) {
+                        const cacheID = yield this.generateCacheID(prototype);
+                        const cacheResponse = yield this.getFromRedis(cacheID);
+                        if (cacheResponse)
+                            itemFromCache[typeKey] = JSON.parse(cacheResponse);
+                        yield this.buildFromCache(prototype[typeKey], prototypeKeys, itemFromCache[typeKey], false);
+                    }
+                }
+                // If not an array and not a recursive call, handle normally
+                else {
+                    for (const field in prototype[typeKey]) {
+                        // If field is not found in cache then toggle to false
+                        if (itemFromCache[typeKey] &amp;&amp;
+                            !Object.prototype.hasOwnProperty.call(itemFromCache[typeKey], field) &amp;&amp;
+                            !field.includes(&#x27;__&#x27;) &amp;&amp;
+                            typeof prototype[typeKey][field] !== &#x27;object&#x27;) {
+                            prototype[typeKey][field] = false;
+                        }
+                        // If field contains a nested query, then recurse the function and iterate through the nested query
+                        if (!field.includes(&#x27;__&#x27;) &amp;&amp;
+                            typeof prototype[typeKey][field] === &#x27;object&#x27;) {
+                            yield this.buildFromCache(prototype[typeKey][field], prototypeKeys, itemFromCache[typeKey][field] || {}, false);
+                        }
+                        // If there are no data in itemFromCache, toggle to false
+                        else if (!itemFromCache[typeKey] &amp;&amp;
+                            !field.includes(&#x27;__&#x27;) &amp;&amp;
+                            typeof prototype[typeKey][field] !== &#x27;object&#x27;) {
+                            prototype[typeKey][field] = false;
+                        }
+                    }
+                }
+            }
+            // Return itemFromCache on a data property to resemble GraphQL response format.
+            return { data: itemFromCache };
+        });
+    }
+    /**
+     * Traverses over response data and formats it appropriately so that it can be stored in the cache.
+     * @param {Object} responseData - Data we received from an external source of data such as a database or API.
+     * @param {Object} map - Map of queries to their desired data types, used to ensure accurate and consistent caching.
+     * @param {Object} protoField - Slice of the prototype currently being used as a template and reference for the responseData to send information to the cache.
+     * @param {string} currName - Parent object name, used to pass into updateIDCache.
+     */
+    normalizeForCache(responseData, map, protoField, parentName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(&#x27;normalizing cache&#x27;);
+            const currName = responseData.__typename;
+            if (!currName) {
+                throw new Error(&#x27;Object does not have a __typename field&#x27;);
+            }
+            // Create a new ProtoObj for the current responseData
+            const newProtoField = {
+                __type: currName,
+                __alias: protoField.__alias,
+                __args: protoField.__args,
+                __id: protoField.__id,
+            };
+            // Recurse on the children of the current responseData
+            for (let key in responseData) {
+                if (key !== &#x27;__typename&#x27; &amp;&amp; typeof responseData[key] === &#x27;object&#x27; &amp;&amp; responseData[key] !== null) {
+                    if (Array.isArray(responseData[key])) {
+                        for (let i = 0; i &lt; responseData[key].length; i++) {
+                            this.normalizeForCache(responseData[key][i], map, newProtoField, currName);
+                        }
+                    }
+                    else {
+                        this.normalizeForCache(responseData[key], map, newProtoField, currName);
+                    }
+                }
+                else {
+                    newProtoField[key] = responseData[key];
+                }
+            }
+            const cacheID = this.generateCacheID(newProtoField);
+            this.writeToCache(cacheID, newProtoField);
+            if (protoField.__id &amp;&amp; parentName !== map[&#x27;__type&#x27;]) {
+                this.updateIdCache(protoField.__type, cacheID, parentName);
+            }
+        });
+    }
+    /**
+     * Helper function that creates cacheIDs based on information from the prototype in the
+     * format of &#x27;field--ID&#x27;.
+     * @param {string} key - Unique id under which the cached data will be stored.
+     * @param {Object} item - Item to be cached.
+     */
+    generateCacheID(queryProto) {
+        const cacheID = queryProto.__id
+            ? `${queryProto.__type}--${queryProto.__id}`
+            : queryProto.__type;
+        return cacheID;
+    }
+    /**
+     * Stringifies and writes an item to the cache unless the key indicates that the item is uncacheable.
+     * Sets the expiration time for each item written to cache to the expiration time set on server connection.
+     * @param {string} key - Unique id under which the cached data will be stored.
+     * @param {Object} item - Item to be cached.
+     */
+    writeToCache(key, item) {
+        const lowerKey = key.toLowerCase();
+        if (!key.includes(&#x27;uncacheable&#x27;)) {
+            this.redisCache.set(lowerKey, JSON.stringify(item));
+            this.redisCache.EXPIRE(lowerKey, this.cacheExpiration);
+        }
+    }
+    /**
+     * Stores keys in a nested object under parent name.
+     * If the key is a duplication, it is stored in an array.
+     *  @param {string} objKey - Object key; key to be cached without ID string.
+     *  @param {string} keyWithID - Key to be cached with ID string attached; Redis data is stored under this key.
+     *  @param {string} currName - The parent object name.
+     */
+    updateIdCache(objKey, keyWithID, currName) {
+        // BUG: Add check - If any of the arguments are missing, return immediately.
+        // Currently, if currName is undefined, this function is adding &#x27;undefined&#x27; as a
+        // key in the idCache.
+        if (!idCache[currName]) {
+            // If the parent object is not yet defined in the idCache, create the object and add the new key.
+            idCache[currName] = {};
+            idCache[currName][objKey] = keyWithID;
+            return;
+        }
+        else if (!idCache[currName][objKey]) {
+            // If parent object is defined in the idCache, but this is the first child ID, create the
+            // array that the ID will be added to.
+            idCache[currName][objKey] = [];
+        }
+        // Add the ID to the array in the idCache.
+        idCache[currName][objKey].push(keyWithID);
+    }
+    /**
+     * Updates the Redis cache when the operation is a mutation.
+     * - For update and delete mutations, checks if the mutation query includes an id.
+     * If so, it will update the cache at that id. If not, it will iterate through the cache
+     * to find the appropriate fields to update/delete.
+     * @param {Object} dbRespDataRaw - Raw response from the database returned following mutation.
+     * @param {string} mutationName - Name of the mutation (e.g. addItem).
+     * @param {string} mutationType - Type of mutation (add, update, delete).
+     * @param {Object} mutationQueryObject - Arguments and values for the mutation.
+     */
+    updateCacheByMutation(dbRespDataRaw, mutationName, mutationType, mutationQueryObject) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            let fieldsListKey;
+            let dbRespId = &#x27;&#x27;;
+            let dbRespData = {};
+            if (dbRespDataRaw.data) {
+                // TODO: Need to modify this logic if ID is not being requested back during
+                // mutation query.
+                // dbRespDataRaw.data[mutationName] will always return the value at the mutationName
+                // in the form of an object.
+                dbRespId = (_a = dbRespDataRaw.data[mutationName]) === null || _a === void 0 ? void 0 : _a.id;
+                dbRespData = JSON.parse(JSON.stringify(dbRespDataRaw.data[mutationName]));
+            }
+            for (const queryKey in this.queryMap) {
+                const queryKeyType = this.queryMap[queryKey];
+                if (JSON.stringify(queryKeyType) === JSON.stringify([mutationType])) {
+                    fieldsListKey = queryKey;
+                    break;
+                }
+            }
+            /**
+             * Helper function to delete field keys from cached field list.
+             * @param {Set&lt;string&gt; | Array&lt;string&gt;} fieldKeysToRemove - Field keys to be removed from the cached field list.
+             */
+            const removeFromFieldKeysList = (fieldKeysToRemove) =&gt; __awaiter(this, void 0, void 0, function* () {
+                if (fieldsListKey) {
+                    const cachedFieldKeysListRaw = yield this.getFromRedis(fieldsListKey);
+                    if (cachedFieldKeysListRaw !== null &amp;&amp;
+                        cachedFieldKeysListRaw !== undefined) {
+                        const cachedFieldKeysList = JSON.parse(cachedFieldKeysListRaw);
+                        fieldKeysToRemove.forEach((fieldKey) =&gt; {
+                            // Index position of field key to remove from list of field keys
+                            const removalFieldKeyIdx = cachedFieldKeysList.indexOf(fieldKey);
+                            if (removalFieldKeyIdx !== -1) {
+                                cachedFieldKeysList.splice(removalFieldKeyIdx, 1);
+                            }
+                        });
+                        this.writeToCache(fieldsListKey, cachedFieldKeysList);
+                    }
+                }
+            });
+            /**
+             * Helper function that loops through the cachedFieldKeysList and helps determine which
+             * fieldKeys should be deleted and passes those fields to removeFromFieldKeysList for removal.
+             */
+            const deleteApprFieldKeys = () =&gt; __awaiter(this, void 0, void 0, function* () {
+                if (fieldsListKey) {
+                    const cachedFieldKeysListRaw = yield this.getFromRedis(fieldsListKey);
+                    if (cachedFieldKeysListRaw !== null &amp;&amp;
+                        cachedFieldKeysListRaw !== undefined) {
+                        const cachedFieldKeysList = JSON.parse(cachedFieldKeysListRaw);
+                        const fieldKeysToRemove = new Set();
+                        for (let i = 0; i &lt; cachedFieldKeysList.length; i++) {
+                            const fieldKey = cachedFieldKeysList[i];
+                            const fieldKeyValueRaw = yield this.getFromRedis(fieldKey.toLowerCase());
+                            if (fieldKeyValueRaw !== null &amp;&amp; fieldKeyValueRaw !== undefined) {
+                                const fieldKeyValue = JSON.parse(fieldKeyValueRaw);
+                                let remove = true;
+                                for (const arg in mutationQueryObject.__args) {
+                                    if (Object.prototype.hasOwnProperty.call(fieldKeyValue, arg)) {
+                                        const argValue = mutationQueryObject.__args[arg];
+                                        if (fieldKeyValue[arg] !== argValue) {
+                                            remove = false;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        remove = false;
+                                        break;
+                                    }
+                                }
+                                if (remove === true) {
+                                    fieldKeysToRemove.add(fieldKey);
+                                    this.deleteCacheById(fieldKey.toLowerCase());
+                                }
+                            }
+                        }
+                        removeFromFieldKeysList(fieldKeysToRemove);
+                    }
+                }
+            });
+            /**
+             * Helper function that loops through the cachedFieldKeysList and updates the appropriate
+             * field key values and writes the updated values to the redis cache
+             */
+            const updateApprFieldKeys = () =&gt; __awaiter(this, void 0, void 0, function* () {
+                const cachedFieldKeysListRaw = yield this.getFromRedis(fieldsListKey);
+                // conditional just in case the resolver wants to throw an error. instead of making quellCache invoke it&#x27;s caching functions, we break here.
+                if (cachedFieldKeysListRaw === undefined)
+                    return;
+                // list of field keys stored on redis
+                if (cachedFieldKeysListRaw !== null) {
+                    const cachedFieldKeysList = JSON.parse(cachedFieldKeysListRaw);
+                    // Iterate through field key field key values in Redis, and compare to user
+                    // specified mutation args to determine which fields are used to update by
+                    // and which fields need to be updated.
+                    cachedFieldKeysList.forEach((fieldKey) =&gt; __awaiter(this, void 0, void 0, function* () {
+                        const fieldKeyValueRaw = yield this.getFromRedis(fieldKey.toLowerCase());
+                        if (fieldKeyValueRaw !== null &amp;&amp; fieldKeyValueRaw !== undefined) {
+                            const fieldKeyValue = JSON.parse(fieldKeyValueRaw);
+                            const fieldsToUpdateBy = [];
+                            const updatedFieldKeyValue = fieldKeyValue;
+                            Object.entries(mutationQueryObject.__args).forEach(([arg, argVal]) =&gt; {
+                                if (arg in fieldKeyValue &amp;&amp; fieldKeyValue[arg] === argVal) {
+                                    // Foreign keys are not fields to update by
+                                    if (arg.toLowerCase().includes(&#x27;id&#x27;) === false) {
+                                        fieldsToUpdateBy.push(arg);
+                                    }
+                                }
+                                else {
+                                    if (typeof argVal === &#x27;string&#x27;)
+                                        updatedFieldKeyValue[arg] = argVal;
+                                }
+                            });
+                            if (fieldsToUpdateBy.length &gt; 0) {
+                                this.writeToCache(fieldKey, updatedFieldKeyValue);
+                            }
+                        }
+                    }));
+                }
+            });
+            // If there is no id property on dbRespDataRaw.data[mutationName]
+            // dbRespId defaults to an empty string and no redisKey will be found.
+            const hypotheticalRedisKey = `${mutationType.toLowerCase()}--${dbRespId}`;
+            const redisKey = yield this.getFromRedis(hypotheticalRedisKey);
+            if (redisKey) {
+                // If the key was found in the Redis server cache, the mutation is either update or delete mutation.
+                if (mutationQueryObject.__id) {
+                    // If the user specifies dbRespId as an argument in the mutation, then we only need to
+                    // update/delete a single cache entry by dbRespId.
+                    if (mutationName.substring(0, 3) === &#x27;del&#x27;) {
+                        // If the first 3 letters of the mutationName are &#x27;del&#x27; then the mutation is a delete mutation.
+                        // Users have to prefix their delete mutations with &#x27;del&#x27; so that quell can distinguish between delete/update mutations.
+                        this.deleteCacheById(`${mutationType.toLowerCase()}--${mutationQueryObject.__id}`);
+                        removeFromFieldKeysList([`${mutationType}--${dbRespId}`]);
+                    }
+                    else {
+                        // Update mutation for single dbRespId
+                        this.writeToCache(`${mutationType.toLowerCase()}--${mutationQueryObject.__id}`, dbRespData);
+                    }
+                }
+                else {
+                    // If the user didn&#x27;t specify dbRespId, we need to iterate through all key value pairs and determine which key values match dbRespData.
+                    // Note that there is a potential edge case here if there are no queries that have type GraphQLList.
+                    // if (!fieldsListKey) throw &#x27;error: schema must have a GraphQLList&#x27;;
+                    // Unused variable
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const removalFieldKeysList = [];
+                    if (mutationName.substring(0, 3) === &#x27;del&#x27;) {
+                        // Mutation is delete mutation
+                        deleteApprFieldKeys();
+                    }
+                    else {
+                        updateApprFieldKeys();
+                    }
+                }
+            }
+            else {
+                // If the key was not found in the Redis server cache, the mutation is an add mutation.
+                this.writeToCache(hypotheticalRedisKey, dbRespData);
+            }
+        });
+    }
+    /**
+     * Removes key-value from the cache unless the key indicates that the item is not available.
+     * @param {string} key - Unique id under which the cached data is stored that needs to be removed.
+     */
+    deleteCacheById(key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.redisCache.del(key);
+            }
+            catch (error) {
+                const err = {
+                    log: `Error inside deleteCacheById function, ${error}`,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in redis - deleteCacheById, Check server log for more details.&#x27;
+                    }
+                };
+                console.log(err);
+            }
+        });
+    }
+    /**
+     * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
+     * passes the request and response objects to an instance of QuellCache.clearCache.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     */
+    clearCache(req, res, next) {
+        console.log(&#x27;Clearing Redis Cache&#x27;);
+        this.redisCache.flushAll();
+        idCache = {};
+        return next();
+    }
+    /**
+     * Returns a chain of middleware based on what information (if any) the user would
+     * like to request from the specified redisCache. It requires an appropriately
+     * configured Express route and saves the specified stats to res.locals, for instance:
+     * @example
+     *  app.use(&#x27;/redis&#x27;, ...quellCache.getRedisInfo({
+     *    getStats: true,
+     *    getKeys: true,
+     *    getValues: true
+     *  }));
+     * @param {Object} options - Three properties with boolean values:
+     *                           getStats, getKeys, getValues
+     * @returns {Array} An array of middleware functions that retrieves specified Redis info.
+     */
+    getRedisInfo(options = {
+        getStats: true,
+        getKeys: true,
+        getValues: true
+    }) {
+        console.log(&#x27;Getting Redis Info&#x27;);
+        const middleware = [];
+        /**
+         * Helper function within the getRedisInfo function that returns
+         * what redis data should be retrieved based on the passed in options.
+         * @param {Object} opts - Options object containing a boolean value for getStats, getKeys, and getValues.
+         * @returns {string} String that indicates which data should be retrieved from Redis instance.
+         */
+        const getOptions = (opts) =&gt; {
+            const { getStats, getKeys, getValues } = opts;
+            if (!getStats &amp;&amp; getKeys &amp;&amp; getValues)
+                return &#x27;dontGetStats&#x27;;
+            else if (getStats &amp;&amp; getKeys &amp;&amp; !getValues)
+                return &#x27;dontGetValues&#x27;;
+            else if (!getStats &amp;&amp; getKeys &amp;&amp; !getValues)
+                return &#x27;getKeysOnly&#x27;;
+            else if (getStats &amp;&amp; !getKeys &amp;&amp; !getValues)
+                return &#x27;getStatsOnly&#x27;;
+            else
+                return &#x27;getAll&#x27;;
+        };
+        switch (getOptions(options)) {
+            case &#x27;dontGetStats&#x27;:
+                middleware.push(this.getRedisKeys, this.getRedisValues);
+                break;
+            case &#x27;dontGetValues&#x27;:
+                middleware.push(this.getStatsFromRedis, this.getRedisKeys);
+                break;
+            case &#x27;getKeysOnly&#x27;:
+                middleware.push(this.getRedisKeys);
+                break;
+            case &#x27;getStatsOnly&#x27;:
+                middleware.push(this.getStatsFromRedis);
+                break;
+            case &#x27;getAll&#x27;:
+                middleware.push(this.getStatsFromRedis, this.getRedisKeys, this.getRedisValues);
+                break;
+        }
+        return middleware;
+    }
+    /**
+     * Gets information and statistics about the server and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     */
+    getStatsFromRedis(req, res, next) {
+        try {
+            const getStats = () =&gt; {
+                // redisCache.info returns information and statistics about the server as an array of field:value.
+                this.redisCache
+                    .info()
+                    .then((response) =&gt; {
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+                    const dataLines = response.split(&#x27;\r\n&#x27;);
+                    const output = {
+                        // SERVER
+                        server: [
+                            // Redis version
+                            {
+                                name: &#x27;Redis version&#x27;,
+                                value: (_a = dataLines
+                                    .find((line) =&gt; line.match(/redis_version/))) === null || _a === void 0 ? void 0 : _a.split(&#x27;:&#x27;)[1]
+                            },
+                            // Redis build id
+                            {
+                                name: &#x27;Redis build id&#x27;,
+                                value: (_b = dataLines
+                                    .find((line) =&gt; line.match(/redis_build_id/))) === null || _b === void 0 ? void 0 : _b.split(&#x27;:&#x27;)[1]
+                            },
+                            // Redis mode
+                            {
+                                name: &#x27;Redis mode&#x27;,
+                                value: (_c = dataLines
+                                    .find((line) =&gt; line.match(/redis_mode/))) === null || _c === void 0 ? void 0 : _c.split(&#x27;:&#x27;)[1]
+                            },
+                            // OS hosting Redis system
+                            {
+                                name: &#x27;Host operating system&#x27;,
+                                value: (_d = dataLines
+                                    .find((line) =&gt; line.match(/os/))) === null || _d === void 0 ? void 0 : _d.split(&#x27;:&#x27;)[1]
+                            },
+                            // TCP/IP listen port
+                            {
+                                name: &#x27;TCP/IP port&#x27;,
+                                value: (_e = dataLines
+                                    .find((line) =&gt; line.match(/tcp_port/))) === null || _e === void 0 ? void 0 : _e.split(&#x27;:&#x27;)[1]
+                            },
+                            // Server time
+                            // {
+                            //   name: &#x27;System time&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/server_time_in_usec/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Number of seconds since Redis server start
+                            {
+                                name: &#x27;Server uptime (seconds)&#x27;,
+                                value: (_f = dataLines
+                                    .find((line) =&gt; line.match(/uptime_in_seconds/))) === null || _f === void 0 ? void 0 : _f.split(&#x27;:&#x27;)[1]
+                            },
+                            // Number of days since Redis server start
+                            {
+                                name: &#x27;Server uptime (days)&#x27;,
+                                value: (_g = dataLines
+                                    .find((line) =&gt; line.match(/uptime_in_days/))) === null || _g === void 0 ? void 0 : _g.split(&#x27;:&#x27;)[1]
+                            },
+                            // Path to server&#x27;s executable
+                            // {
+                            //   name: &#x27;Path to executable&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/executable/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Path to server&#x27;s configuration file
+                            {
+                                name: &#x27;Path to configuration file&#x27;,
+                                value: (_h = dataLines
+                                    .find((line) =&gt; line.match(/config_file/))) === null || _h === void 0 ? void 0 : _h.split(&#x27;:&#x27;)[1]
+                            }
+                        ],
+                        // CLIENT
+                        client: [
+                            // Number of connected clients
+                            {
+                                name: &#x27;Connected clients&#x27;,
+                                value: (_j = dataLines
+                                    .find((line) =&gt; line.match(/connected_clients/))) === null || _j === void 0 ? void 0 : _j.split(&#x27;:&#x27;)[1]
+                            },
+                            // Number of sockets used by cluster bus
+                            {
+                                name: &#x27;Cluster connections&#x27;,
+                                value: (_k = dataLines
+                                    .find((line) =&gt; line.match(/cluster_connections/))) === null || _k === void 0 ? void 0 : _k.split(&#x27;:&#x27;)[1]
+                            },
+                            // Max clients
+                            {
+                                name: &#x27;Max clients&#x27;,
+                                value: (_l = dataLines
+                                    .find((line) =&gt; line.match(/maxclients/))) === null || _l === void 0 ? void 0 : _l.split(&#x27;:&#x27;)[1]
+                            },
+                            // Number of clients being tracked
+                            // {
+                            //   name: &#x27;Tracked clients&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/tracking_clients/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Blocked clients
+                            {
+                                name: &#x27;Blocked clients&#x27;,
+                                value: (_m = dataLines
+                                    .find((line) =&gt; line.match(/blocked_clients/))) === null || _m === void 0 ? void 0 : _m.split(&#x27;:&#x27;)[1]
+                            }
+                        ],
+                        // MEMORY
+                        memory: [
+                            // Total allocated memory
+                            {
+                                name: &#x27;Total allocated memory&#x27;,
+                                value: (_o = dataLines
+                                    .find((line) =&gt; line.match(/used_memory_human/))) === null || _o === void 0 ? void 0 : _o.split(&#x27;:&#x27;)[1]
+                            },
+                            // Peak memory consumed
+                            {
+                                name: &#x27;Peak memory consumed&#x27;,
+                                value: (_p = dataLines
+                                    .find((line) =&gt; line.match(/used_memory_peak_human/))) === null || _p === void 0 ? void 0 : _p.split(&#x27;:&#x27;)[1]
+                            }
+                            // % of peak out of total
+                            // {
+                            //   name: &#x27;Peak memory used % total&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/used_memory_peak_perc/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Initial amount of memory consumed at startup
+                            // {
+                            //   name: &#x27;Memory consumed at startup&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/used_memory_startup/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Size of dataset
+                            // {
+                            //   name: &#x27;Dataset size (bytes)&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/used_memory_dataset/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Percent of data out of net memory usage
+                            // {
+                            //   name: &#x27;Dataset memory % total&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/used_memory_dataset_perc/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Total system memory
+                            // {
+                            //   name: &#x27;Total system memory&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/total_system_memory_human/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                        ],
+                        // STATS
+                        stats: [
+                            // Total number of connections accepted by server
+                            {
+                                name: &#x27;Total connections&#x27;,
+                                value: (_q = dataLines
+                                    .find((line) =&gt; line.match(/total_connections_received/))) === null || _q === void 0 ? void 0 : _q.split(&#x27;:&#x27;)[1]
+                            },
+                            // Total number of commands processed by server
+                            {
+                                name: &#x27;Total commands&#x27;,
+                                value: (_r = dataLines
+                                    .find((line) =&gt; line.match(/total_commands_processed/))) === null || _r === void 0 ? void 0 : _r.split(&#x27;:&#x27;)[1]
+                            },
+                            // Number of commands processed per second
+                            {
+                                name: &#x27;Commands processed per second&#x27;,
+                                value: (_s = dataLines
+                                    .find((line) =&gt; line.match(/instantaneous_ops_per_sec/))) === null || _s === void 0 ? void 0 : _s.split(&#x27;:&#x27;)[1]
+                            },
+                            // Total number of keys being tracked
+                            // {
+                            //   name: &#x27;Tracked keys&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/tracking_total_keys/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Total number of items being tracked(sum of clients number for each key)
+                            // {
+                            //   name: &#x27;Tracked items&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/tracking_total_items/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Total number of read events processed
+                            // {
+                            //   name: &#x27;Reads processed&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/total_reads_processed/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Total number of write events processed
+                            // {
+                            //   name: &#x27;Writes processed&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/total_writes_processed/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Total number of error replies
+                            {
+                                name: &#x27;Error replies&#x27;,
+                                value: (_t = dataLines
+                                    .find((line) =&gt; line.match(/total_error_replies/))) === null || _t === void 0 ? void 0 : _t.split(&#x27;:&#x27;)[1]
+                            },
+                            // Total number of bytes read from network
+                            {
+                                name: &#x27;Bytes read from network&#x27;,
+                                value: (_u = dataLines
+                                    .find((line) =&gt; line.match(/total_net_input_bytes/))) === null || _u === void 0 ? void 0 : _u.split(&#x27;:&#x27;)[1]
+                            },
+                            // Networks read rate per second
+                            {
+                                name: &#x27;Network read rate (Kb/s)&#x27;,
+                                value: (_v = dataLines
+                                    .find((line) =&gt; line.match(/instantaneous_input_kbps/))) === null || _v === void 0 ? void 0 : _v.split(&#x27;:&#x27;)[1]
+                            },
+                            // Total number of bytes written to network
+                            // {
+                            //   name: &#x27;Bytes written to network&#x27;,
+                            //   value: dataLines
+                            //     .find((line) =&gt; line.match(/total_net_output_bytes/))
+                            //     .split(&#x27;:&#x27;)[1],
+                            // },
+                            // Networks write rate per second
+                            {
+                                name: &#x27;Network write rate (Kb/s)&#x27;,
+                                value: (_w = dataLines
+                                    .find((line) =&gt; line.match(/instantaneous_output_kbps/))) === null || _w === void 0 ? void 0 : _w.split(&#x27;:&#x27;)[1]
+                            }
+                        ]
+                    };
+                    res.locals.redisStats = output;
+                    return next();
+                })
+                    .catch((error) =&gt; {
+                    const err = {
+                        log: `Error inside catch block of getting info within getStatsFromRedis, ${error}`,
+                        status: 400,
+                        message: {
+                            err: &#x27;Error in redis - getStatsFromRedis. Check server log for more details.&#x27;
+                        }
+                    };
+                    return next(err);
+                });
+            };
+            getStats();
+        }
+        catch (error) {
+            const err = {
+                log: `Error inside catch block of getStatsFromRedis, ${error}`,
+                status: 400,
+                message: {
+                    err: &#x27;Error in redis - getStatsFromRedis. Check server log for more details.&#x27;
+                }
+            };
+            return next(err);
+        }
+    }
+    /**
+     * Gets the key names from the Redis cache and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     */
+    getRedisKeys(req, res, next) {
+        this.redisCache
+            .keys(&#x27;*&#x27;)
+            .then((response) =&gt; {
+            res.locals.redisKeys = response;
+            return next();
+        })
+            .catch((error) =&gt; {
+            const err = {
+                log: `Error inside catch block of getRedisKeys, keys potentially undefined, ${error}`,
+                status: 400,
+                message: {
+                    err: &#x27;Error in redis - getRedisKeys. Check server log for more details.&#x27;
+                }
+            };
+            return next(err);
+        });
+    }
+    /**
+     * Gets the values associated with the Redis cache keys and adds them to the response.
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     */
+    getRedisValues(req, res, next) {
+        if (res.locals.redisKeys.length !== 0) {
+            this.redisCache
+                .mGet(res.locals.redisKeys)
+                .then((response) =&gt; {
+                res.locals.redisValues = response;
+                return next();
+            })
+                .catch((error) =&gt; {
+                const err = {
+                    log: `Error inside catch block of getRedisValues, ${error}`,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in redis - getRedisValues. Check server log for more details.&#x27;
+                    }
+                };
+                return next(err);
+            });
+        }
+        else {
+            res.locals.redisValues = [];
+            return next();
+        }
+    }
+    /**
+     * Takes in the query, parses it, and identifies the general shape of the request in order
+     * to compare the query&#x27;s depth to the depth limit set on server connection.
+     *
+     * In the instance of a malicious or overly nested query, short-circuits the query before
+     * it goes to the database and passes an error with a status code 413 (content too large).
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     * @param {Function} next - Express next middleware function
+     * @returns {void} Passes an error to Express if no query was included in the request or if the depth exceeds the maximum allowed depth.
+     */
+    // what parameters should they take? If middleware, good as is, has to take in query obj in request, limit set inside.
+    // If function inside whole of Quell, (query, limit), so they are explicitly defined and passed in
+    depthLimit(req, res, next) {
+        var _a;
+        // Get maximum depth limit from the cost parameters set on server connection.
+        let { maxDepth } = this.costParameters;
+        // maxDepth can be reassigned to get depth max limit from req.body if user selects depth limit
+        if (req.body.costOptions.maxDepth)
+            maxDepth = req.body.costOptions.maxDepth;
+        // Get the GraphQL query string from request body.
+        const queryString = req.body.query;
+        // Pass error to Express if no query is found on the request.
+        if (!queryString) {
+            {
+                const err = {
+                    log: &#x27;Invalid request, no query found in req.body&#x27;,
+                    status: 400,
+                    message: {
+                        err: &#x27;Error in middleware function: depthLimit. Check server log for more details.&#x27;
+                    }
+                };
+                return next(err);
+            }
+        }
+        // Create the abstract syntax tree with graphql-js parser.
+        // If costLimit was included before depthLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+        const AST = res.locals.AST
+            ? res.locals.AST
+            : (0, parser_1.parse)(queryString);
+        // Create response prototype, operation type, and fragments object.
+        // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
+        const { proto, operationType, frags } = (_a = res.locals.parsedAST) !== null &amp;&amp; _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST);
+        // Combine fragments on prototype so we can access fragment values in cache.
+        const prototype = Object.keys(frags).length &gt; 0
+            ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
+            : proto;
+        /**
+         * Recursive helper function that determines if the depth of the prototype object
+         * is greater than the maxDepth.
+         * @param {Object} proto - The prototype object to determine the depth of.
+         * @param {number} [currentDepth=0] - The current depth of the object. Defaults to 0.
+         * @returns {void} Passes an error to Express if the depth of the prototype exceeds the maxDepth.
+         */
+        const determineDepth = (proto, currentDepth = 0) =&gt; {
+            if (currentDepth &gt; maxDepth) {
+                // Pass error to Express if the maximum depth has been exceeded.
+                const err = {
+                    log: &#x27;Error in QuellCache.determineDepth: depth limit exceeded.&#x27;,
+                    status: 413,
+                    message: {
+                        err: `Depth limit exceeded, tried to send query with the depth of ${currentDepth}.`
+                    }
+                };
+                res.locals.queryErr = err;
+                return next(err);
+            }
+            // Loop through the fields, recursing and increasing currentDepth by 1 if the field is nested.
+            Object.keys(proto).forEach((key) =&gt; {
+                if (typeof proto[key] === &#x27;object&#x27; &amp;&amp; !key.includes(&#x27;__&#x27;)) {
+                    determineDepth(proto[key], currentDepth + 1);
+                }
+            });
+        };
+        // Call the helper function.
+        determineDepth(prototype);
+        // Attach the AST and parsed AST to res.locals so that the next middleware doesn&#x27;t need to determine these again.
+        res.locals.AST = AST;
+        res.locals.parsedAST = { proto, operationType, frags };
+        return next();
+    }
+    /**
+     * Checks the cost of the query. In the instance of a malicious or overly nested query,
+     * short-circuits the query before it goes to the database and passes an error with a
+     * status code 413 (content too large).
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next middleware function.
+     * @returns {void} Passes an error to Express if no query was included in the request or if the cost exceeds the maximum allowed cost.
+     */
+    costLimit(req, res, next) {
+        var _a;
+        // Get the cost parameters set on server connection.
+        let { maxCost } = this.costParameters;
+        const { mutationCost, objectCost, depthCostFactor, scalarCost } = this.costParameters;
+        // maxCost can be reassigned to get maxcost limit from req.body if user selects cost limit
+        if (req.body.costOptions.maxCost)
+            maxCost = req.body.costOptions.maxCost;
+        // Get the GraphQL query string from request body.
+        const queryString = req.body.query;
+        // Pass error to Express if no query is found on the request.
+        if (!queryString) {
+            const err = {
+                log: &#x27;Invalid request, no query found in req.body&#x27;,
+                status: 400,
+                message: {
+                    err: &#x27;Error in QuellCache.costLimit. Check server log for more details.&#x27;
+                }
+            };
+            return next(err);
+        }
+        // Create the abstract syntax tree with graphql-js parser.
+        // If depthLimit was included before costLimit in middleware chain, we can get the AST and parsed AST from res.locals.
+        const AST = res.locals.AST
+            ? res.locals.AST
+            : (0, parser_1.parse)(queryString);
+        // Create response prototype, operation type, and fragments object.
+        // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
+        const { proto, operationType, frags } = (_a = res.locals.parsedAST) !== null &amp;&amp; _a !== void 0 ? _a : (0, quellHelpers_1.parseAST)(AST);
+        // Combine fragments on prototype so we can access fragment values in cache.
+        const prototype = Object.keys(frags).length &gt; 0
+            ? (0, quellHelpers_1.updateProtoWithFragment)(proto, frags)
+            : proto;
+        // Set initial cost to 0.
+        // If the operation is a mutation, add to the cost the mutation cost multiplied by the number of mutations.
+        let cost = 0;
+        if (operationType === &#x27;mutation&#x27;) {
+            cost += Object.keys(prototype).length * mutationCost;
+        }
+        /**
+         * Helper function to pass an error if the cost of the proto is greater than the maximum cost set on server connection.
+         * @param {Object} proto - The prototype object to determine the cost of.
+         * @returns {void} Passes an error to Express if the cost of the prototype exceeds the maxCost.
+         */
+        const determineCost = (proto) =&gt; {
+            // Pass error to Express if the maximum cost has been exceeded.
+            if (cost &gt; maxCost) {
+                const err = {
+                    log: &#x27;Error in costLimit.determineCost(helper): cost limit exceeded.&#x27;,
+                    status: 413,
+                    message: {
+                        err: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`
+                    }
+                };
+                res.locals.queryErr = err;
+                return next(err);
+            }
+            // Loop through the fields on the prototype.
+            Object.keys(proto).forEach((key) =&gt; {
+                if (typeof proto[key] === &#x27;object&#x27; &amp;&amp; !key.includes(&#x27;__&#x27;)) {
+                    // If the current field is nested, recurse and increase the total cost by objectCost.
+                    cost += objectCost;
+                    return determineCost(proto[key]);
+                }
+                // If the current field is scalar, increase the total cost by the scalarCost.
+                if (proto[key] === true &amp;&amp; !key.includes(&#x27;__&#x27;)) {
+                    cost += scalarCost;
+                }
+            });
+        };
+        determineCost(prototype);
+        /**
+         * Helper function to pass an error if the cost of the proto, taking into account depth levels, is greater than
+         * the maximum cost set on server connection.
+         *
+         * This function essentially multiplies the cost by a depth cost adjustment, which is equal to the
+         * depthCostFactor raised to the power of the depth.
+         * @param {Object} proto - The prototype object to determine the cost of.
+         * @param {number} totalCost - Current cost of the prototype.
+         * @returns {void} Passes an error to Express if the cost of the prototype exceeds the maxCost.
+         */
+        const determineDepthCost = (proto, totalCost = cost) =&gt; {
+            // Pass error to Express if the maximum cost has been exceeded.
+            if (totalCost &gt; maxCost) {
+                const err = {
+                    log: &#x27;Error in costLimit.determineDepthCost(helper): cost limit exceeded.&#x27;,
+                    status: 413,
+                    message: {
+                        err: `Cost limit exceeded, tried to send query with a cost exceeding ${maxCost}.`
+                    }
+                };
+                res.locals.queryErr = err;
+                return next(err);
+            }
+            // Loop through the fields, recursing and multiplying the current total cost
+            // by the depthCostFactor if the field is nested.
+            Object.keys(proto).forEach((key) =&gt; {
+                if (typeof proto[key] === &#x27;object&#x27; &amp;&amp; !key.includes(&#x27;__&#x27;)) {
+                    determineDepthCost(proto[key], totalCost * depthCostFactor);
+                }
+            });
+        };
+        determineDepthCost(prototype);
+        // Attach the AST and parsed AST to res.locals so that the next middleware doesn&#x27;t need to determine these again.
+        res.locals.AST = AST;
+        res.locals.parsedAST = { proto, operationType, frags };
+        return next();
+    }
+}
+exports.QuellCache = QuellCache;
+</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1,&quot;character&quot;:4,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1,&quot;character&quot;:54,&quot;text&quot;:&quot;thisArg&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1,&quot;character&quot;:63,&quot;text&quot;:&quot;_arguments&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1,&quot;character&quot;:75,&quot;text&quot;:&quot;P&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1,&quot;character&quot;:78,&quot;text&quot;:&quot;generator&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:19,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:35,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:52,&quot;text&quot;:&quot;P&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:56,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:68,&quot;text&quot;:&quot;P&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:80,&quot;text&quot;:&quot;resolve&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:91,&quot;text&quot;:&quot;resolve&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:2,&quot;character&quot;:99,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:3,&quot;character&quot;:16,&quot;text&quot;:&quot;P&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:3,&quot;character&quot;:22,&quot;text&quot;:&quot;P&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:3,&quot;character&quot;:46,&quot;text&quot;:&quot;resolve&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:3,&quot;character&quot;:55,&quot;text&quot;:&quot;reject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:4,&quot;character&quot;:27,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:4,&quot;character&quot;:47,&quot;text&quot;:&quot;generator&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:4,&quot;character&quot;:57,&quot;text&quot;:&quot;next&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:4,&quot;character&quot;:62,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:4,&quot;character&quot;:85,&quot;text&quot;:&quot;reject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:5,&quot;character&quot;:26,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:5,&quot;character&quot;:46,&quot;text&quot;:&quot;generator&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:5,&quot;character&quot;:65,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:5,&quot;character&quot;:88,&quot;text&quot;:&quot;reject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:22,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:32,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:39,&quot;text&quot;:&quot;done&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:46,&quot;text&quot;:&quot;resolve&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:54,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:61,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:76,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:83,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:6,&quot;character&quot;:90,&quot;text&quot;:&quot;then&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:14,&quot;text&quot;:&quot;generator&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:26,&quot;text&quot;:&quot;generator&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:36,&quot;text&quot;:&quot;apply&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:42,&quot;text&quot;:&quot;thisArg&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:51,&quot;text&quot;:&quot;_arguments&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:7,&quot;character&quot;:70,&quot;text&quot;:&quot;next&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:60,&quot;character&quot;:18,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:61,&quot;character&quot;:40,&quot;text&quot;:&quot;redisPort&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:61,&quot;character&quot;:51,&quot;text&quot;:&quot;redisHost&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:61,&quot;character&quot;:62,&quot;text&quot;:&quot;redisPassword&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:62,&quot;character&quot;:13,&quot;text&quot;:&quot;idCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:63,&quot;character&quot;:13,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:63,&quot;character&quot;:22,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:64,&quot;character&quot;:13,&quot;text&quot;:&quot;costParameters&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:68,&quot;character&quot;:13,&quot;text&quot;:&quot;queryMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:69,&quot;character&quot;:13,&quot;text&quot;:&quot;mutationMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:70,&quot;character&quot;:13,&quot;text&quot;:&quot;fieldsMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:71,&quot;character&quot;:13,&quot;text&quot;:&quot;cacheExpiration&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:72,&quot;character&quot;:13,&quot;text&quot;:&quot;redisReadBatchSize&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:73,&quot;character&quot;:13,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:92,&quot;character&quot;:20,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:94,&quot;character&quot;:68,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:112,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:112,&quot;character&quot;:16,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:112,&quot;character&quot;:20,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:113,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:18,&quot;text&quot;:&quot;ipRateLimit&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:33,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:39,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:126,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:142,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:147,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:152,&quot;text&quot;:&quot;costParameters&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:115,&quot;character&quot;:167,&quot;text&quot;:&quot;ipRate&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:135,&quot;character&quot;:22,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:135,&quot;character&quot;:38,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:135,&quot;character&quot;:43,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:135,&quot;character&quot;:54,&quot;text&quot;:&quot;multi&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:137,&quot;character&quot;:16,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:137,&quot;character&quot;:30,&quot;text&quot;:&quot;incr&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:139,&quot;character&quot;:16,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:139,&quot;character&quot;:30,&quot;text&quot;:&quot;expire&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:22,&quot;text&quot;:&quot;redisResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:45,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:59,&quot;text&quot;:&quot;exec&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:67,&quot;text&quot;:&quot;map&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:72,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:141,&quot;character&quot;:98,&quot;text&quot;:&quot;result&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:144,&quot;character&quot;:22,&quot;text&quot;:&quot;numRequestsString&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:144,&quot;character&quot;:43,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:144,&quot;character&quot;:48,&quot;text&quot;:&quot;redisResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:144,&quot;character&quot;:78,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:144,&quot;character&quot;:94,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:147,&quot;character&quot;:34,&quot;text&quot;:&quot;ipRateLimit&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:149,&quot;character&quot;:145,&quot;text&quot;:&quot;ipRateLimit&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:157,&quot;character&quot;:73,&quot;text&quot;:&quot;ipRateLimit&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:186,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:187,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:203,&quot;character&quot;:18,&quot;text&quot;:&quot;AST&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:208,&quot;character&quot;:20,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:208,&quot;character&quot;:27,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:208,&quot;character&quot;:42,&quot;text&quot;:&quot;frags&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:208,&quot;character&quot;:53,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:211,&quot;character&quot;:16,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:216,&quot;character&quot;:49,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:216,&quot;character&quot;:54,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:221,&quot;character&quot;:28,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:223,&quot;character&quot;:100,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:232,&quot;character&quot;:21,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:239,&quot;character&quot;:49,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:239,&quot;character&quot;:54,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:244,&quot;character&quot;:28,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:246,&quot;character&quot;:93,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:262,&quot;character&quot;:20,&quot;text&quot;:&quot;redisValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:262,&quot;character&quot;:39,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:262,&quot;character&quot;:44,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:263,&quot;character&quot;:20,&quot;text&quot;:&quot;redisValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:265,&quot;character&quot;:20,&quot;text&quot;:&quot;redisValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:271,&quot;character&quot;:53,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:271,&quot;character&quot;:58,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:274,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:274,&quot;character&quot;:29,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:277,&quot;character&quot;:32,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:279,&quot;character&quot;:119,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:289,&quot;character&quot;:21,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:292,&quot;character&quot;:16,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:292,&quot;character&quot;:21,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:292,&quot;character&quot;:32,&quot;text&quot;:&quot;flushAll&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:296,&quot;character&quot;:20,&quot;text&quot;:&quot;mutationQueryObject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:300,&quot;character&quot;:39,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:300,&quot;character&quot;:44,&quot;text&quot;:&quot;mutationMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:303,&quot;character&quot;:61,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:305,&quot;character&quot;:39,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:305,&quot;character&quot;:44,&quot;text&quot;:&quot;mutationMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:306,&quot;character&quot;:24,&quot;text&quot;:&quot;mutationQueryObject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:306,&quot;character&quot;:46,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:311,&quot;character&quot;:49,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:311,&quot;character&quot;:54,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:316,&quot;character&quot;:24,&quot;text&quot;:&quot;mutationQueryObject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:317,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:317,&quot;character&quot;:29,&quot;text&quot;:&quot;updateCacheByMutation&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:317,&quot;character&quot;:97,&quot;text&quot;:&quot;mutationQueryObject&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:321,&quot;character&quot;:28,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:323,&quot;character&quot;:97,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:338,&quot;character&quot;:22,&quot;text&quot;:&quot;prototype&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:340,&quot;character&quot;:22,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:346,&quot;character&quot;:22,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:346,&quot;character&quot;:44,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:346,&quot;character&quot;:49,&quot;text&quot;:&quot;buildFromCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:346,&quot;character&quot;:64,&quot;text&quot;:&quot;prototype&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:347,&quot;character&quot;:46,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:349,&quot;character&quot;:20,&quot;text&quot;:&quot;mergedResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:360,&quot;character&quot;:53,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:360,&quot;character&quot;:58,&quot;text&quot;:&quot;schema&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:361,&quot;character&quot;:55,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:361,&quot;character&quot;:65,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:364,&quot;character&quot;:30,&quot;text&quot;:&quot;databaseResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:367,&quot;character&quot;:42,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:367,&quot;character&quot;:56,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:368,&quot;character&quot;:44,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:368,&quot;character&quot;:58,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:374,&quot;character&quot;:24,&quot;text&quot;:&quot;mergedResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:375,&quot;character&quot;:64,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:375,&quot;character&quot;:78,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:375,&quot;character&quot;:84,&quot;text&quot;:&quot;databaseResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:375,&quot;character&quot;:101,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:376,&quot;character&quot;:30,&quot;text&quot;:&quot;databaseResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:30,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:35,&quot;text&quot;:&quot;normalizeForCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:53,&quot;text&quot;:&quot;mergedResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:68,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:74,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:79,&quot;text&quot;:&quot;queryMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:378,&quot;character&quot;:89,&quot;text&quot;:&quot;prototype&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:381,&quot;character&quot;:24,&quot;text&quot;:&quot;mergedResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:381,&quot;character&quot;:39,&quot;text&quot;:&quot;cached&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:382,&quot;character&quot;:69,&quot;text&quot;:&quot;mergedResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:385,&quot;character&quot;:32,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:387,&quot;character&quot;:98,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:400,&quot;character&quot;:20,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:400,&quot;character&quot;:34,&quot;text&quot;:&quot;cached&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:401,&quot;character&quot;:65,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:413,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:418,&quot;character&quot;:22,&quot;text&quot;:&quot;redisResult&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:418,&quot;character&quot;:42,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:418,&quot;character&quot;:47,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:418,&quot;character&quot;:58,&quot;text&quot;:&quot;get&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:419,&quot;character&quot;:23,&quot;text&quot;:&quot;redisResult&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:445,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:445,&quot;character&quot;:16,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:446,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:451,&quot;character&quot;:24,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:454,&quot;character&quot;:24,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:457,&quot;character&quot;:24,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:457,&quot;character&quot;:34,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:457,&quot;character&quot;:39,&quot;text&quot;:&quot;generateCacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:459,&quot;character&quot;:24,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:461,&quot;character&quot;:26,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:462,&quot;character&quot;:24,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:465,&quot;character&quot;:24,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:465,&quot;character&quot;:49,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:467,&quot;character&quot;:32,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:467,&quot;character&quot;:52,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:467,&quot;character&quot;:61,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:468,&quot;character&quot;:24,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:468,&quot;character&quot;:42,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:468,&quot;character&quot;:51,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:26,&quot;text&quot;:&quot;capitalized&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:40,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:48,&quot;text&quot;:&quot;charAt&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:58,&quot;text&quot;:&quot;toUpperCase&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:74,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:471,&quot;character&quot;:82,&quot;text&quot;:&quot;slice&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:472,&quot;character&quot;:32,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:473,&quot;character&quot;:32,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:473,&quot;character&quot;:41,&quot;text&quot;:&quot;capitalized&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:474,&quot;character&quot;:24,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:474,&quot;character&quot;:42,&quot;text&quot;:&quot;keyName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:474,&quot;character&quot;:51,&quot;text&quot;:&quot;capitalized&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:476,&quot;character&quot;:26,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:476,&quot;character&quot;:48,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:476,&quot;character&quot;:53,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:476,&quot;character&quot;:66,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:477,&quot;character&quot;:45,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:482,&quot;character&quot;:24,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:482,&quot;character&quot;:40,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:482,&quot;character&quot;:45,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:482,&quot;character&quot;:56,&quot;text&quot;:&quot;multi&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:493,&quot;character&quot;:42,&quot;text&quot;:&quot;interimCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:496,&quot;character&quot;:81,&quot;text&quot;:&quot;interimCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:498,&quot;character&quot;:64,&quot;text&quot;:&quot;interimCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:44,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:49,&quot;text&quot;:&quot;buildFromCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:151,&quot;text&quot;:&quot;then&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:157,&quot;text&quot;:&quot;tempData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:191,&quot;text&quot;:&quot;tempData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:504,&quot;character&quot;:200,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:529,&quot;character&quot;:47,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:529,&quot;character&quot;:52,&quot;text&quot;:&quot;redisReadBatchSize&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:531,&quot;character&quot;:42,&quot;text&quot;:&quot;cacheResponseRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:531,&quot;character&quot;:67,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:531,&quot;character&quot;:81,&quot;text&quot;:&quot;exec&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:532,&quot;character&quot;:36,&quot;text&quot;:&quot;cacheResponseRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:532,&quot;character&quot;:53,&quot;text&quot;:&quot;forEach&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:532,&quot;character&quot;:62,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:532,&quot;character&quot;:114,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:544,&quot;character&quot;:32,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:544,&quot;character&quot;:48,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:544,&quot;character&quot;:53,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:544,&quot;character&quot;:64,&quot;text&quot;:&quot;multi&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:547,&quot;character&quot;:28,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:547,&quot;character&quot;:42,&quot;text&quot;:&quot;get&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:550,&quot;character&quot;:38,&quot;text&quot;:&quot;cacheResponseRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:550,&quot;character&quot;:63,&quot;text&quot;:&quot;redisRunQueue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:550,&quot;character&quot;:77,&quot;text&quot;:&quot;exec&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:551,&quot;character&quot;:32,&quot;text&quot;:&quot;cacheResponseRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:551,&quot;character&quot;:49,&quot;text&quot;:&quot;forEach&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:551,&quot;character&quot;:58,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:551,&quot;character&quot;:110,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:583,&quot;character&quot;:30,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:583,&quot;character&quot;:46,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:583,&quot;character&quot;:51,&quot;text&quot;:&quot;generateCacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:584,&quot;character&quot;:30,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:584,&quot;character&quot;:52,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:584,&quot;character&quot;:57,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:584,&quot;character&quot;:70,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:585,&quot;character&quot;:28,&quot;text&quot;:&quot;cacheResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:587,&quot;character&quot;:30,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:587,&quot;character&quot;:35,&quot;text&quot;:&quot;buildFromCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:603,&quot;character&quot;:34,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:603,&quot;character&quot;:39,&quot;text&quot;:&quot;buildFromCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:625,&quot;character&quot;:53,&quot;text&quot;:&quot;parentName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:626,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:634,&quot;character&quot;:16,&quot;text&quot;:&quot;__type&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:634,&quot;character&quot;:24,&quot;text&quot;:&quot;currName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:644,&quot;character&quot;:28,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:644,&quot;character&quot;:33,&quot;text&quot;:&quot;normalizeForCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:644,&quot;character&quot;:93,&quot;text&quot;:&quot;currName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:648,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:648,&quot;character&quot;:29,&quot;text&quot;:&quot;normalizeForCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:648,&quot;character&quot;:86,&quot;text&quot;:&quot;currName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:655,&quot;character&quot;:18,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:655,&quot;character&quot;:28,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:655,&quot;character&quot;:33,&quot;text&quot;:&quot;generateCacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:656,&quot;character&quot;:12,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:656,&quot;character&quot;:17,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:656,&quot;character&quot;:30,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:657,&quot;character&quot;:35,&quot;text&quot;:&quot;parentName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:658,&quot;character&quot;:16,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:658,&quot;character&quot;:21,&quot;text&quot;:&quot;updateIdCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:658,&quot;character&quot;:54,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:658,&quot;character&quot;:63,&quot;text&quot;:&quot;parentName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:668,&quot;character&quot;:20,&quot;text&quot;:&quot;queryProto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:669,&quot;character&quot;:14,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:669,&quot;character&quot;:24,&quot;text&quot;:&quot;queryProto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:669,&quot;character&quot;:35,&quot;text&quot;:&quot;__id&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:670,&quot;character&quot;:17,&quot;text&quot;:&quot;queryProto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:670,&quot;character&quot;:28,&quot;text&quot;:&quot;__type&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:670,&quot;character&quot;:39,&quot;text&quot;:&quot;queryProto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:670,&quot;character&quot;:50,&quot;text&quot;:&quot;__id&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:671,&quot;character&quot;:14,&quot;text&quot;:&quot;queryProto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:671,&quot;character&quot;:25,&quot;text&quot;:&quot;__type&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:672,&quot;character&quot;:15,&quot;text&quot;:&quot;cacheID&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:723,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:724,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:725,&quot;character&quot;:16,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:733,&quot;character&quot;:28,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:736,&quot;character&quot;:35,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:736,&quot;character&quot;:40,&quot;text&quot;:&quot;queryMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:737,&quot;character&quot;:22,&quot;text&quot;:&quot;queryKeyType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:737,&quot;character&quot;:37,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:737,&quot;character&quot;:42,&quot;text&quot;:&quot;queryMap&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:738,&quot;character&quot;:35,&quot;text&quot;:&quot;queryKeyType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:739,&quot;character&quot;:20,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:747,&quot;character&quot;:67,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:747,&quot;character&quot;:77,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:748,&quot;character&quot;:20,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:749,&quot;character&quot;:26,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:749,&quot;character&quot;:57,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:749,&quot;character&quot;:62,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:749,&quot;character&quot;:75,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:750,&quot;character&quot;:24,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:751,&quot;character&quot;:24,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:752,&quot;character&quot;:30,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:755,&quot;character&quot;:34,&quot;text&quot;:&quot;removalFieldKeyIdx&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:755,&quot;character&quot;:55,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:755,&quot;character&quot;:75,&quot;text&quot;:&quot;indexOf&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:756,&quot;character&quot;:32,&quot;text&quot;:&quot;removalFieldKeyIdx&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:757,&quot;character&quot;:32,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:757,&quot;character&quot;:52,&quot;text&quot;:&quot;splice&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:757,&quot;character&quot;:59,&quot;text&quot;:&quot;removalFieldKeyIdx&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:760,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:760,&quot;character&quot;:29,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:760,&quot;character&quot;:42,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:760,&quot;character&quot;:57,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:768,&quot;character&quot;:46,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:768,&quot;character&quot;:56,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:769,&quot;character&quot;:20,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:770,&quot;character&quot;:26,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:770,&quot;character&quot;:57,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:770,&quot;character&quot;:62,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:770,&quot;character&quot;:75,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:771,&quot;character&quot;:24,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:772,&quot;character&quot;:24,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:773,&quot;character&quot;:30,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:775,&quot;character&quot;:44,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:775,&quot;character&quot;:64,&quot;text&quot;:&quot;length&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:776,&quot;character&quot;:34,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:776,&quot;character&quot;:45,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:777,&quot;character&quot;:34,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:777,&quot;character&quot;:59,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:777,&quot;character&quot;:64,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:777,&quot;character&quot;:77,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:777,&quot;character&quot;:86,&quot;text&quot;:&quot;toLowerCase&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:778,&quot;character&quot;:32,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:778,&quot;character&quot;:61,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:779,&quot;character&quot;:38,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:782,&quot;character&quot;:77,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:784,&quot;character&quot;:44,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:795,&quot;character&quot;:58,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:796,&quot;character&quot;:36,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:796,&quot;character&quot;:41,&quot;text&quot;:&quot;deleteCacheById&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:796,&quot;character&quot;:57,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:796,&quot;character&quot;:66,&quot;text&quot;:&quot;toLowerCase&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:808,&quot;character&quot;:46,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:808,&quot;character&quot;:56,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:809,&quot;character&quot;:22,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:809,&quot;character&quot;:53,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:809,&quot;character&quot;:58,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:809,&quot;character&quot;:71,&quot;text&quot;:&quot;fieldsListKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:811,&quot;character&quot;:20,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:814,&quot;character&quot;:20,&quot;text&quot;:&quot;cachedFieldKeysListRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:815,&quot;character&quot;:26,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:819,&quot;character&quot;:20,&quot;text&quot;:&quot;cachedFieldKeysList&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:819,&quot;character&quot;:40,&quot;text&quot;:&quot;forEach&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:819,&quot;character&quot;:49,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:819,&quot;character&quot;:62,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:819,&quot;character&quot;:72,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:820,&quot;character&quot;:30,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:820,&quot;character&quot;:55,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:820,&quot;character&quot;:60,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:820,&quot;character&quot;:73,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:820,&quot;character&quot;:82,&quot;text&quot;:&quot;toLowerCase&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:821,&quot;character&quot;:28,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:821,&quot;character&quot;:57,&quot;text&quot;:&quot;fieldKeyValueRaw&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:822,&quot;character&quot;:34,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:824,&quot;character&quot;:34,&quot;text&quot;:&quot;updatedFieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:824,&quot;character&quot;:57,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:825,&quot;character&quot;:86,&quot;text&quot;:&quot;argVal&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:826,&quot;character&quot;:43,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:826,&quot;character&quot;:60,&quot;text&quot;:&quot;fieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:826,&quot;character&quot;:83,&quot;text&quot;:&quot;argVal&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:833,&quot;character&quot;:47,&quot;text&quot;:&quot;argVal&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:834,&quot;character&quot;:40,&quot;text&quot;:&quot;updatedFieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:838,&quot;character&quot;:32,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:838,&quot;character&quot;:37,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:838,&quot;character&quot;:50,&quot;text&quot;:&quot;fieldKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:838,&quot;character&quot;:60,&quot;text&quot;:&quot;updatedFieldKeyValue&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:847,&quot;character&quot;:18,&quot;text&quot;:&quot;redisKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:847,&quot;character&quot;:35,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:847,&quot;character&quot;:40,&quot;text&quot;:&quot;getFromRedis&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:848,&quot;character&quot;:16,&quot;text&quot;:&quot;redisKey&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:856,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:856,&quot;character&quot;:29,&quot;text&quot;:&quot;deleteCacheById&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:861,&quot;character&quot;:24,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:861,&quot;character&quot;:29,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:882,&quot;character&quot;:16,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:882,&quot;character&quot;:21,&quot;text&quot;:&quot;writeToCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:891,&quot;character&quot;:15,&quot;text&quot;:&quot;__awaiter&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:893,&quot;character&quot;:22,&quot;text&quot;:&quot;this&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:893,&quot;character&quot;:27,&quot;text&quot;:&quot;redisCache&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:893,&quot;character&quot;:38,&quot;text&quot;:&quot;del&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:24,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:28,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:32,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:36,&quot;text&quot;:&quot;_d&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:40,&quot;text&quot;:&quot;_e&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:44,&quot;text&quot;:&quot;_f&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:48,&quot;text&quot;:&quot;_g&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:52,&quot;text&quot;:&quot;_h&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:56,&quot;text&quot;:&quot;_j&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:60,&quot;text&quot;:&quot;_k&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:64,&quot;text&quot;:&quot;_l&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:68,&quot;text&quot;:&quot;_m&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:72,&quot;text&quot;:&quot;_o&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:76,&quot;text&quot;:&quot;_p&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:80,&quot;text&quot;:&quot;_q&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:84,&quot;text&quot;:&quot;_r&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:88,&quot;text&quot;:&quot;_s&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:92,&quot;text&quot;:&quot;_t&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:96,&quot;text&quot;:&quot;_u&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:100,&quot;text&quot;:&quot;_v&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:992,&quot;character&quot;:104,&quot;text&quot;:&quot;_w&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1000,&quot;character&quot;:40,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1006,&quot;character&quot;:40,&quot;text&quot;:&quot;_b&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1012,&quot;character&quot;:40,&quot;text&quot;:&quot;_c&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1018,&quot;character&quot;:40,&quot;text&quot;:&quot;_d&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1024,&quot;character&quot;:40,&quot;text&quot;:&quot;_e&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1037,&quot;character&quot;:40,&quot;text&quot;:&quot;_f&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1043,&quot;character&quot;:40,&quot;text&quot;:&quot;_g&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1056,&quot;character&quot;:40,&quot;text&quot;:&quot;_h&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1065,&quot;character&quot;:40,&quot;text&quot;:&quot;_j&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1071,&quot;character&quot;:40,&quot;text&quot;:&quot;_k&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1077,&quot;character&quot;:40,&quot;text&quot;:&quot;_l&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1090,&quot;character&quot;:40,&quot;text&quot;:&quot;_m&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1099,&quot;character&quot;:40,&quot;text&quot;:&quot;_o&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1105,&quot;character&quot;:40,&quot;text&quot;:&quot;_p&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1149,&quot;character&quot;:40,&quot;text&quot;:&quot;_q&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1155,&quot;character&quot;:40,&quot;text&quot;:&quot;_r&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1161,&quot;character&quot;:40,&quot;text&quot;:&quot;_s&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1195,&quot;character&quot;:40,&quot;text&quot;:&quot;_t&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1201,&quot;character&quot;:40,&quot;text&quot;:&quot;_u&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1207,&quot;character&quot;:40,&quot;text&quot;:&quot;_v&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1220,&quot;character&quot;:40,&quot;text&quot;:&quot;_w&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1228,&quot;character&quot;:28,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1230,&quot;character&quot;:99,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1265,&quot;character&quot;:20,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1267,&quot;character&quot;:94,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1290,&quot;character&quot;:24,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1292,&quot;character&quot;:72,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1320,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1343,&quot;character&quot;:14,&quot;text&quot;:&quot;AST&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1348,&quot;character&quot;:16,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1348,&quot;character&quot;:23,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1348,&quot;character&quot;:38,&quot;text&quot;:&quot;frags&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1348,&quot;character&quot;:49,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1350,&quot;character&quot;:14,&quot;text&quot;:&quot;prototype&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1352,&quot;character&quot;:14,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1384,&quot;character&quot;:33,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1384,&quot;character&quot;:40,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1384,&quot;character&quot;:55,&quot;text&quot;:&quot;frags&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1397,&quot;character&quot;:12,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1419,&quot;character&quot;:14,&quot;text&quot;:&quot;AST&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1424,&quot;character&quot;:16,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1424,&quot;character&quot;:23,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1424,&quot;character&quot;:38,&quot;text&quot;:&quot;frags&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1424,&quot;character&quot;:49,&quot;text&quot;:&quot;_a&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1426,&quot;character&quot;:14,&quot;text&quot;:&quot;prototype&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1428,&quot;character&quot;:14,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1432,&quot;character&quot;:12,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1501,&quot;character&quot;:33,&quot;text&quot;:&quot;proto&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1501,&quot;character&quot;:40,&quot;text&quot;:&quot;operationType&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;quell-server/dist/src/quell.js&quot;,&quot;line&quot;:1501,&quot;character&quot;:55,&quot;text&quot;:&quot;frags&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

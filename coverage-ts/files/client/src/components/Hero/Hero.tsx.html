@@ -1,0 +1,82 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Hero.tsx</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/Hero/Hero.tsx</td><td class="">95.29%</td><td class="">80%</td><td class="">85</td><td class="">81</td><td class="">4</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import React, { useState, useEffect, useRef } from &#x27;react&#x27;;
+import heroGraphic from &#x27;/client/src/assets/images/graphics/QUELL-hero-graphic.svg&#x27;;
+import clipboardGraphic from &#x27;/client/src/assets/images/graphics/clipboard.svg&#x27;;
+
+
+export const Hero = () =&gt; {
+
+  // Store button text
+  const [buttonText, setButtonText] = useState(&#x27;npm install @quell/client&#x27;);
+
+  // Reference button element
+  const buttonRef = useRef(null)
+
+  // Function to copy text to clipboard on button click
+  const handleButtonClick = () =&gt; {
+    navigator.clipboard.writeText(buttonText)
+      .then(() =&gt; {
+        setButtonText(&#x27;Copied!&#x27;);
+        setTimeout(() =&gt; {
+          setButtonText(&#x27;npm install @quell/client&#x27;)
+        }, 2000);
+      })
+      .catch((error) =&gt; {
+        console.log(&#x27;Failed to copy text:&#x27;, error);
+      });
+  };
+
+  useEffect(() =&gt; {
+    if (buttonText === &#x27;Copied!&#x27;) {
+      const timeoutId = setTimeout(() =&gt; {
+        setButtonText(&#x27;npm install @quell/client&#x27;);
+      }, 2000);
+
+      return () =&gt; clearTimeout(timeoutId);
+    }
+  }, [buttonText]);
+
+
+  return (
+    &lt;section id=&quot;hero&quot;&gt;
+      &lt;div className=&quot;grow relative pt-6 md:pt-14&quot;&gt;
+      &lt;div className=&quot;container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 md:flex-row md:space-y-0 md:gap-12 xl:justify-between&quot;&gt;
+        &lt;div className=&quot;flex flex-col mb-16 md:mb-32 space-y-12 md:w-1/2 md:space-y-8&quot;&gt;
+          &lt;h1 className=&quot;leading-snug text-4xl font-sans font-semibold text-white md:text-2xl md:leading-snug lg:text-4xl lg:leading-snug xl:text-5xl xl:leading-snug xl:w-full&quot;&gt;
+            The lightweight caching solution for GraphQL developers
+          &lt;/h1&gt;
+          &lt;div className=&quot;flex flex-col justify-center gap-4 xl:gap-12 xl:justify-start xl:flex-row&quot;&gt;
+            &lt;button onClick={() =&gt; document.getElementById(&#x27;Demo-Header&#x27;)?.scrollIntoView()} className=&quot;bg-lightblue text-white font-sans py-3 px-14 rounded hover:bg-altblue md:text-base xl:text-xl&quot;&gt;Try Demo&lt;/button&gt;
+            &lt;div ref={buttonRef} key={buttonText} className=&quot;flex flex-row rounded bg-transparent border border-lightblue justify-between px-4 cursor-pointer hover:bg-lightblue hover:text-white lg:px-6 xl:gap-8&quot; onClick={handleButtonClick} &gt;
+              &lt;div className=&quot;flex justify-between text-white font-courier py-3 tracking-tighter xl:text-lg&quot;&gt;{buttonText}&lt;/div&gt;
+              &lt;img className=&quot;w-5 h-auto&quot;src={clipboardGraphic} alt=&quot;Clipboard Graphic&quot;/&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;md:self-start xl:pr-16&quot;&gt;
+          &lt;img className=&quot;w-full h-auto xl:w-auto xl:h-full&quot; src={heroGraphic} alt=&quot;Hero Graphic&quot;/&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  );
+};
+
+
+</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/Hero/Hero.tsx&quot;,&quot;line&quot;:1,&quot;character&quot;:7,&quot;text&quot;:&quot;heroGraphic&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Hero/Hero.tsx&quot;,&quot;line&quot;:2,&quot;character&quot;:7,&quot;text&quot;:&quot;clipboardGraphic&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Hero/Hero.tsx&quot;,&quot;line&quot;:22,&quot;character&quot;:14,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Hero/Hero.tsx&quot;,&quot;line&quot;:23,&quot;character&quot;:44,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

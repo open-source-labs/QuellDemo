@@ -11,7 +11,8 @@
     "test": "jest",
     "build": "webpack --mode production",
     "prod": "npm install && npm run build && npm start",
-    "docker": "docker compose up"
+    "docker": "docker compose up",
+    "ts-coverage": "typescript-coverage-report"
   },
   "browser": {
     "crypto": false,
@@ -94,6 +95,7 @@
     "tailwindcss": "^3.3.2",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4",
+    "typescript-coverage-report": "^0.7.0",
     "webpack": "^5.76.3",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.13.1"

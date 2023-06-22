@@ -1,0 +1,96 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>TeamCards.tsx</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="negative"><td class="">client/src/components/TeamCards/TeamCards.tsx</td><td class="">78.36%</td><td class="">80%</td><td class="">134</td><td class="">105</td><td class="">29</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import styles from &#x27;./TeamCards.modules.css&#x27;;
+import React, { useState, useEffect, memo } from &#x27;react&#x27;;
+import Linkedin from &#x27;/client/src/assets/images/icons/QUELL-icons-linkedin.svg&#x27;;
+import Github from &#x27;/client/src/assets/images/icons/QUELL-icons-github.svg&#x27;;
+import Header from &#x27;/client/src/assets/images/quell_logos/quell-bird-border.svg&#x27;;
+import { TeamArr } from &#x27;../teaminfo&#x27;;
+
+const Team = memo(() =&gt; {
+  const [renderFx, toggleRenderFx] = useState&lt;string&gt;(&#x27;unrendered&#x27;);
+
+  // runs once on render, then procs the useState for rendered to change to renderedLogo
+  // these two strings are ID&#x27;s in our CSS.
+  useEffect(() =&gt; {
+    setTimeout(() =&gt; {
+      toggleRenderFx(&#x27;rendered&#x27;);
+    }, 550);
+  }, []);
+
+  //scrolls back to top
+  useEffect(() =&gt; {
+    if (window.location.href.includes(&#x27;scroll-demo&#x27;)) {
+      window.scrollTo(0, 0);
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    &lt;div id={renderFx}&gt;
+      &lt;h1 id={styles.heading}&gt;Team Quell&lt;/h1&gt;
+      &lt;img id={styles.logo} src={Header}&gt;&lt;/img&gt;
+      &lt;h2&gt;The Good Eggs of Quell&lt;/h2&gt;
+      &lt;div id={styles.team}&gt;
+        {TeamArr.map((currTeamObj: any, i: number) =&gt; {
+          return (
+            &lt;article key={i} className={styles.card}&gt;
+              &lt;TeamMember
+                key={i}
+                src={currTeamObj.src}
+                bio={currTeamObj.bio}
+                name={currTeamObj.name}
+                linkedin={currTeamObj.linkedin}
+                github={currTeamObj.github}
+              /&gt;
+            &lt;/article&gt;
+          );
+        })}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+});
+
+interface TeamMember {
+  src: string;
+  bio: string;
+  name: string;
+  linkedin: string;
+  github: string;
+}
+
+const TeamMember = ({ src, bio, name, linkedin, github }: TeamMember) =&gt; {
+  return (
+    &lt;div className={styles.profilePic}&gt;
+      &lt;img src={src} alt=&quot;Quell Team Member&quot;&gt;&lt;/img&gt;
+      &lt;p className={styles.name}&gt;{name}&lt;/p&gt;
+      &lt;p&gt;{bio}&lt;/p&gt;
+      &lt;div className={styles.socialIcons}&gt;
+        &lt;a href={linkedin} target=&quot;_blank&quot;&gt;
+          &lt;img src={Linkedin}&gt;&lt;/img&gt;
+        &lt;/a&gt;
+        &lt;a href={github} target=&quot;_blank&quot;&gt;
+          &lt;img src={Github}&gt;&lt;/img&gt;
+        &lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default Team;
+</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:0,&quot;character&quot;:7,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:2,&quot;character&quot;:7,&quot;text&quot;:&quot;Linkedin&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:3,&quot;character&quot;:7,&quot;text&quot;:&quot;Github&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:4,&quot;character&quot;:7,&quot;text&quot;:&quot;Header&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:28,&quot;character&quot;:14,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:28,&quot;character&quot;:21,&quot;text&quot;:&quot;heading&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:29,&quot;character&quot;:15,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:29,&quot;character&quot;:22,&quot;text&quot;:&quot;logo&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:31,&quot;character&quot;:15,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:31,&quot;character&quot;:22,&quot;text&quot;:&quot;team&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:32,&quot;character&quot;:22,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:34,&quot;character&quot;:40,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:34,&quot;character&quot;:47,&quot;text&quot;:&quot;card&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:37,&quot;character&quot;:21,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:37,&quot;character&quot;:33,&quot;text&quot;:&quot;src&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:38,&quot;character&quot;:21,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:38,&quot;character&quot;:33,&quot;text&quot;:&quot;bio&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:39,&quot;character&quot;:22,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:39,&quot;character&quot;:34,&quot;text&quot;:&quot;name&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:40,&quot;character&quot;:26,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:40,&quot;character&quot;:38,&quot;text&quot;:&quot;linkedin&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:41,&quot;character&quot;:24,&quot;text&quot;:&quot;currTeamObj&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:41,&quot;character&quot;:36,&quot;text&quot;:&quot;github&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:61,&quot;character&quot;:20,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:61,&quot;character&quot;:27,&quot;text&quot;:&quot;profilePic&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:63,&quot;character&quot;:20,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:63,&quot;character&quot;:27,&quot;text&quot;:&quot;name&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:65,&quot;character&quot;:22,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/TeamCards/TeamCards.tsx&quot;,&quot;line&quot;:65,&quot;character&quot;:29,&quot;text&quot;:&quot;socialIcons&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

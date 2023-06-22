@@ -1,0 +1,117 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>FlowTable.tsx</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/Visualizer/FlowTable.tsx</td><td class="">89.47%</td><td class="">80%</td><td class="">152</td><td class="">136</td><td class="">16</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import React, { useState, useEffect, useRef } from &#x27;react&#x27;;
+import { parse, DocumentNode, SelectionSetNode, OperationDefinitionNode } from &#x27;graphql&#x27;;
+import MonacoEditor from &#x27;@monaco-editor/react&#x27;;
+import styles from &#x27;./Visualizer.modules.css&#x27;;
+
+// defining the expected type
+interface Props {
+  query: string;
+  elapsed: { [key: string]: number };
+}
+
+// The FC stands for Function Component
+const FlowTable: React.FC&lt;Props&gt; = ({ query, elapsed }) =&gt; {
+  const [queryOperations, setQueryOperations] = useState&lt;string[]&gt;([]);
+  const [elapsedTime, setElapsedTime] = useState&lt;{ [key: string]: number }&gt;(elapsed);
+  const editorRef = useRef&lt;any&gt;(null);
+
+  // Set elapsed time
+  useEffect(() =&gt; {
+    setElapsedTime(elapsed);
+  }, [query, elapsed]);
+  
+  // The useEffect parse the query and generate the operation order
+  useEffect(() =&gt; {
+    const operation = parseQuery(query);
+      setElapsedTime(elapsed);
+      const operationOrder = generateOperationOrder(operation);
+      setQueryOperations(operationOrder);
+  }, [elapsedTime]);
+
+  // parses the query
+  const parseQuery = (query: string): SelectionSetNode | OperationDefinitionNode | undefined =&gt; {
+    const ast: DocumentNode = parse(query);
+
+    if (ast.definitions.length === 1) {
+        const definition = ast.definitions[0];
+        if (definition.kind === &#x27;OperationDefinition&#x27;) {
+          return definition.selectionSet;
+        } else if (definition.kind === &#x27;FragmentDefinition&#x27;) {
+          return definition.selectionSet;
+        }
+      }
+    
+    return undefined;
+  };
+
+  // function that takes the query and returns an array of operations in order of the query
+  const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode | any, parentName = &#x27;&#x27;): string[] =&gt; {
+    const operationOrder: string[] = [];
+    if (!operation) {
+      return operationOrder;
+    }
+    // Iterate over the selection in the operation
+    operation.selections.forEach((selection: { name: { value: any; }; selectionSet: OperationDefinitionNode | SelectionSetNode; }) =&gt; {
+      if (&#x27;name&#x27; in selection) {
+        let fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
+        if (elapsedTime[selection.name.value] &amp;&amp; operationOrder.length &gt; 1) {
+          const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
+          operationOrder.push(newName);
+        } else{operationOrder.push(fieldName)};
+        // Recursively generate the operation order for nested selection
+        if (&#x27;selectionSet&#x27; in selection) {
+          const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
+          console.log(&#x27;nestedSelections: &#x27;,nestedSelections);
+          operationOrder.push(...nestedSelections);
+        }
+      }
+    });
+
+    return operationOrder;
+  };
+
+  const handleEditorDidMount = (editor: any) =&gt; {
+    editorRef.current = editor;
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;MonacoEditor
+        value={queryOperations.join(&#x27;\n&#x27;)}
+        language=&quot;graphql&quot;
+        height={200}
+        options={{
+          readOnly: true,
+          wordWrap: &#x27;on&#x27;,
+          wrappingIndent: &#x27;indent&#x27;,
+          autoIndent: &#x27;keep&#x27;,
+          formatOnPaste: true,
+          formatOnType: true,
+          minimap: {
+            enabled: false,
+          },
+          lineNumbers: &#x27;on&#x27;,
+        }}
+      /&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default FlowTable;</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:3,&quot;character&quot;:7,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:47,&quot;character&quot;:34,&quot;text&quot;:&quot;operation&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:49,&quot;character&quot;:9,&quot;text&quot;:&quot;operation&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:53,&quot;character&quot;:4,&quot;text&quot;:&quot;operation&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:53,&quot;character&quot;:14,&quot;text&quot;:&quot;selections&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:53,&quot;character&quot;:25,&quot;text&quot;:&quot;forEach&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:53,&quot;character&quot;:55,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:55,&quot;character&quot;:12,&quot;text&quot;:&quot;fieldName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:55,&quot;character&quot;:69,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:55,&quot;character&quot;:94,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:56,&quot;character&quot;:39,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:57,&quot;character&quot;:26,&quot;text&quot;:&quot;fieldName&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:57,&quot;character&quot;:82,&quot;text&quot;:&quot;value&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:72,&quot;character&quot;:32,&quot;text&quot;:&quot;editor&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:73,&quot;character&quot;:14,&quot;text&quot;:&quot;current&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTable.tsx&quot;,&quot;line&quot;:73,&quot;character&quot;:24,&quot;text&quot;:&quot;editor&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

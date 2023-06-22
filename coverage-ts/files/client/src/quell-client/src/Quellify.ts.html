@@ -1,0 +1,371 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Quellify.ts</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/quell-client/src/Quellify.ts</td><td class="">94.30%</td><td class="">80%</td><td class="">316</td><td class="">298</td><td class="">18</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import { DocumentNode } from &#x27;graphql&#x27;;
+import { parse } from &#x27;graphql/language/parser&#x27;;
+import determineType from &#x27;./helpers/determineType&#x27;;
+import { LRUCache } from &#x27;lru-cache&#x27;;
+
+import {
+  CostParamsType,
+  MapCacheType,
+  FetchObjType,
+  JSONObject,
+  JSONValue,
+  ClientErrorType,
+  JSONObjectWithId
+} from &#x27;./types&#x27;;
+
+/** 
+ * Initialize a new Map object with keys of type string and values
+ * @type {MapCacheType} - key: the GraphQL queries, value: the cached results
+ */
+const mapCache = new Map&lt;string, MapCacheType&gt;();
+
+/**
+ * Function to manually removes item from cache 
+ * @param {string} query - the query that needs to be removed from the cache.
+*/
+const invalidateCache = (query: string): void =&gt; {
+  // console.log(&#x27;INSIDE OF INVALIDATE CACHE&#x27;)
+  if (mapCache.has(query)) {
+    // console.log(&#x27;INVALIDATE CACHE - MAP CACHE HAS THE QUERY&#x27;)
+    lruCache.delete(query);
+    // mapCache.delete(query);
+    console.log(mapCache);
+  }
+}
+
+/** 
+ * Implement LRU caching strategy 
+ * Set the maximum cache size on LRU cache
+ */
+const MAX_CACHE_SIZE: number = 3;
+const lruCache = new LRUCache&lt;string, MapCacheType&gt;({ max: MAX_CACHE_SIZE });
+
+// Track the order of accessed queries
+const lruCacheOrder: string[] = []; 
+
+// Function to update LRU Cache on each query
+const updateLRUCache = (query: string, results: JSONObject): void =&gt; {
+  // console.log(&#x27;INSIDE OF UPDATE LRU CACHE&#x27;)
+  const cacheSize = lruCacheOrder.length;
+  if (cacheSize &gt;= MAX_CACHE_SIZE) {
+    // console.log(&#x27;UPDATE LRU CACHE - CACHE SIZE IS OVER MAX&#x27;)
+    const leastRecentlyUsedQuery = lruCacheOrder.shift();
+    if (leastRecentlyUsedQuery) {
+      // console.log(`LEAST RECENTLY USED QUERY: ${JSON.stringify(leastRecentlyUsedQuery)}`)
+      invalidateCache(leastRecentlyUsedQuery);
+    }
+  }
+  lruCacheOrder.push(query);
+  lruCache.set(query, results as MapCacheType);
+};
+
+/** Clears entire existing cache and ID cache and resets to a new cache. */
+const clearCache = (): void =&gt; {
+  // console.log(&#x27;INSIDE OF CLEAR CACHE&#x27;);
+  mapCache.clear();
+  lruCache.clear();
+  console.log(&#x27;Client cache has been cleared....&#x27;);
+};
+
+
+
+/**
+ * Quellify replaces the need for front-end developers who are using GraphQL to communicate with their servers
+ * to write fetch requests. Quell provides caching functionality that a normal fetch request would not provide.
+ *  @param {string} endPoint - The endpoint to send the GraphQL query or mutation to, e.g. &#x27;/graphql&#x27;.
+ *  @param {string} query - The GraphQL query or mutation to execute.
+ *  @param {object} costOptions - Any changes to the default cost options for the query or mutation.
+ *  default costOptions = {}
+ */
+async function Quellify(
+  endPoint: string,
+  query: string,
+  costOptions: CostParamsType,
+  variables?: Record&lt;string, any&gt;) {
+  // console.log(&#x27;INSIDE OF QUELLIFY&#x27;)
+
+  // Check the LRU cache before performing fetch request
+  const cachedResults = lruCache.get(query);
+  if (cachedResults) {
+    // console.log(`QUELLIFY - FOUND QUERY IN CACHE: ${JSON.stringify(cachedResults)}`)
+    return [cachedResults, true];
+  }
+
+  // console.log(`QUELLIFY - NOT FOUND QUERY IN CACHE :(`)
+
+  /** 
+   * Fetch configuration for post requests that is passed to the performFetch function. 
+   */
+  const postFetch: FetchObjType = {
+    method: &#x27;POST&#x27;,
+    headers: {
+      &#x27;Content-Type&#x27;: &#x27;application/json&#x27;
+    },
+    body: JSON.stringify({ query, costOptions })
+  };
+  
+  /**
+   * Fetch configuration for delete requests that is passed to the performFetch function.
+   */
+  const deleteFetch: FetchObjType = {
+    method: &#x27;DELETE&#x27;,
+    headers: {
+      &#x27;Content-Type&#x27;: &#x27;application/json&#x27;
+    },
+    body: JSON.stringify({ query, costOptions })
+  };
+
+  /**
+   * Makes requests to the GraphQL endpoint.
+   * @param {FetchObjType} [fetchConfig] - (optional) Configuration options for the fetch call.
+   * @returns {Promise} A Promise that resolves to the parsed JSON response.
+   */
+  const performFetch = async (
+    fetchConfig?: FetchObjType
+  ): Promise&lt;JSONObject&gt; =&gt; {
+    // console.log(&#x27;INSIDE OF QUELLIFY - PERFORM FETCH&#x27;)
+    try {
+      const data = await fetch(endPoint, fetchConfig);
+      console.log({data})
+      const response = await data.json();
+      console.log({response})
+      console.log(`PERFORM FETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
+      updateLRUCache(query, response.queryResponse.data);
+      return response.queryResponse.data;
+    } catch (error) {
+      const err: ClientErrorType = {
+        log: `Error when trying to perform fetch to graphQL endpoint: ${error}.`,
+        status: 400,
+        message: {
+          err: &#x27;Error in performFetch. Check server log for more details.&#x27;
+        }
+      };
+      console.log(&#x27;Error when performing Fetch: &#x27;, err);
+      throw error;
+    }
+  };
+  // Refetch LRU cache
+  const refetchLRUCache = async (): Promise&lt;void&gt; =&gt; {
+    console.log(&#x27;QUELLIFY - REFETCH LRU CACHE&#x27;)
+    try {
+      const cacheSize = lruCacheOrder.length;
+      console.log(`REFETCH LRU CACHE - CACHE SIZE: ${cacheSize}`)
+      // i &lt; cacheSize - 1 because the last query in the order array is the current query
+      for (let i = 0; i &lt; cacheSize - 1; i++) {
+        const query = lruCacheOrder[i];
+        // Get operation type for query
+        const oldAST: DocumentNode = parse(query);
+        const { operationType } = determineType(oldAST);
+        // If the operation type is not a query, leave it out of the refetch
+        if (operationType !== &#x27;query&#x27;) {
+          continue;
+        }
+        // If the operation type is a query, refetch the query from the LRU cache
+        const cachedResults = lruCache.get(query);
+        if (cachedResults) {
+          console.log(`REFETCH LRU CACHE - FOUND QUERY IN CACHE: ${cachedResults}`)
+          // Fetch configuration for post requests that is passed to the performFetch function.
+          const fetchConfig: FetchObjType = {
+            method: &#x27;POST&#x27;,
+            headers: {
+              &#x27;Content-Type&#x27;: &#x27;application/json&#x27;
+            },
+            body: JSON.stringify({ query, costOptions })
+          };
+          const data = await fetch(endPoint, fetchConfig);
+          const response = await data.json();
+          console.log(`REFETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
+          updateLRUCache(query, response.queryResponse.data);
+        }
+      }
+    } catch (error) {
+      const err: ClientErrorType = {
+        log: `Error when trying to refetch LRU cache: ${error}.`,
+        status: 400,
+        message: {
+          err: &#x27;Error in refetchLRUCache. Check server log for more details.&#x27;
+        }
+      };
+      console.log(&#x27;Error when refetching LRU cache: &#x27;, err);
+      throw error;
+    }
+  };
+
+
+  // Create AST based on the input query using the parse method available in the GraphQL library
+  // (further reading: https://en.wikipedia.org/wiki/Abstract_syntax_tree).
+  const AST: DocumentNode = parse(query);
+
+  // Find operationType, proto using determineType
+  const { operationType, proto } = determineType(AST);
+  console.log({operationType})
+
+  if (operationType === &#x27;unQuellable&#x27;) {
+    /**
+     * If the operation is unQuellable (cannot be cached), fetch the data from the GraphQL endpoint.
+     * @return {Promise} - All returns in an async function return promises by default, therefore we are returning a promise that will resolve from perFormFetch.
+     */
+
+    // console.log(&#x27;OPERATION TYPE IS UNQUELLABLE&#x27;)
+
+    const parsedData: JSONValue = await performFetch(postFetch);
+    
+    // The second element in the return array is a boolean that the data was not found in the Cache.
+    return [parsedData, false];
+  } else if (operationType === &#x27;mutation&#x27;) {
+    // console.log(&#x27;OPERATION TYPE IS MUTATION&#x27;)
+    // Assign mutationType:
+    const mutationType: string = Object.keys(proto)[0];
+    console.log({mutationType})
+    console.log({proto})
+
+       // Check if mutation is an add mutation:
+       if (
+        mutationType.includes(&#x27;add&#x27;) ||
+        mutationType.includes(&#x27;new&#x27;) ||
+        mutationType.includes(&#x27;create&#x27;) ||
+        mutationType.includes(&#x27;make&#x27;)
+      ) {
+        // console.log(&#x27;MUTATION TYPE IS ADD, NEW, CREATE, OR MAKE&#x27;)
+        // Execute a POST fetch request with the query.
+        const parsedData: JSONObject = await performFetch(postFetch);
+        if (parsedData) {
+          console.log(&#x27;MUTATION(ADD, NEW, CREATE, OR MAKE) - parsedData&#x27;, parsedData)
+          mapCache.set(query, parsedData)
+          refetchLRUCache();
+          return [parsedData, false];
+        }
+      }
+
+      // Check if mutation type is an edit or update mutation.
+      else if(
+        mutationType.includes(&#x27;edit&#x27;) || 
+        mutationType.includes(&#x27;update&#x27;)
+        ){
+          console.log(&#x27;MUTATION TYPE IS EDIT OR UPDATE&#x27;)
+        // Execute a POST fetch request with the query. (mongoDB &amp; edit update appropriately)
+        const parsedData: JSONObject = await performFetch(postFetch);
+        console.log(&#x27;parsed data for edit/update&#x27;, parsedData)
+        //we need to update entry in map &amp; lrucache 
+        
+        // We are currently clearing the cache for edit/update/delete queries as the cache becomes stale 
+        if (parsedData) {
+          //clear LRU &amp; Map cache as with mutation &amp; delete; client stored cache is no longer up-to-date
+          //OPPORUNITY: MUTATION &amp; DELETE FEATURE TO STORE IN CLIENT CACHE
+          clearCache()
+          return [parsedData, false];
+
+
+          //how can we update entry in map (before we were updating entry in loki); 
+            //map is storing: {key(query): {results of query}}
+            //we want to update value on map specific to the id? 
+            //
+
+            
+          // Find the existing entry by its ID (why?)
+          // const cachedEntry = mapCache.get({ id: parsedData.id }); 
+        
+          //grab id from mongodb; 
+          //update map at specific id? 
+          // Search for an entry in the mapCache map based on a condition defined by the predicate function: 
+          // (where the id property of the value matches the id property of parsedData).
+        //   function findOne(map: any, predicate: any) {
+        //     for (const [key, value] of map.entries()) {
+        //       if (predicate(value, key, map)) {
+        //         return value;
+        //       }
+        //     }
+        //     return undefined; // Return undefined if no matching entry is found
+        //   }
+        //   const mutation = parsedData[mutationType] as JSONObjectWithId;
+        //   console.log(&quot;THIS IS PARSEDDATA.ID&quot;, mutation.id as string);
+        //   const cachedEntry = findOne(mapCache, (v: any, k: any, m: any) =&gt; v.id === mutation.id)
+        //   console.log(&#x27;This is new cachedEntry (map)&#x27;, cachedEntry)
+        //   console.log(&#x27;typeof new cachedEntry&#x27;, typeof cachedEntry)
+        //   // const cachedEntry = mapCache.get(parsedData.id); 
+
+        //   if (cachedEntry) {
+        //     // Update the existing entry with the new data
+        //     Object.assign(cachedEntry, parsedData); 
+
+        //      // Update the entry in the map cache
+        //      mapCache.set(query, cachedEntry );
+
+        //     // Update LRU Cache
+        //     updateLRUCache(query, cachedEntry);
+        //     refetchLRUCache();
+        //     return [cachedEntry, false];
+        // }
+      }
+    }
+    // Check if mutation is a delete mutation
+      else if (mutationType.includes(&#x27;delete&#x27;) || mutationType.includes(&#x27;remove&#x27;)) {
+        // console.log(&#x27;MUTATION TYPE IS DELETE OR REMOVE&#x27;)
+        // Execute a fetch request with the query
+        console.log(&#x27;we entered delete/remove mutationtype&#x27;)
+        const parsedData: JSONObject = await performFetch(deleteFetch);
+        // parsedData = response.queryResponse.data;
+        console.log(`THIS ISparsedData: `, parsedData)
+        if (parsedData) {
+          //clear LRU &amp; Map cache as with mutation &amp; delete; client stored cache is no longer up-to-date
+          //OPPORUNITY: MUTATION &amp; DELETE FEATURE TO STORE IN CLIENT CACHE
+          clearCache()
+          return [parsedData, false];
+
+        //   console.log(`were insided parsedData: `, parsedData);
+        //   // Find the existing entry by its ID
+        //   const cachedEntry = parsedData;
+        //   console.log(cachedEntry)
+        //   //bool returning 
+        //   if (cachedEntry) {
+        //   // // Remove the item from cache
+        //   invalidateCache(query);
+        //   mapCache.delete(query);
+        //   // Refetch each query in the LRU cache to update the cache
+        //   refetchLRUCache();
+        //   return [cachedEntry, false];
+        // } else {
+        //   return [null, false];
+        // }
+      }
+    }
+    // Operation type does not meet mutation or unquellable types. 
+    // In other words, it is a Query
+  } else {
+    console.log(&#x27;OPERATION TYPE IS QUERY!!&#x27;)
+        // If the query has not been made already, execute a fetch request with the query.
+        const parsedData: JSONObject = await performFetch(postFetch);
+        // console.log(&quot;this is parsed Data from query: &quot;, parsedData);
+        
+        // Add the new data to both client-side caches.
+        if (parsedData) {
+          lruCache.set(query, parsedData);
+          mapCache.set(query, parsedData)
+          // console.log(&quot;DIS DA MAPCACHE&quot;,mapCache)
+          const addedEntry = mapCache.get(query); 
+          
+          // Return the parsed data along with a flag indicating that the data was not found in the cache.
+          return [addedEntry, false];
+      }
+    }
+  }
+
+
+export { Quellify, clearCache, lruCache };</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:129,&quot;character&quot;:12,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:130,&quot;character&quot;:19,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:131,&quot;character&quot;:71,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:131,&quot;character&quot;:80,&quot;text&quot;:&quot;queryResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:131,&quot;character&quot;:94,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:132,&quot;character&quot;:28,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:132,&quot;character&quot;:37,&quot;text&quot;:&quot;queryResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:132,&quot;character&quot;:51,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:133,&quot;character&quot;:13,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:133,&quot;character&quot;:22,&quot;text&quot;:&quot;queryResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:133,&quot;character&quot;:36,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:175,&quot;character&quot;:16,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:176,&quot;character&quot;:69,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:176,&quot;character&quot;:78,&quot;text&quot;:&quot;queryResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:176,&quot;character&quot;:92,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:177,&quot;character&quot;:32,&quot;text&quot;:&quot;response&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:177,&quot;character&quot;:41,&quot;text&quot;:&quot;queryResponse&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/quell-client/src/Quellify.ts&quot;,&quot;line&quot;:177,&quot;character&quot;:55,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

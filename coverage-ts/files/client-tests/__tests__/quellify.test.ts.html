@@ -1,0 +1,128 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>quellify.test.ts</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client-tests/__tests__/quellify.test.ts</td><td class="">84.72%</td><td class="">80%</td><td class="">144</td><td class="">122</td><td class="">22</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import { Quellify, clearCache, lruCache } from &#x27;../../client/src/quell-client/src/Quellify&#x27;;
+import { CostParamsType } from &#x27;../../client/src/quell-client/src/types&#x27;;
+
+const defaultCostOptions: CostParamsType = {
+  maxCost: 5000,
+  mutationCost: 5,
+  objectCost: 2,
+  scalarCost: 1,
+  depthCostFactor: 1.5,
+  maxDepth: 10,
+  ipRate: 3
+};
+
+// Command to run jest tests:
+// npx jest client-tests/__tests__/quellify.test.ts
+
+
+describe(&#x27;Quellify&#x27;, () =&gt; {
+  beforeEach(() =&gt; {
+    // Clear the Loki cache before each test
+    clearCache();
+  });
+
+    it(&#x27;checks that caching queries is working correctly&#x27;, async () =&gt; {
+      const endPoint = &#x27;http://localhost:3000/api/graphql&#x27;;
+      const query = &#x27;query { artist(name: &quot;Frank Ocean&quot;) { id name albums { id name } } }&#x27;;
+      const costOptions = defaultCostOptions;
+      const [data, foundInCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
+  
+      // Assertion: the data should not be found in the cache
+      expect(foundInCache).toBe(false);
+
+      // Invoke Quellify on query again
+      const [cachedData, updatedCache] = await Quellify(endPoint, query, costOptions) as [any, boolean];
+      // Assertion: Cached data should be the same as the original query
+      expect(cachedData).toBe(data);
+      // Assertion: The boolean should return true if it is found in the cache
+      expect(updatedCache).toEqual(true);
+    
+    });
+
+    it(&#x27;should update the cache for edit mutation queries&#x27;, async () =&gt; {
+      const endPoint = &#x27;http://localhost:3000/api/graphql&#x27;;
+      const addQuery = &#x27;mutation { addCity(name: &quot;San Diego&quot;, country: &quot;United States&quot;) { id name } }&#x27;; 
+      const costOptions = defaultCostOptions; 
+    
+      // Perform add mutation query to the cache
+      const [addMutationData, addMutationfoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+      // Get the cityId on the mutation query
+      const cityId = addMutationData.addCity.id;
+      const city = &quot;Las Vegas&quot;;
+      // Perform edit mutation on query to update the name
+      const editQuery = `mutation { editCity(id: &quot;${cityId}&quot;, name: &quot;${city}&quot;, country: &quot;United States&quot;) { id name } }`; 
+      const [editMutationData, editMutationDataFoundInCache] = await Quellify(endPoint, editQuery, costOptions) as [any, boolean];
+
+      //Assertion: The first mutation query name should be updated by the second edit mutation
+      expect(addMutationData.name).toEqual(editMutationData.name);
+      
+    });
+    
+
+    it(&#x27;should delete an item from the server and invalidate the cache&#x27;, async () =&gt; {
+      const endPoint = &#x27;http://localhost:3000/api/graphql&#x27;;
+      const addQuery = &#x27;mutation { addCity(name: &quot;Irvine&quot;, country: &quot;United States&quot;) { id name } }&#x27;; 
+      const costOptions = defaultCostOptions; 
+    
+      // Perform add mutation query to the server
+      const [addMutationData, addMutationfoundInCache] = await Quellify(endPoint, addQuery, costOptions) as [any, boolean];
+      // Get the cityId on the mutation query
+      const cityId = addMutationData.addCity.id;
+
+      // Perform a delete mutation on the city
+      const deleteQuery = `mutation { deleteCity(id: &quot;${cityId}&quot;) { id name } }`; 
+      const [deleteMutationData, deleteMutationDataFoundInCache] = await Quellify(endPoint, deleteQuery, costOptions) as [any, boolean];
+
+      //Assertion: The item should be removed from the cache
+      expect(deleteMutationDataFoundInCache).toBe(false);
+
+    });
+    
+  
+  it(&#x27;should evict the LRU item from cache if cache size is exceeded&#x27;, async () =&gt; {
+    const endPoint = &#x27;http://localhost:3000/api/graphql&#x27;;
+    const costOptions = defaultCostOptions;
+    const query1 = &#x27;query { artist(name: &quot;Frank Ocean&quot;) { id name albums { id name } } }&#x27;;
+    const query2 = &#x27;query { country(name: &quot;United States&quot;) { id name cities { id name attractions { id name } } } }&#x27;;
+    const query3 = &#x27;mutation { addCity(name: &quot;San Diego&quot;, country: &quot;United States&quot;) { id name } }&#x27;;
+    
+
+    // Invoke Quellify on each query to add to cache
+    await Quellify(endPoint, query1, costOptions);
+    await Quellify(endPoint, query2, costOptions);
+
+    // Assertion: lruCache should contain the queries
+    expect(lruCache.has(query1)).toBe(true);
+    expect(lruCache.has(query2)).toBe(true);
+
+    // Invoke Quellify again on third query to exceed max cache size
+    await Quellify(endPoint, query3, costOptions);
+
+    // Assertion: lruCache should evict the LRU item
+    expect(lruCache.has(query1)).toBe(false);
+    
+    // Assertion: lruCache should still contain the most recently used items
+    expect(lruCache.has(query2)).toBe(true);
+    expect(lruCache.has(query3)).toBe(true);
+
+  });
+
+});
+</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:27,&quot;character&quot;:13,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:33,&quot;character&quot;:13,&quot;text&quot;:&quot;cachedData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:35,&quot;character&quot;:13,&quot;text&quot;:&quot;cachedData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:35,&quot;character&quot;:30,&quot;text&quot;:&quot;data&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:47,&quot;character&quot;:13,&quot;text&quot;:&quot;addMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:49,&quot;character&quot;:12,&quot;text&quot;:&quot;cityId&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:49,&quot;character&quot;:21,&quot;text&quot;:&quot;addMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:49,&quot;character&quot;:37,&quot;text&quot;:&quot;addCity&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:49,&quot;character&quot;:45,&quot;text&quot;:&quot;id&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:52,&quot;character&quot;:52,&quot;text&quot;:&quot;cityId&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:53,&quot;character&quot;:13,&quot;text&quot;:&quot;editMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:56,&quot;character&quot;:13,&quot;text&quot;:&quot;addMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:56,&quot;character&quot;:29,&quot;text&quot;:&quot;name&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:56,&quot;character&quot;:43,&quot;text&quot;:&quot;editMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:56,&quot;character&quot;:60,&quot;text&quot;:&quot;name&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:67,&quot;character&quot;:13,&quot;text&quot;:&quot;addMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:69,&quot;character&quot;:12,&quot;text&quot;:&quot;cityId&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:69,&quot;character&quot;:21,&quot;text&quot;:&quot;addMutationData&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:69,&quot;character&quot;:37,&quot;text&quot;:&quot;addCity&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:69,&quot;character&quot;:45,&quot;text&quot;:&quot;id&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:72,&quot;character&quot;:56,&quot;text&quot;:&quot;cityId&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client-tests/__tests__/quellify.test.ts&quot;,&quot;line&quot;:73,&quot;character&quot;:13,&quot;text&quot;:&quot;deleteMutationData&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  

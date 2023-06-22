@@ -1,0 +1,68 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Team.tsx</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/Team/Team.tsx</td><td class="">96.34%</td><td class="">80%</td><td class="">82</td><td class="">79</td><td class="">3</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import React, { useState } from &#x27;react&#x27;
+import { Link } from &#x27;react-router-dom&#x27;;
+import Linkedin from &#x27;/client/src/assets/images/icons/QUELL-icons-linkedin.svg&#x27;;
+import Github from &#x27;/client/src/assets/images/icons/QUELL-icons-github.svg&#x27;;
+import { TeamArr } from &#x27;../teaminfo&#x27;;
+
+export const Team = () =&gt; {
+
+  return (
+    &lt;section id =&quot;team&quot;&gt;
+      &lt;div className=&quot;container bg-background flex flex-col items-center px-6 mx-auto pt-10 content-start space-y-0 &quot;&gt;
+        &lt;div className=&quot;leading-snug text-xl font-sans font-semibold text-white sm:text-3xl md:text-4xl xl:text-5xl md:leading-snug xl:leading-snug&quot;&gt;
+          Meet the Quell Team
+        &lt;/div&gt;
+        &lt;div className=&quot;pt-4 leading-snug text-lg font-sans font-light text-white items-center text-center md:text-2xl md:leading-snug xl:leading-snug xl:w-3/4&quot;&gt;
+          Quell is an open-source platform with room for many more features. We welcome contributors in joining us!
+        &lt;/div&gt;
+        &lt;Link to=&quot;https://github.com/open-source-labs/Quell&quot;&gt;
+          &lt;button className=&quot;m-6 bg-lightblue hover:bg-altblue text-black py-4 px-6 rounded md:text-base xl:text-xl&quot;&gt;
+            See Quell GitHub
+          &lt;/button&gt;
+        &lt;/Link&gt;
+        {/* grid classifies what it is, default 1; uses responsive design; gap-4 creates a gap of 1rm between profile */}
+        &lt;div className=&quot;grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-white py-8&quot; &gt;
+          {TeamArr.map((member, index) =&gt; (
+            &lt;div key={index} 
+              className={`profile rounded-lg bg-zinc-700 drop-shadow-lg p-5 flex flex-col gap-y-4 items-center justify-center relative `} 
+              &gt;
+              &lt;div className=&quot;relative border-2 border-sky-300 w-32 h-32 drop-shadow-lg rounded-full overflow-hidden&quot;&gt;
+                &lt;img src={member.src} alt={member.name} className=&#x27;absolute inset-0 w-1000 h-1000&#x27; /&gt;
+              &lt;/div&gt;
+              &lt;div className=&quot;drop-shadow-lg&quot;&gt;{member.name}&lt;/div&gt;
+              &lt;div className=&quot;flex flex-row gap-4&quot;&gt;
+                &lt;a href={member.linkedin} target=&#x27;_blank&#x27;&gt;
+                  &lt;button className=&quot;w-7 h-7 drop-shadow-lg hover:brightness-xl&quot;&gt;
+                    &lt;img src={Linkedin} alt=&quot;LinkedIn&quot;/&gt;
+                  &lt;/button&gt;
+                &lt;/a&gt;
+                &lt;a href={member.github} target=&#x27;_blank&#x27;&gt;
+                  &lt;button className=&quot;w-7 h-7 drop-shadow-lg hover:shadow-xl&quot;&gt;
+                    &lt;img src={Github} alt=&quot;Github&quot;/&gt;
+                  &lt;/button&gt;
+                &lt;/a&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  )
+}</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/Team/Team.tsx&quot;,&quot;line&quot;:2,&quot;character&quot;:7,&quot;text&quot;:&quot;Linkedin&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Team/Team.tsx&quot;,&quot;line&quot;:3,&quot;character&quot;:7,&quot;text&quot;:&quot;Github&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Team/Team.tsx&quot;,&quot;line&quot;:29,&quot;character&quot;:33,&quot;text&quot;:&quot;src&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+    </body>
+  </html>
+  
