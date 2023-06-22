@@ -13,7 +13,7 @@ interface NodeData {
     x: number;
     y: number;
   };
-  style?: any;
+  style?: React.CSSProperties;
   type?: string;
 }
 
@@ -24,16 +24,16 @@ interface FlowElement extends NodeData {
   target: string;
   source: string;
   animated?: boolean | undefined;
-  label?: any;
+  label?: React.ReactNode;
   markerEnd?: {
     type: MarkerType;
     width?: number;
     height?: number;
     color?: string;
   } | string;
-  style?: any;
-  labelStyle?: any;
-  labelBgBorderRadius?: any;
+  style?: React.CSSProperties;
+  labelStyle?: React.CSSProperties;
+  labelBgBorderRadius?: number;
 }
 
 interface Position {
@@ -85,7 +85,7 @@ const getNode = (
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
-const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowElement => {
+const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: { [key: string]: number }): FlowElement => {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
   const edgeProps : FlowElement = {
@@ -188,12 +188,17 @@ const FlowTree: React.FC<{query: string, elapsed: {} }> = ({query, elapsed}) => 
 // update the state of nodes and edges when query changes
   useEffect(() => {
     const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
-    const nodes = newNodes.map(node => ({
-      id: node.id,
-      data: node.data,
-      position: node.position!,
-      style: node.style
-    }));
+    const nodes = newNodes.map(node => {
+      if (!node.position) {
+        throw new Error(`Node with id ${node.id} does not have a position`);
+      }
+      return {
+        id: node.id,
+        data: node.data,
+        position: node.position!,
+        style: node.style
+      }
+    });
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);

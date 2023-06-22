@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { parse, DocumentNode, SelectionSetNode, OperationDefinitionNode } from 'graphql';
 import MonacoEditor from '@monaco-editor/react';
 import styles from './Visualizer.modules.css';
+import { editor } from 'monaco-editor';
 
 // defining the expected type
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
   const [queryOperations, setQueryOperations] = useState<string[]>([]);
   const [elapsedTime, setElapsedTime] = useState<{ [key: string]: number }>(elapsed);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   // Set elapsed time
   useEffect(() => {
@@ -45,32 +46,42 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
   };
 
   // function that takes the query and returns an array of operations in order of the query
-  const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode | any, parentName = ''): string[] => {
+  const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode | undefined, parentName = ''): string[] => {
     const operationOrder: string[] = [];
     if (!operation) {
       return operationOrder;
     }
     // Iterate over the selection in the operation
-    operation.selections.forEach((selection: { name: { value: any; }; selectionSet: OperationDefinitionNode | SelectionSetNode; }) => {
-      if ('name' in selection) {
-        let fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
-        if (elapsedTime[selection.name.value] && operationOrder.length > 1) {
-          const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
-          operationOrder.push(newName);
-        } else{operationOrder.push(fieldName)};
-        // Recursively generate the operation order for nested selection
-        if ('selectionSet' in selection) {
-          const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
-          console.log('nestedSelections: ',nestedSelections);
-          operationOrder.push(...nestedSelections);
-        }
+    if (operation.kind === 'OperationDefinition') {
+      const selectionSet = operation.selectionSet;
+      if (selectionSet) {
+        const nestedSelections = generateOperationOrder(selectionSet, parentName);
+        operationOrder.push(...nestedSelections);
       }
-    });
+      return operationOrder;
+    }
 
-    return operationOrder;
+    operation.selections.forEach((selection) => {
+    if (selection.kind === 'Field' && 'name' in selection) {
+      let fieldName = parentName ? `${parentName}.${selection.name.value}` : selection.name.value;
+      if (elapsedTime[selection.name.value] && operationOrder.length > 1) {
+        const newName = fieldName + ` [resolved in ${elapsedTime[selection.name.value]}ms]`;
+        operationOrder.push(newName);
+      } else {
+        operationOrder.push(fieldName);
+      }
+      // Recursively generate the operation order for nested selection
+      if (selection.selectionSet) {
+        const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
+        operationOrder.push(...nestedSelections);
+      }
+    }
+  });
+
+  return operationOrder;
   };
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
   };
 

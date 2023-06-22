@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 import clipboardGraphic from '/client/src/assets/images/graphics/clipboard.svg';
 
@@ -19,7 +19,7 @@ export const CTA = () => {
           setButtonTextClient('npm install @quell/client');
         }, 2000);
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.log('Failed to copy text:', error);
       });
   };
@@ -40,7 +40,7 @@ export const CTA = () => {
           setIsServerButtonDisabled(false);
         }, 2000);
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.log('Failed to copy text:', error);
         setIsServerButtonDisabled(false);
       });

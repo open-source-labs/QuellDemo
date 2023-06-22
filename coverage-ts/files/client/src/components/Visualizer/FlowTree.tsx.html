@@ -11,7 +11,7 @@
 <link href="../../../../../assets/source-file.css" type="text/css" rel="stylesheet">
     </head>
     <body>
-    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/Visualizer/FlowTree.tsx</td><td class="">96.99%</td><td class="">80%</td><td class="">399</td><td class="">387</td><td class="">12</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import React, { useState, useEffect, useCallback } from &#x27;react&#x27;;
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">client/src/components/Visualizer/FlowTree.tsx</td><td class="">100.00%</td><td class="">95%</td><td class="">413</td><td class="">413</td><td class="">0</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import React, { useState, useEffect, useCallback } from &#x27;react&#x27;;
 import ReactFlow, { Controls, Background, applyEdgeChanges, applyNodeChanges, MiniMap, NodeChange, EdgeChange, Edge, Node, MarkerType, XYPosition } from &#x27;reactflow&#x27;;
 import { parse, DocumentNode, FieldNode, SelectionNode, OperationDefinitionNode } from &#x27;graphql&#x27;;
 import styles from &#x27;./Visualizer.modules.css&#x27;;
@@ -26,7 +26,7 @@ interface NodeData {
     x: number;
     y: number;
   };
-  style?: any;
+  style?: React.CSSProperties;
   type?: string;
 }
 
@@ -37,16 +37,16 @@ interface FlowElement extends NodeData {
   target: string;
   source: string;
   animated?: boolean | undefined;
-  label?: any;
+  label?: React.ReactNode;
   markerEnd?: {
     type: MarkerType;
     width?: number;
     height?: number;
     color?: string;
   } | string;
-  style?: any;
-  labelStyle?: any;
-  labelBgBorderRadius?: any;
+  style?: React.CSSProperties;
+  labelStyle?: React.CSSProperties;
+  labelBgBorderRadius?: number;
 }
 
 interface Position {
@@ -98,7 +98,7 @@ const getNode = (
 // gets edge connection between parent/child nodes
 // edge is the thing that visually connects the parent/child node together
 
-const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: any): FlowElement =&gt; {
+const getEdge = (parent: FieldNode, child: SelectionNode, elapsed: { [key: string]: number }): FlowElement =&gt; {
   const parentId = `${parent.loc?.start}-${parent.loc?.end}`;
   const childId = `${child.loc?.start}-${child.loc?.end}`;
   const edgeProps : FlowElement = {
@@ -201,12 +201,17 @@ const FlowTree: React.FC&lt;{query: string, elapsed: {} }&gt; = ({query, elapsed
 // update the state of nodes and edges when query changes
   useEffect(() =&gt; {
     const { nodes: newNodes, edges: newEdges } = astToTree(query, elapsedTime);
-    const nodes = newNodes.map(node =&gt; ({
-      id: node.id,
-      data: node.data,
-      position: node.position!,
-      style: node.style
-    }));
+    const nodes = newNodes.map(node =&gt; {
+      if (!node.position) {
+        throw new Error(`Node with id ${node.id} does not have a position`);
+      }
+      return {
+        id: node.id,
+        data: node.data,
+        position: node.position!,
+        style: node.style
+      }
+    });
     setNodes(nodes);
     setEdges(newEdges);
     setCurrentQuery(query);
@@ -246,8 +251,8 @@ const FlowTree: React.FC&lt;{query: string, elapsed: {} }&gt; = ({query, elapsed
 
 
 export default FlowTree;
-</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:3,&quot;character&quot;:7,&quot;text&quot;:&quot;styles&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:15,&quot;character&quot;:2,&quot;text&quot;:&quot;style&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:26,&quot;character&quot;:2,&quot;text&quot;:&quot;label&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:33,&quot;character&quot;:2,&quot;text&quot;:&quot;style&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:34,&quot;character&quot;:2,&quot;text&quot;:&quot;labelStyle&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:35,&quot;character&quot;:2,&quot;text&quot;:&quot;labelBgBorderRadius&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:87,&quot;character&quot;:58,&quot;text&quot;:&quot;elapsed&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:113,&quot;character&quot;:5,&quot;text&quot;:&quot;elapsed&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:114,&quot;character&quot;:14,&quot;text&quot;:&quot;label&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:114,&quot;character&quot;:25,&quot;text&quot;:&quot;elapsed&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:194,&quot;character&quot;:6,&quot;text&quot;:&quot;style&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;client/src/components/Visualizer/FlowTree.tsx&quot;,&quot;line&quot;:194,&quot;character&quot;:18,&quot;text&quot;:&quot;style&quot;,&quot;kind&quot;:1}]</pre></div>
-    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 00:10:40 GMT</p>
+</textarea><pre id="annotations" style="display:none">[]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Thu, 22 Jun 2023 05:39:12 GMT</p>
     </body>
   </html>
   

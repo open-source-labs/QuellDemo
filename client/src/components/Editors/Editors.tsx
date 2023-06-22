@@ -6,10 +6,10 @@ import { querySamples } from '../helperFunctions';
 
 export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   const handleChange = (
-    value?: any,
+    value?: string | undefined,
     ev?: editor.IModelContentChangedEvent
   ): any => {
-    setQuery(value);
+    setQuery(value || '');
   };
 
   const query = querySamples[selectedQuery];

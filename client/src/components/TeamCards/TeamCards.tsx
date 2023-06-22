@@ -1,9 +1,35 @@
 import styles from './TeamCards.modules.css';
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Linkedin from '/client/src/assets/images/icons/QUELL-icons-linkedin.svg';
 import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
 import Header from '/client/src/assets/images/quell_logos/quell-bird-border.svg';
 import { TeamArr } from '../teaminfo';
+
+interface TeamMemberProps {
+  src: string;
+  bio: string;
+  name: string;
+  linkedin: string;
+  github: string;
+}
+
+const TeamMember = ({ src, bio, name, linkedin, github }: TeamMemberProps) => {
+  return (
+    <div className={styles.profilePic}>
+      <img src={src} alt="Quell Team Member"></img>
+      <p className={styles.name}>{name}</p>
+      <p>{bio}</p>
+      <div className={styles.socialIcons}>
+        <a href={linkedin} target="_blank">
+          <img src={Linkedin}></img>
+        </a>
+        <a href={github} target="_blank">
+          <img src={Github}></img>
+        </a>
+      </div>
+    </div>
+  );
+};
 
 const Team = memo(() => {
   const [renderFx, toggleRenderFx] = useState<string>('unrendered');
@@ -30,7 +56,7 @@ const Team = memo(() => {
       <img id={styles.logo} src={Header}></img>
       <h2>The Good Eggs of Quell</h2>
       <div id={styles.team}>
-        {TeamArr.map((currTeamObj: any, i: number) => {
+        {TeamArr.map((currTeamObj: TeamMemberProps, i: number) => {
           return (
             <article key={i} className={styles.card}>
               <TeamMember
@@ -48,31 +74,5 @@ const Team = memo(() => {
     </div>
   );
 });
-
-interface TeamMember {
-  src: string;
-  bio: string;
-  name: string;
-  linkedin: string;
-  github: string;
-}
-
-const TeamMember = ({ src, bio, name, linkedin, github }: TeamMember) => {
-  return (
-    <div className={styles.profilePic}>
-      <img src={src} alt="Quell Team Member"></img>
-      <p className={styles.name}>{name}</p>
-      <p>{bio}</p>
-      <div className={styles.socialIcons}>
-        <a href={linkedin} target="_blank">
-          <img src={Linkedin}></img>
-        </a>
-        <a href={github} target="_blank">
-          <img src={Github}></img>
-        </a>
-      </div>
-    </div>
-  );
-};
 
 export default Team;
