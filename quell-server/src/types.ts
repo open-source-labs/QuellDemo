@@ -265,3 +265,22 @@ export type ServerErrorType = {
 export type ResponseDataType = {
   [k: string]: string | ResponseDataType | ResponseDataType[];
 };
+
+// Response Parameter Types:
+interface CostOptionsType {
+  maxDepth?: number;
+  maxCost?: number;
+  ipRate?: number;
+};
+
+export interface RequestBodyType {
+  query?: string;
+  costOptions?: CostOptionsType;
+};
+
+// AST:
+export interface ParsedASTType {
+  proto: ProtoObjType;
+  operationType: string;
+  frags: FragsType;
+};
