@@ -141,3 +141,7 @@ export type ClientErrorType = {
   status: number;
   message: { err: string };
 };
+
+export type QueryResponse = {
+  queryResponse: { data: JSONObject }
+}

@@ -10,7 +10,8 @@ import {
   JSONObject,
   JSONValue,
   ClientErrorType,
-  JSONObjectWithId
+  JSONObjectWithId,
+  QueryResponse
 } from './types';
 
 /** 
@@ -127,7 +128,7 @@ async function Quellify(
     try {
       const data = await fetch(endPoint, fetchConfig);
       console.log({data})
-      const response = await data.json();
+      const response: QueryResponse = await data.json();
       console.log({response})
       console.log(`PERFORM FETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
       updateLRUCache(query, response.queryResponse.data);
@@ -173,7 +174,7 @@ async function Quellify(
             body: JSON.stringify({ query, costOptions })
           };
           const data = await fetch(endPoint, fetchConfig);
-          const response = await data.json();
+          const response: QueryResponse = await data.json();
           console.log(`REFETCH QUERY RESPONSE DATA: ${JSON.stringify(response.queryResponse.data)}`)
           updateLRUCache(query, response.queryResponse.data);
         }
@@ -349,6 +350,5 @@ async function Quellify(
       }
     }
   }
-
 
 export { Quellify, clearCache, lruCache };
