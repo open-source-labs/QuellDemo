@@ -2,7 +2,7 @@ const {
   getElapsedTime,
   clearElapsedTime,
   graphqlSchema,
-} = require("./schema/schema.js");
+} = require("../dist/server/schema/schema.js");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -46,7 +46,7 @@ app.use(
   quellCache.query,
   (req, res) => {
     console.log("inside server route to /api/graphql");
-    console.log('res.locals in server: ', res.locals);
+    console.log("res.locals in server: ", res.locals);
     return res.status(200).send(res.locals);
   }
 );
