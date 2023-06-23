@@ -1,4 +1,33 @@
-export const countryData = {};
+interface Country {
+  id: string;
+  name: string;
+  capital?: string
+  population?: number
+  cities?: Country[]
+}
+interface CountryType {
+  [key: string]:Country[]
+}
+interface CountryAndCityType extends CountryType {
+
+}
+interface CountryIdType {
+  [key: string]: Country
+}
+interface CountryIdWithCitiesType {
+  country: Country
+}
+interface CountryIdWithCitiesAndCities extends CountryIdWithCitiesType {
+  cities: Country[]
+}
+export const countryData:{
+  countries?: CountryType,
+  countriesAndCities?: CountryAndCityType,
+  countryId?: CountryIdType,
+  countryIdWithCities?: CountryIdWithCitiesType
+  countryIdWithCitiesAndCities?: CountryIdWithCitiesAndCities
+} = {};
+
 
 countryData.countries = {
   "countries": [
