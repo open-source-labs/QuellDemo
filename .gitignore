@@ -6,3 +6,5 @@ netifly.toml
 .env
 coverage-ts/
 dist/
+dist
+dump.rdb
