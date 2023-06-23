@@ -1,8 +1,8 @@
-import { NextFunction } from "express";
-import { GraphQLEnumType, GraphQLObjectType } from "graphql";
+import { Request, Response, NextFunction } from "express";
 
 import {
   GraphQLSchema,
+  GraphQLObjectType,
   GraphQLString,
   GraphQLList,
   GraphQLID,
@@ -11,12 +11,13 @@ import {
   GraphQLError,
   GraphQLInt,
 } from "graphql";
-import Songs from "../models/songsModel.js";
-import Artist from "../models/artistsModel.js";
+
+import Songs from "../models/songsModel";
+import Artist from "../models/artistsModel";
 import Album from "../models/albumsModel.js";
-import Attractions from "../models/attractionsModel.js";
-import Cities from "../models/citiesModel.js";
-import Countries from "../models/countriesModel.js";
+import Attractions from "../models/attractionsModel";
+import Cities from "../models/citiesModel";
+import Countries from "../models/countriesModel";
 
 //TYPE DEFS
 //THIS IS JUST ALL MOCK DATA AND MOCK TYPES
@@ -344,7 +345,7 @@ interface ElapsedTimeResponse {
   };
 }
 
-const getElapsedTime = (
+export const getElapsedTime = (
   req: Request,
   res: ElapsedTimeResponse,
   next: NextFunction
@@ -355,20 +356,14 @@ const getElapsedTime = (
   return next();
 };
 
-const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
+export const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
   elapsedTime = {};
   console.log(elapsedTime);
   return next();
 };
 
-const graphqlSchema = new GraphQLSchema({
+export const graphqlSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,
   types: [ArtistType, AlbumType, SongType],
 });
-
-module.exports = {
-  clearElapsedTime,
-  getElapsedTime,
-  graphqlSchema,
-};
