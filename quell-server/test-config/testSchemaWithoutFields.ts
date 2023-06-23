@@ -6,7 +6,7 @@ const graphqlNodeModule =
     ? '../../../quell-server/node_modules/graphql'
     : 'graphql';
 
-const {
+import {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLList,
@@ -14,7 +14,7 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLNonNull
-} = require(graphqlNodeModule);
+} from 'graphql'
 
 // =========================== //
 // ===== TYPE DEFINITIONS ==== //
@@ -24,22 +24,22 @@ const {
   Generally corresponds with table we're pulling from
 */
 
-const BookShelfType = new GraphQLObjectType({
+const BookShelfType = new GraphQLObjectType<undefined, undefined>({
   name: 'BookShelf',
   fields: () => ({})
 });
 
-const BookType = new GraphQLObjectType({
+const BookType = new GraphQLObjectType<undefined, undefined>({
   name: 'Book',
   fields: () => ({})
 });
 
-const CountryType = new GraphQLObjectType({
+const CountryType = new GraphQLObjectType<undefined, undefined>({
   name: 'Country',
   fields: () => ({})
 });
 
-const CityType = new GraphQLObjectType({
+const CityType = new GraphQLObjectType<undefined, undefined>({
   name: 'City',
   fields: () => ({})
 });
@@ -50,7 +50,7 @@ const CityType = new GraphQLObjectType({
 // ===== QUERIES ==== //
 // ================== //
 
-const RootQuery = new GraphQLObjectType({
+const RootQuery = new GraphQLObjectType<undefined, undefined>({
   name: 'RootQueryType',
   fields: {}
 });
@@ -59,7 +59,7 @@ const RootQuery = new GraphQLObjectType({
 // ===== MUTATIONS ==== //
 // ================== //
 
-const RootMutation = new GraphQLObjectType({
+const RootMutation = new GraphQLObjectType<undefined, undefined>({
   name: 'RootMutationType',
   fields: {}
 });
