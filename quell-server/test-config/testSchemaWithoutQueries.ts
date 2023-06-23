@@ -1,9 +1,7 @@
 import db from './countriesModel';
 import dbBooks from './booksModel';
 
-
 import {
-
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLList,
@@ -24,6 +22,14 @@ import { QueryResult } from 'pg';
   Generally corresponds with table we're pulling from
 */
 
+type Parent = {
+  [ key: string ]: string 
+}
+
+type Arg = {
+  [ key: string ]: string 
+}
+
 const BookShelfType = new GraphQLObjectType({
   name: 'BookShelf',
   fields: () => ({
@@ -32,7 +38,7 @@ const BookShelfType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const booksList: QueryResult = await dbBooks.query(
 
           `
@@ -65,7 +71,7 @@ const CountryType = new GraphQLObjectType({
     cities: {
       type: new GraphQLList(CityType),
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const citiesList = await db.query(
           `SELECT * FROM cities WHERE country_id = $1`,
           [Number(parent.id)]
@@ -104,7 +110,7 @@ const RootMutation = new GraphQLObjectType({
         shelf_id: { type: new GraphQLNonNull(GraphQLString) }
       },
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ name: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const author = args.author || '';
 
         const newBook = await dbBooks.query(
@@ -122,7 +128,7 @@ const RootMutation = new GraphQLObjectType({
         author: { type: GraphQLString }
       },
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const updatedBook = await dbBooks.query(
           `UPDATE books SET author = $2 WHERE id = $1 RETURNING *`,
           [args.id, args.author]
@@ -137,7 +143,7 @@ const RootMutation = new GraphQLObjectType({
         name: { type: new GraphQLNonNull(GraphQLString) }
       },
       
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string}) {
+      async resolve(parent: Parent, args: Arg) {
         const newBookShelf = await dbBooks.query(
           `INSERT INTO bookShelves (name) VALUES ($1) RETURNING *`,
           [args.name]
@@ -150,7 +156,7 @@ const RootMutation = new GraphQLObjectType({
       type: CountryType,
       args: { name: { type: GraphQLString } },
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const country = await db.create({ name: args.name });
         return country;
       }
@@ -159,7 +165,7 @@ const RootMutation = new GraphQLObjectType({
       type: CityType,
       args: { name: { type: GraphQLString } },
 
-      async resolve(parent: { [ key: string ]: string }, args: { [ key: string ]: string }) {
+      async resolve(parent: Parent, args: Arg) {
         const findCity = await db.findOne({ name: args.name });
         if (findCity) {
           await db.deleteOne({ name: args.name });
@@ -168,7 +174,6 @@ const RootMutation = new GraphQLObjectType({
     }
   }
 });
-
 
 export default new GraphQLSchema({
   mutation: RootMutation,
