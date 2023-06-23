@@ -6,4 +6,6 @@ const albumSchema = new Schema({
   artist: { type: String, require: true },
 });
 //albums
-module.exports = mongoose.model('Album', albumSchema);
+const Album = mongoose.model('Album', albumSchema);
+
+export default Album;
