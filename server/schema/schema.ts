@@ -344,7 +344,7 @@ interface ElapsedTimeResponse {
   };
 }
 
-const getElapsedTime = (
+export const getElapsedTime = (
   req: Request,
   res: ElapsedTimeResponse,
   next: NextFunction
@@ -355,20 +355,14 @@ const getElapsedTime = (
   return next();
 };
 
-const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
+export const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
   elapsedTime = {};
   console.log(elapsedTime);
   return next();
 };
 
-const graphqlSchema = new GraphQLSchema({
+export const graphqlSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,
   types: [ArtistType, AlbumType, SongType],
 });
-
-module.exports = {
-  clearElapsedTime,
-  getElapsedTime,
-  graphqlSchema,
-};

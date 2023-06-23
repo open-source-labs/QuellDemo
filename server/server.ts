@@ -1,16 +1,26 @@
-const {
+import {
   getElapsedTime,
   clearElapsedTime,
   graphqlSchema,
-} = require("../dist/server/schema/schema.js");
-const express = require("express");
+} from "./schema/schema";
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+import bodyparser from "body-parser";
+import mongoose, { ConnectOptions } from "mongoose";
+import { QuellCache } from "../quell-server/dist/src/quell";
+import dotenv from "dotenv";
+
+dotenv.config();
 const app = express();
-const cors = require("cors");
-const bodyparser = require("body-parser");
-const mongoose = require("mongoose");
-const { QuellCache } = require("../quell-server/dist/src/quell.js");
-const env = require("dotenv").config();
+
 const schema = graphqlSchema;
+
+type ServerError = {
+  log: string,
+  status: number,
+  message: { err: string },
+}
+
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
@@ -24,15 +34,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cors());
 
+// const mongoURI = process.env.MONGO_URI;
+// if (!mongoURI) throw new Error('The MONGO URI environment variable must be')
+
 mongoose
-  .connect(process.env.MONGO_URI, {
+  .connect(process.env.MONGO_URI!, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  })
+  } as ConnectOptions)
   .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log(err));
+  .catch((err: string) => console.log(err));
 
-const PORT = process.env.PORT || 3000;
+const PORT: number = Number(process.env.PORT) || 3000;
 
 app.use(express.static("./dist"));
 
@@ -44,9 +57,9 @@ app.use(
   quellCache.costLimit,
   quellCache.depthLimit,
   quellCache.query,
-  (req, res) => {
+  (req: Request, res: Response) => {
     console.log("inside server route to /api/graphql");
-    console.log("res.locals in server: ", res.locals);
+    console.log('res.locals in server: ', res.locals);
     return res.status(200).send(res.locals);
   }
 );
@@ -62,7 +75,7 @@ app.use(
     getKeys: true,
     getValues: true,
   }),
-  (req, res) => {
+  (req: Request, res: Response) => {
     return res.status(200).send(res.locals);
   }
 );
@@ -74,11 +87,11 @@ app.use("/api/queryTime", getElapsedTime, (req, res) => {
   // console.log('reached /api/queryTime');
 });
 
-app.use((req, res) =>
+app.use((req: Request, res: Response) =>
   res.status(404).send("This is not the page you're looking for...")
 );
 
-app.use((err, req, res, next) => {
+app.use((err: ServerError, req: Request, res: Response, next: NextFunction) => {
   const defaultErr = {
     log: "Express error handler caught unknown middleware error",
     status: 500,
