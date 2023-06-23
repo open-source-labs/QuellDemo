@@ -6,8 +6,8 @@
   "proxy": "http://localhost:3000",
   "main": "index.tsx",
   "scripts": {
-    "start": "node ./server/server.js",
-    "dev": "concurrently \"webpack-dev-server --mode development --open --hot \" \"nodemon ./server/server.js\"",
+    "start": "node dist/server/server.js",
+    "dev": "concurrently \"webpack-dev-server --mode development --open --hot \" \"nodemon dist/server/server.js\"",
     "test": "jest",
     "build": "webpack --mode production",
     "prod": "npm install && npm run build && npm start",

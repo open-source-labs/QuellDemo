@@ -7,7 +7,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import bodyparser from "body-parser";
 import mongoose, { ConnectOptions } from "mongoose";
-import { QuellCache } from "../quell-server/dist/src/quell";
+import { QuellCache } from "../quell-server/src/quell";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -24,9 +24,9 @@ type ServerError = {
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
-  redisPort: process.env.REDIS_PORT,
-  redisHost: process.env.REDIS_HOST,
-  redisPassword: process.env.REDIS_PASSWORD,
+  redisPort: Number(process.env.REDIS_PORT) || 6379,
+  redisHost: process.env.REDIS_HOST || '127.0.0.1',
+  redisPassword: process.env.REDIS_PASSWORD || '',
 });
 
 app.use(express.json());
