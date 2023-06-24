@@ -1,10 +1,14 @@
+import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
+import { BrowserRouter as Router, Route, Link, HashRouter, useNavigate } from 'react-router-dom';
 import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg';
 import hamburgerIcon from '/client/src/assets/images/graphics/hamburger.svg';
-import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Route, Link, HashRouter, useNavigate } from 'react-router-dom';
-// import { HashLink } from 'react-router-hash-link'; 
 
-export const Navbar: React.FC = () => {
+type NavbarProps = {
+  teamComp: boolean;
+  toggleRenderTeam: Dispatch<SetStateAction<boolean>>;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ teamComp, toggleRenderTeam }) => {
 
   // Hook for navigating to different routes
   const navigate = useNavigate();
