@@ -1,5 +1,9 @@
-const QuellCache = require('../../src/quell.ts');
-const schema = require('../../test-config/testSchema');
+const {QuellCache} = require('../../src/quell.ts');
+// import { QuellCache } from '../../src/quell';
+
+const schema = require('../../test-config/testSchema.ts');
+// import { schema } from '../../test-config/testSchema';
+
 
 const redisPort = 6379;
 // const timeout = 100;
@@ -36,13 +40,13 @@ describe('server test for buildFromCache', () => {
     return Promise.all([promise1, promise2, promise3, promise4]);
   });
 
-  afterAll((done) => {
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      console.log('closing redis server');
-      done();
-    });
-  });
+  // afterAll((done) => {
+  //   Quell.redisCache.flushall();
+  //   Quell.redisCache.quit(() => {
+  //     console.log('closing redis server');
+  //     done();
+  //   });
+  // });
 
   test('Basic query', async () => {
     const testProto = {

@@ -27,8 +27,12 @@ import type {
   InterfaceTypeExtensionNode,
   UnionTypeExtensionNode,
   EnumTypeExtensionNode,
-  InputObjectTypeExtensionNode
+  InputObjectTypeExtensionNode,
+  DocumentNode,
+  ExecutionResult,
 } from 'graphql';
+
+import { Request } from 'express';
 
 // QuellCache constructor parameters
 export interface ConstructorOptions {
@@ -74,7 +78,7 @@ export interface FragsType {
 }
 
 export interface MutationMapType {
-  [mutationName: string]: string | undefined;
+  [mutationName: string]: string | undefined | ReturnType;
 }
 
 export interface QueryMapType {
@@ -271,16 +275,52 @@ interface CostOptionsType {
   maxDepth?: number;
   maxCost?: number;
   ipRate?: number;
-};
+}
 
 export interface RequestBodyType {
   query?: string;
   costOptions?: CostOptionsType;
-};
+}
 
 // AST:
 export interface ParsedASTType {
   proto: ProtoObjType;
   operationType: string;
   frags: FragsType;
+}
+
+export type ReturnType = string | string[] | undefined;
+
+export type FieldType = {
+  name: string;
+  type: {
+    name: string;
+    ofType: {
+      name: string;
+    };
+  };
 };
+
+export type RedisValue = string | null | void;
+
+export interface RequestType extends Request {
+  body: RequestBodyType;
+}
+
+export interface ResLocals {
+  AST?: DocumentNode;
+  parsedAST?: ParsedASTType;
+  queryResponse?: ExecutionResult | RedisValue;
+  redisStats?: RedisStatsType;
+  queryErr?: ServerErrorType;
+  redisValues?: (string | null)[];
+  redisKeys?: string[];
+}
+
+export interface CustomResponse extends Response {
+  locals: ResLocals;
+}
+
+export interface FieldKeyValue {
+  [key: string]: string;
+}

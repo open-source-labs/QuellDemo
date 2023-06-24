@@ -38,7 +38,7 @@ const invalidateCache = (query: string): void => {
  * Implement LRU caching strategy 
  * Set the maximum cache size on LRU cache
  */
-const MAX_CACHE_SIZE: number = 3;
+const MAX_CACHE_SIZE: number = 2;
 const lruCache = new LRUCache<string, MapCacheType>({ max: MAX_CACHE_SIZE });
 
 // Track the order of accessed queries
