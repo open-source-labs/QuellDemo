@@ -990,7 +990,7 @@ export class QuellCache {
       // dbRespDataRaw.data[mutationName] will always return the value at the mutationName
       // in the form of an object.
       dbRespId = (dbRespDataRaw.data[mutationName] as TypeData)?.id as string;
-      dbRespData = JSON.parse(JSON.stringify(dbRespDataRaw.data[mutationName]));
+      dbRespData = await JSON.parse(JSON.stringify(dbRespDataRaw.data[mutationName]));
     }
 
     for (const queryKey in this.queryMap) {
