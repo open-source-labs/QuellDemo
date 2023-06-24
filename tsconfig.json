@@ -35,5 +35,5 @@
     }],
   },
   "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts", "tailwind.config.js", "quell-server/**/*", "server/**/*", "custom.d.ts"],
-  "exclude": ["node_modules", "target", "**/*.js"]
+  "exclude": ["node_modules", "target", "dist"]
 }

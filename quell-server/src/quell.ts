@@ -33,7 +33,9 @@ import type {
   Type,
   MergedResponse,
   DataResponse,
-  TypeData
+  TypeData,
+  RequestBodyType,
+  ParsedASTType
 } from './types';
 
 /*
@@ -42,6 +44,30 @@ import type {
  * to be set in the request body to allow for demoing these features.
 */
 
+type RedisValue = string | null | void;
+
+interface RequestType extends Request {
+  body: RequestBodyType
+}
+
+interface ResLocals {
+  AST?: DocumentNode;
+  parsedAST?: ParsedASTType;
+  queryResponse?: ExecutionResult | RedisValue;
+  redisStats?: RedisStatsType;
+  queryErr?: ServerErrorType;
+  redisValues?: (string | null)[];
+  redisKeys?: string[];
+}
+
+interface CustomResponse extends Response {
+  locals: ResLocals;
+}
+
+interface FieldKeyValue {
+  [key: string]: string;
+}
+ 
 const defaultCostParams: CostParamsType = {
   maxCost: 5000, // maximum cost allowed before a request is rejected
   mutationCost: 5, // cost of a mutation
@@ -130,7 +156,7 @@ export class QuellCache {
       .then((): void => {
         console.log('Connected to redisCache');
       })
-      .catch((error) => {
+      .catch((error: string) => {
         const err: ServerErrorType = {
           log: `Error when trying to connect to redisCache, ${error}`,
           status: 400,
@@ -151,7 +177,7 @@ export class QuellCache {
    *  exceeds the IP rate limit.
    */
   async rateLimiter(
-    req: Request,
+    req: RequestType,
     res: Response,
     next: NextFunction
   ): Promise<void> {
@@ -241,7 +267,7 @@ export class QuellCache {
    *  @param {Response} res - Express response object, will carry query response to next middleware.
    *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
    */
-  async query(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async query(req: RequestType, res: CustomResponse, next: NextFunction): Promise<void> {
     // Return an error if no query is found on the request.
     if (!req.body.query) {
       const err: ServerErrorType = {
@@ -259,9 +285,8 @@ export class QuellCache {
 
     // Create the abstract syntax tree with graphql-js parser.
     // If depth limit or cost limit were implemented, then we can get the AST and parsed AST from res.locals.
-    const AST: DocumentNode = res.locals.AST
-      ? res.locals.AST
-      : parse(queryString);
+
+    const AST: DocumentNode = res.locals.AST ? res.locals.AST : parse(queryString);
 
     // Create response prototype, operation type, and fragments object.
     // The response prototype is used as a template for most operations in Quell including caching, building modified requests, and more.
@@ -269,8 +294,7 @@ export class QuellCache {
       proto,
       operationType,
       frags
-    }: { proto: ProtoObjType; operationType: string; frags: FragsType } =
-      res.locals.parsedAST ?? parseAST(AST);
+    }: ParsedASTType = res.locals.parsedAST ?? parseAST(AST);
 
     // Determine if Quell is able to handle the operation.
     // Quell can handle mutations and queries.
@@ -327,14 +351,14 @@ export class QuellCache {
        */
 
       // Check Redis for the query string .
-      let redisValue: string | null | void = await this.getFromRedis(
+      let redisValue: RedisValue = await this.getFromRedis(
         queryString
       );
 
       if (redisValue != null) {
         // If the query string is found in Redis, add the result to the response and return.
         redisValue = JSON.parse(redisValue);
-        res.locals.queriesResponse = redisValue;
+        res.locals.queryResponse = redisValue;
         return next();
       } else {
         // Execute the operation, add the result to the response, write the query string and result to cache, and return.
@@ -596,7 +620,9 @@ export class QuellCache {
         let redisRunQueue: ReturnType<typeof this.redisCache.multi> =
           this.redisCache.multi();
 
-        for (let i = 0; i < itemFromCache[typeKey].length; i++) {
+        const array = itemFromCache[typeKey] as string[];  
+
+        for (let i = 0; i < array.length; i++) {
           if (typeof itemFromCache[typeKey] === 'string') {
             /**
              * Helper function that will be called for each response in the
@@ -1032,7 +1058,7 @@ export class QuellCache {
               fieldKey.toLowerCase()
             );
             if (fieldKeyValueRaw !== null && fieldKeyValueRaw !== undefined) {
-              const fieldKeyValue = JSON.parse(fieldKeyValueRaw);
+              const fieldKeyValue: FieldKeyValue = JSON.parse(fieldKeyValueRaw);
 
               let remove = true;
               for (const arg in mutationQueryObject.__args as ProtoObjType) {
@@ -1262,7 +1288,7 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getStatsFromRedis(req: Request, res: Response, next: NextFunction): void {
+  getStatsFromRedis(req: Request, res: CustomResponse, next: NextFunction): void {
     try {
       const getStats = () => {
         // redisCache.info returns information and statistics about the server as an array of field:value.
@@ -1525,7 +1551,7 @@ export class QuellCache {
             res.locals.redisStats = output;
             return next();
           })
-          .catch((error) => {
+          .catch((error: string) => {
             const err: ServerErrorType = {
               log: `Error inside catch block of getting info within getStatsFromRedis, ${error}`,
               status: 400,
@@ -1555,7 +1581,7 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getRedisKeys(req: Request, res: Response, next: NextFunction): void {
+  getRedisKeys(req: Request, res: CustomResponse, next: NextFunction): void {
     this.redisCache
       .keys('*')
       .then((response: string[]) => {
@@ -1580,8 +1606,8 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getRedisValues(req: Request, res: Response, next: NextFunction): void {
-    if (res.locals.redisKeys.length !== 0) {
+  getRedisValues(req: Request, res: CustomResponse, next: NextFunction): void {
+    if (res.locals.redisKeys && res.locals.redisKeys.length !== 0) {
       this.redisCache
         .mGet(res.locals.redisKeys)
         .then((response: (string | null)[]) => {
@@ -1617,15 +1643,15 @@ export class QuellCache {
    */
   // what parameters should they take? If middleware, good as is, has to take in query obj in request, limit set inside.
   // If function inside whole of Quell, (query, limit), so they are explicitly defined and passed in
-  depthLimit(req: Request, res: Response, next: NextFunction): void {
+  depthLimit(req: RequestType, res: CustomResponse, next: NextFunction): void {
     // Get maximum depth limit from the cost parameters set on server connection.
     let { maxDepth } = this.costParameters;
 
     // maxDepth can be reassigned to get depth max limit from req.body if user selects depth limit
-    if (req.body.costOptions.maxDepth) maxDepth = req.body.costOptions.maxDepth;
+    if (req.body.costOptions && req.body.costOptions.maxDepth) maxDepth = req.body.costOptions.maxDepth;
 
     // Get the GraphQL query string from request body.
-    const queryString: string = req.body.query;
+    const queryString: string | undefined = req.body.query;
 
     // Pass error to Express if no query is found on the request.
     if (!queryString) {
@@ -1708,17 +1734,17 @@ export class QuellCache {
    * @param {Function} next - Express next middleware function.
    * @returns {void} Passes an error to Express if no query was included in the request or if the cost exceeds the maximum allowed cost.
    */
-  costLimit(req: Request, res: Response, next: NextFunction): void {
+  costLimit(req: RequestType, res: CustomResponse, next: NextFunction): void {
     // Get the cost parameters set on server connection.
     let { maxCost } = this.costParameters;
     const { mutationCost, objectCost, depthCostFactor, scalarCost } =
       this.costParameters;
 
     // maxCost can be reassigned to get maxcost limit from req.body if user selects cost limit
-    if (req.body.costOptions.maxCost) maxCost = req.body.costOptions.maxCost;
+    if (req.body.costOptions && req.body.costOptions.maxCost) maxCost = req.body.costOptions.maxCost;
 
     // Get the GraphQL query string from request body.
-    const queryString: string = req.body.query;
+    const queryString: string | undefined = req.body.query;
 
     // Pass error to Express if no query is found on the request.
     if (!queryString) {

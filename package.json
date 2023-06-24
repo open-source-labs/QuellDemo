@@ -105,7 +105,7 @@
     "webpack-dev-server": "^4.13.1"
   },
   "typeCoverage": {
-    "atLeast": 95,
+    "atLeast": 99.9,
     "ignoreFiles": [
       "quell-server/dist/src/**/*.js"
     ]
