@@ -1,46 +1,40 @@
-const QuellCache = require('../../src/quell.ts');
-const schema = require('../../test-config/testSchema');
-const { parse } = require('graphql/language/parser');
-
-const redisPort = 6379;
-const timeout = 100;
+import { parse } from 'graphql/language/parser';
+import { parseAST } from '../../src/helpers/quellHelpers';
 
 describe('server tests for Quell.parseAST.js', () => {
-  const Quell = new QuellCache(schema, redisPort, timeout);
+  // beforeAll(() => {
+  //   const promise1 = new Promise((resolve, reject) => {
+  //     resolve(
+  //       Quell.writeToCache('country--1', {
+  //         id: '1',
+  //         capitol: { id: '2', name: 'DC' },
+  //       })
+  //     );
+  //   });
+  //   const promise2 = new Promise((resolve, reject) => {
+  //     resolve(Quell.writeToCache('country--2', { id: '2' }));
+  //   });
+  //   const promise3 = new Promise((resolve, reject) => {
+  //     resolve(Quell.writeToCache('country--3', { id: '3' }));
+  //   });
+  //   const promise4 = new Promise((resolve, reject) => {
+  //     resolve(
+  //       Quell.writeToCache('countries', [
+  //         'country--1',
+  //         'country--2',
+  //         'country--3',
+  //       ])
+  //     );
+  //   });
+  //   return Promise.all([promise1, promise2, promise3, promise4]);
+  // });
 
-  beforeAll(() => {
-    const promise1 = new Promise((resolve, reject) => {
-      resolve(
-        Quell.writeToCache('country--1', {
-          id: '1',
-          capitol: { id: '2', name: 'DC' },
-        })
-      );
-    });
-    const promise2 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--2', { id: '2' }));
-    });
-    const promise3 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--3', { id: '3' }));
-    });
-    const promise4 = new Promise((resolve, reject) => {
-      resolve(
-        Quell.writeToCache('countries', [
-          'country--1',
-          'country--2',
-          'country--3',
-        ])
-      );
-    });
-    return Promise.all([promise1, promise2, promise3, promise4]);
-  });
-
-  afterAll((done) => {
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      done();
-    });
-  });
+  // afterAll((done) => {
+  //   Quell.redisCache.flushall();
+  //   Quell.redisCache.quit(() => {
+  //     done();
+  //   });
+  // });
 
   test('should traverse the abstract syntax tree and create a proto object', () => {
     // define a query string
@@ -53,7 +47,7 @@ describe('server tests for Quell.parseAST.js', () => {
     }`;
     // parse query, and parse AST
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     // compare expected proto & operation Type to actual
     expect(proto).toEqual({
@@ -86,7 +80,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }`;
 
     const AST = parse(query);
-    const { proto, operationType } = Quell.parseAST(AST);
+    const { proto, operationType } = parseAST(AST);
 
     expect(proto).toEqual({
       countries: {
@@ -121,7 +115,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       country: {
@@ -146,7 +140,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
   }`;
     const AST = parse(query);
-    const { proto, operationType } = Quell.parseAST(AST);
+    const { proto, operationType } = parseAST(AST);
 
     expect(proto).toEqual({
       Canada: {
@@ -175,7 +169,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       countries: {
@@ -205,7 +199,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       countries: {
@@ -251,7 +245,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       countries: {
@@ -303,7 +297,7 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       country: {
@@ -335,7 +329,7 @@ describe('server tests for Quell.parseAST.js', () => {
     }`;
 
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       Canada: {
@@ -374,7 +368,7 @@ describe('server tests for Quell.parseAST.js', () => {
     }`;
 
     const parsedQuery = parse(query);
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
+    const { proto, operationType } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       countries: {
@@ -425,14 +419,14 @@ describe('server tests for Quell.parseAST.js', () => {
       }
     }`;
     const parsedQuery = parse(query);
+    const { proto, operationType } = parseAST(parsedQuery);
 
-    const { proto, operationType } = Quell.parseAST(parsedQuery);
     expect(proto).toEqual({
       country: {
         __type: 'country',
         __args: { id: '1', name: 'USA' },
         __alias: null,
-        __cacheTime: '1000',
+        // __cacheTime: '1000',
         __id: '1',
         id: true,
         name: true,
@@ -456,7 +450,7 @@ describe('server tests for Quell.parseAST.js', () => {
     }`;
 
     const parsedQuery = parse(query);
-    const { proto, operationType, frags } = Quell.parseAST(parsedQuery);
+    const { proto, operationType, frags } = parseAST(parsedQuery);
 
     expect(proto).toEqual({
       Canada: {

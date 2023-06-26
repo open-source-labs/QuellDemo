@@ -1,22 +1,6 @@
-const QuellCache = require('../../src/quell');
-const testSchema = require('../../test-config/testSchema');
-const schema = require('../../test-config/testSchema');
-
-const redisPort = 6379;
-const timeout = 100;
-
+import { updateProtoWithFragment } from '../../src/helpers/quellHelpers';
 
 describe('tests for update prototype with fragments on the server side', () => {
-  const Quell = new QuellCache(schema, redisPort, timeout);
-
-
-  afterAll((done) => {
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      console.log('closing redis server');
-      done();
-    });
-  });
   test('basic prototype object with 2 fields and a fragment, should convert to a protoype with 2 fields and the fields from the fragment without the fragment key on the prototype object', () => {
     const protoObj = {
       artists: {
@@ -38,7 +22,8 @@ describe('tests for update prototype with fragments on the server side', () => {
       },
     };
 
-    expect(Quell.updateProtoWithFragment(protoObj, fragment)).toEqual({
+    expect(updateProtoWithFragment(protoObj, fragment)).toEqual({
+
       artists: {
         __id: null,
         __args: null,

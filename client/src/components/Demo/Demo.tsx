@@ -256,9 +256,7 @@ function QueryDemo({
   };
   
   type ApiResponse = {
-    response: {
       queryResponse: QueryResponse;
-    };
   };
 
   function submitServerQuery() {
@@ -277,12 +275,11 @@ function QueryDemo({
     fetch("/api/graphql", fetchOptions)
       .then((res: Response) => res.json())
       .then((res: ApiResponse) => {
-        console.log(res)
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
         addResponseTimes([...responseTimes, responseTime]);
-        setResponse(JSON.stringify(res.response.queryResponse.data, null, 2));
-        if (res.response.queryResponse.cached === true) setCacheHit(cacheHit + 1);
+        setResponse(JSON.stringify(res.queryResponse.data, null, 2));
+        if (res.queryResponse.cached === true) setCacheHit(cacheHit + 1);
         else setCacheMiss(cacheMiss + 1);
       })
       .then(() => {
@@ -299,7 +296,7 @@ function QueryDemo({
           log: "Error when trying to fetch to GraphQL endpoint",
           status: 400,
           message: {
-            err: `Error in submitClientQuery. ${err}`,
+            err: `Error in submitServerQuery. ${err}`,
           },
         };
         console.log("Error in fetch: ", error);
