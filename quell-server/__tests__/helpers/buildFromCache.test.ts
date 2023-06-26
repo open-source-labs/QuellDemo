@@ -317,4 +317,42 @@ describe('server test for buildFromCache', () => {
     expect(testProto).toEqual(endProto);
     expect(responseFromCache).toEqual(expectedResponseFromCache);
   });
+
+  test('Basic query', async () => {
+    const testProto = {
+      country: {
+        id: true,
+        name: true,
+        __alias: null,
+        __args: { id: '3' },
+        __type: 'country',
+        __id: '3',
+      },
+    };
+    const endProto = {
+      country: {
+        id: true,
+        name: false,
+        __alias: null,
+        __args: { id: '3' },
+        __type: 'country',
+        __id: '3',
+      },
+    };
+    const expectedResponseFromCache = {
+      data: {
+        country: {
+          id: '3',
+        },
+      },
+    };
+    const prototypeKeys = Object.keys(testProto);
+    const responseFromCache = await Quell.buildFromCache(
+      testProto,
+      prototypeKeys
+    );
+    // we expect prototype after running through buildFromCache to have id has stayed true but every other field has been toggled to false (if not found in sessionStorage)
+    expect(testProto).toEqual(endProto);
+    expect(responseFromCache).toEqual(expectedResponseFromCache);
+  });
 });

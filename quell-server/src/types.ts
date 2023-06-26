@@ -68,7 +68,7 @@ export interface CustomError extends Error {
 
 export interface ProtoObjType {
   // [key: string]: unknown;
-  [key: string]: string | boolean | null | ProtoObjType;
+  [key: string]: string | boolean | number |null | ProtoObjType;
 }
 
 export interface FragsType {
@@ -217,7 +217,7 @@ export interface DataResponse {
 }
 
 export interface Data {
-  [key: string]: DataField[] | string | Data | Data[];
+  [key: string]: DataField[] | string | number | Data | Data[];
 }
 
 interface DataField {
