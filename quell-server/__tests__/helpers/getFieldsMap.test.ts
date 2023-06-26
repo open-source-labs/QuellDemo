@@ -38,7 +38,8 @@ describe("server side tests for getFieldsMap", () => {
         addBookShelf: "BookShelf",
         addCountry: "Country",
         changeBook: "Book",
-        deleteCity: "City",
+        //deleteCity field does not exist in testSchema, therefore commented out
+        // deleteCity: "City",
       },
     });
   });
