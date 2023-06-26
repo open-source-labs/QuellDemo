@@ -1,19 +1,6 @@
-const QuellCache = require('../../src/quell');
-const schema = require('../../test-config/testSchema');
-
-const redisPort = 6379;
-const timeout = 100;
-
+import { joinResponses } from '../../src/helpers/quellHelpers';
 
 describe('tests for joinResponses on the server side', () => {
-  const Quell = new QuellCache(schema, redisPort, timeout);
-
-  afterAll((done) => {
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      done();
-    });
-  });
   
   const protoObj = {
     artists: {
@@ -115,7 +102,8 @@ describe('tests for joinResponses on the server side', () => {
       },
     };
 
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, proto)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, proto)).toEqual({
+
         artist: {
           id: '1',
           name: 'John Coltrane',
@@ -171,7 +159,8 @@ describe('tests for joinResponses on the server side', () => {
       }
     };
   
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+
       artist: {
         id: '1',
         name: 'John Coltrane',
@@ -186,7 +175,7 @@ describe('tests for joinResponses on the server side', () => {
   });
 
   
-  xtest('inputs a list retrieved from cache and a list retrieved from server and outputs combined List response', () => {
+  test('inputs a list retrieved from cache and a list retrieved from server and outputs combined List response', () => {
     const cacheResponse = {
       data: {
         albums: [
@@ -228,7 +217,8 @@ describe('tests for joinResponses on the server side', () => {
       }
     };
 
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+
       albums: [
         { album_id: '1', id: '101', name: 'Blue Train', release_year: 1957 },
         { album_id: '2', id: '201', name: 'Giant Steps', release_year: 1965 },
@@ -274,7 +264,8 @@ describe('tests for joinResponses on the server side', () => {
       }
     };
 
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+
       albums: [
         { album_id: '1', id: '101', name: 'Blue Train', release_year: 1957 },
         { album_id: '2', id: '201', name: 'Giant Steps', release_year: 1965 },
@@ -347,7 +338,8 @@ describe('tests for joinResponses on the server side', () => {
       }
     };
   
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+
       artist: {
         id: '1',
         name: 'Belle & Sebastian',
@@ -439,7 +431,8 @@ describe('tests for joinResponses on the server side', () => {
       }
     };
   
-    expect(Quell.joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+    expect(joinResponses(cacheResponse.data, serverResponse.data, prototype)).toEqual({
+
       artist: {
         id: '1',
         name: 'John Coltrane',

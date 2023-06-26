@@ -471,4 +471,45 @@ describe('server tests for Quell.parseAST.js', () => {
     });
     expect(operationType).toBe('query');
   });
+
+  test('should not work with directive operation types', () => {
+    const query = `subscription {
+      country(id: 1, name: "USA") {
+        id
+        name
+        capitol
+      }
+    }`;
+    const parsedQuery = parse(query);
+    const { operationType } = parseAST(parsedQuery);
+
+    expect(operationType).toEqual('unQuellable');
+  });
+
+  test('should not work with variables', () => {
+    const query = `query {
+      country(id: 1, name: "USA") {
+        id
+        __name
+        capitol
+      }
+    }`;
+    const parsedQuery = parse(query);
+    const { operationType } = parseAST(parsedQuery);
+
+    expect(operationType).toEqual('unQuellable');
+  });
+
+  test('should not work with queries without an ID', () => {
+    const query = `query {
+      country(name: "USA") {
+        name
+        capitol
+      }
+    }`;
+    const parsedQuery = parse(query);
+    const { operationType } = parseAST(parsedQuery);
+
+    expect(operationType).toEqual('noID');
+  });
 });
