@@ -8,3 +8,5 @@ coverage-ts/
 dist/
 dist
 dump.rdb
+
+coverage/
