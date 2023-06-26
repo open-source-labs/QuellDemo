@@ -13,7 +13,7 @@ describe('server side tests for getMutationMap', () => {
       addBook: 'Book',
       changeBook: 'Book',
       addBookShelf: 'BookShelf',
-      // addCountry: 'Country', // Not found in testSchema?
+      addCountry: 'Country', // Not found in testSchema?
       // deleteCity: 'City' // Not found in testSchema?
     });
   });
