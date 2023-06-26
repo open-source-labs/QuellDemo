@@ -32,7 +32,7 @@ import type {
   ExecutionResult,
 } from 'graphql';
 
-import { Request } from 'express';
+import { Response, Request } from 'express';
 
 // QuellCache constructor parameters
 export interface ConstructorOptions {
@@ -307,7 +307,17 @@ export interface RequestType extends Request {
   body: RequestBodyType;
 }
 
-export interface ResLocals {
+// export interface ResLocals {
+//   AST?: DocumentNode;
+//   parsedAST?: ParsedASTType;
+//   queryResponse?: ExecutionResult | RedisValue;
+//   redisStats?: RedisStatsType;
+//   queryErr?: ServerErrorType;
+//   redisValues?: (string | null)[];
+//   redisKeys?: string[];
+// }
+
+export interface ResLocals extends Response {
   AST?: DocumentNode;
   parsedAST?: ParsedASTType;
   queryResponse?: ExecutionResult | RedisValue;

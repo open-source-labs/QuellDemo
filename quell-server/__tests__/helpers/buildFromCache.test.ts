@@ -1,15 +1,13 @@
-const {QuellCache} = require('../../src/quell.ts');
-// import { QuellCache } from '../../src/quell';
-
-const schema = require('../../test-config/testSchema.ts');
-// import { schema } from '../../test-config/testSchema';
-
-
-const redisPort = 6379;
-// const timeout = 100;
+import { QuellCache } from '../../src/quell';
+import schema from '../../test-config/testSchema';
 
 describe('server test for buildFromCache', () => {
-  const Quell = new QuellCache(schema, redisPort);
+  const Quell = new QuellCache({
+    schema: schema,
+    redisPort: Number(process.env.REDIS_PORT) || 6379,
+    redisHost: process.env.REDIS_HOST || '127.0.0.1',
+    redisPassword: process.env.REDIS_PASSWORD || '',
+  });
   // inputs: prototype object (which contains args), collection (defaults to an empty array)
   // outputs: protoype object with fields that were not found in the cache set to false
 
@@ -120,7 +118,7 @@ describe('server test for buildFromCache', () => {
     expect(responseFromCache).toEqual(expectedResponseFromCache);
   });
 
-  xtest('Multiple nested queries that include args and aliases', async () => {
+  test('Multiple nested queries that include args and aliases', async () => {
     const testProto = {
       Canada: {
         id: true,

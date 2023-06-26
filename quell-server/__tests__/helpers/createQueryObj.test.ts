@@ -1,18 +1,6 @@
-const QuellCache = require('../../src/quell.ts');
-const schema = require('../../test-config/testSchema');
-const redisPort = 6379;
-const timeout = 100;
+import { createQueryObj } from '../../src/helpers/quellHelpers';
 
 describe('server side tests for createQueryObj.js', () => {
-  const Quell = new QuellCache(schema, redisPort, timeout);
-
-  afterAll((done) => {
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      console.log('closing redis server');
-      done();
-    });
-  });
 
   // TO-DO: Add the same test to the client side test folder
   test('inputs prototype w/ all true should output empty object', () => {
@@ -38,7 +26,7 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(prototype)).toEqual({});
+    expect(createQueryObj(prototype)).toEqual({});
   });
 
   test('inputs prototype w/ only false scalar types should output same object', () => {
@@ -54,7 +42,8 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
+
       countries: {
         __id: null,
         __alias: null,
@@ -90,7 +79,8 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
+
       countries: {
         __id: null,
         __alias: null,
@@ -126,7 +116,7 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
       countries: {
         id: false,
         __id: null,
@@ -170,7 +160,8 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
+
       countries: {
         __id: null,
         __alias: null,
@@ -229,7 +220,8 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
+
       Canada: {
         __id: '1',
         __type: 'country',
@@ -294,7 +286,8 @@ describe('server side tests for createQueryObj.js', () => {
       },
     };
 
-    expect(Quell.createQueryObj(map)).toEqual({
+    expect(createQueryObj(map)).toEqual({
+
       WarBook: {
         __id: '2',
         __alias: 'WarBook',
