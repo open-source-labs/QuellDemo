@@ -28,7 +28,10 @@ import type {
   QueryFields,
   MergedResponse,
   DataResponse,
-  Data
+  Data,
+  ReturnType,
+  MutationTypeFieldsType,
+  FieldType,
 } from '../types';
 
 /**
@@ -681,14 +684,16 @@ export function getMutationMap(schema: GraphQLSchema): MutationMapType {
     ?.getMutationType()
     ?.getFields();
   // if queryTypeFields is a function, invoke it to get object with queries
-  const mutationsObj =
+  const mutationsObj: { [field: string]: FieldType } =
     typeof mutationTypeFields === 'function'
       ? mutationTypeFields()
       : mutationTypeFields;
   for (const mutation in mutationsObj) {
     // get name of GraphQL type returned by query
     // if ofType --> this is collection, else not collection
-    let returnedType;
+
+
+    let returnedType: ReturnType;
     if (mutationsObj[mutation].type.ofType) {
       returnedType = [];
       returnedType.push(mutationsObj[mutation].type.ofType.name);
@@ -715,12 +720,12 @@ export function getQueryMap(schema: GraphQLSchema): QueryMapType {
     ?.getQueryType()
     ?.getFields();
   // if queryTypeFields is a function, invoke it to get object with queries
-  const queriesObj =
+  const queriesObj: { [field: string]: FieldType } =
     typeof queryTypeFields === 'function' ? queryTypeFields() : queryTypeFields;
   for (const query in queriesObj) {
     // get name of GraphQL type returned by query
     // if ofType --> this is collection, else not collection
-    let returnedType;
+    let returnedType: ReturnType;
     if (queriesObj[query].type.ofType) {
       returnedType = [];
       returnedType.push(queriesObj[query].type.ofType.name);
@@ -742,7 +747,7 @@ export function getQueryMap(schema: GraphQLSchema): QueryMapType {
  */
 export function getFieldsMap(schema: GraphQLSchema): FieldsMapType {
   const fieldsMap: FieldsMapType = {};
-  const typesList: GraphQLSchema['_typeMap'] = schema?.getTypeMap();
+  const typesList: GraphQLSchema['_typeMap'] = schema?.getTypeMap() || {};
   const builtInTypes: string[] = [
     'String',
     'Int',
@@ -764,10 +769,15 @@ export function getFieldsMap(schema: GraphQLSchema): FieldsMapType {
     (type) =>
       !builtInTypes.includes(type) && type !== schema.getQueryType()?.name
   );
+
+
+
   // loop through types
   for (const type of customTypes) {
     const fieldsObj: FieldsObjectType = {};
+    // let fields: { [field: string]: FieldType }  = typesList[type]._fields;
     let fields = typesList[type]._fields;
+
     if (typeof fields === 'function') fields = fields();
     for (const field in fields) {
       const key: string = fields[field].name;

@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-const { getQueryMap } = require('../../src/helpers/quellHelpers');
-const schema = require('../../test-config/testSchema');
-const schemaWithoutQueries = require('../../test-config/testSchemaWithoutQueries');
+import { getQueryMap } from '../../src/helpers/quellHelpers';
+import schema from '../../test-config/testSchema';
+import schemaWithoutQueries from '../../test-config/testSchemaWithoutQueries';
 
 describe('server side tests for getQueryMap', () => {
   afterAll((done) => {

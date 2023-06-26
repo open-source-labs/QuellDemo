@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction, RequestHandler } from 'express';
 import { parse } from 'graphql/language/parser';
 import { graphql } from 'graphql';
-import type { RedisClientType } from 'redis';
+import { RedisClientType } from 'redis';
 import { createClient } from 'redis';
 import {
   createQueryStr,
@@ -13,8 +13,8 @@ import {
   getQueryMap,
   getFieldsMap
 } from './helpers/quellHelpers';
-import type { GraphQLSchema, ExecutionResult, DocumentNode } from 'graphql';
-import type {
+import { GraphQLSchema, ExecutionResult, DocumentNode } from 'graphql';
+import {
   ConstructorOptions,
   IdCacheType,
   CostParamsType,
@@ -35,7 +35,12 @@ import type {
   DataResponse,
   TypeData,
   RequestBodyType,
-  ParsedASTType
+  ParsedASTType,
+  RedisValue,
+  RequestType,
+  ResLocals,
+  FieldKeyValue,
+  // Response
 } from './types';
 
 /*
@@ -44,29 +49,7 @@ import type {
  * to be set in the request body to allow for demoing these features.
 */
 
-type RedisValue = string | null | void;
 
-interface RequestType extends Request {
-  body: RequestBodyType
-}
-
-interface ResLocals {
-  AST?: DocumentNode;
-  parsedAST?: ParsedASTType;
-  queryResponse?: ExecutionResult | RedisValue;
-  redisStats?: RedisStatsType;
-  queryErr?: ServerErrorType;
-  redisValues?: (string | null)[];
-  redisKeys?: string[];
-}
-
-interface CustomResponse extends Response {
-  locals: ResLocals;
-}
-
-interface FieldKeyValue {
-  [key: string]: string;
-}
  
 const defaultCostParams: CostParamsType = {
   maxCost: 5000, // maximum cost allowed before a request is rejected
@@ -267,7 +250,7 @@ export class QuellCache {
    *  @param {Response} res - Express response object, will carry query response to next middleware.
    *  @param {NextFunction} next - Express next middleware function, invoked when QuellCache completes its work.
    */
-  async query(req: RequestType, res: CustomResponse, next: NextFunction): Promise<void> {
+  async query(req: RequestType, res: Response, next: NextFunction): Promise<void> {
     // Return an error if no query is found on the request.
     if (!req.body.query) {
       const err: ServerErrorType = {
@@ -1288,7 +1271,7 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getStatsFromRedis(req: Request, res: CustomResponse, next: NextFunction): void {
+  getStatsFromRedis(req: Request, res: Response, next: NextFunction): void {
     try {
       const getStats = () => {
         // redisCache.info returns information and statistics about the server as an array of field:value.
@@ -1581,7 +1564,7 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getRedisKeys(req: Request, res: CustomResponse, next: NextFunction): void {
+  getRedisKeys(req: Request, res: Response, next: NextFunction): void {
     this.redisCache
       .keys('*')
       .then((response: string[]) => {
@@ -1606,7 +1589,7 @@ export class QuellCache {
    * @param {Object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  getRedisValues(req: Request, res: CustomResponse, next: NextFunction): void {
+  getRedisValues(req: Request, res: Response, next: NextFunction): void {
     if (res.locals.redisKeys && res.locals.redisKeys.length !== 0) {
       this.redisCache
         .mGet(res.locals.redisKeys)
@@ -1643,7 +1626,7 @@ export class QuellCache {
    */
   // what parameters should they take? If middleware, good as is, has to take in query obj in request, limit set inside.
   // If function inside whole of Quell, (query, limit), so they are explicitly defined and passed in
-  depthLimit(req: RequestType, res: CustomResponse, next: NextFunction): void {
+  depthLimit(req: RequestType, res: Response, next: NextFunction): void {
     // Get maximum depth limit from the cost parameters set on server connection.
     let { maxDepth } = this.costParameters;
 
@@ -1734,7 +1717,7 @@ export class QuellCache {
    * @param {Function} next - Express next middleware function.
    * @returns {void} Passes an error to Express if no query was included in the request or if the cost exceeds the maximum allowed cost.
    */
-  costLimit(req: RequestType, res: CustomResponse, next: NextFunction): void {
+  costLimit(req: RequestType, res: Response, next: NextFunction): void {
     // Get the cost parameters set on server connection.
     let { maxCost } = this.costParameters;
     const { mutationCost, objectCost, depthCostFactor, scalarCost } =
