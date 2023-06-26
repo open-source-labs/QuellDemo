@@ -14,7 +14,7 @@ import {
 
 import Songs from "../models/songsModel";
 import Artist from "../models/artistsModel";
-import Album from "../models/albumsModel.js";
+import Album from "../models/albumsModel";
 import Attractions from "../models/attractionsModel";
 import Cities from "../models/citiesModel";
 import Countries from "../models/countriesModel";
@@ -56,9 +56,9 @@ const ArtistType: GraphQLObjectType = new GraphQLObjectType({
       type: new GraphQLList(AlbumType),
       // a resolver function is responsible for return data for a specific field
       // this is where we can grab the specific timing for the field
-      resolve(parent: { name: string }) {
+      resolve(parent: { name: string }, args: unknown ) {
         const startTime = new Date().getTime();
-        return Album.find({ artist: parent.name }).then((result) => {
+        return Album.find({ artist: parent.name}).then((result) => {
           // console.log(result);
           const endTime = new Date().getTime();
           elapsedTime.albums = endTime - startTime;
@@ -78,7 +78,7 @@ const AlbumType = new GraphQLObjectType({
     artist: { type: GraphQLString },
     songs: {
       type: new GraphQLList(SongType),
-      resolve(parent: { name: string }) {
+      resolve(parent: { name: string }, args: unknown) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
         return Songs.find({ album: parentName }).then((result) => {
@@ -100,7 +100,7 @@ const AttractionsType = new GraphQLObjectType({
     city: { type: GraphQLString },
     country: {
       type: CountryType,
-      resolve(parent: { name: string; city: string }) {
+      resolve(parent: { name: string; city: string }, args: unknown) {
         const startTime = new Date().getTime();
         return Cities.findOne({ name: parent.city })
           .then((city) => {
@@ -129,7 +129,7 @@ const CityType: GraphQLObjectType = new GraphQLObjectType({
     country: { type: GraphQLString },
     attractions: {
       type: new GraphQLList(AttractionsType),
-      resolve(parent: { name: string }) {
+      resolve(parent: { name: string }, args: unknown) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
         return Attractions.find({ city: parent.name }).then((result) => {
@@ -151,7 +151,7 @@ const CountryType = new GraphQLObjectType({
     name: { type: GraphQLString },
     cities: {
       type: new GraphQLList(CityType),
-      async resolve(parent: { name: string }) {
+      async resolve(parent: { name: string }, args: unknown) {
         const startTime = new Date().getTime();
         const parentName = parent.name;
         return Cities.find({ country: parent.name }).then((result) => {
@@ -181,7 +181,7 @@ const RootQuery = new GraphQLObjectType({
     song: {
       type: SongType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const song = Songs.findOne({ name: args.name });
         return song;
       },
@@ -189,7 +189,7 @@ const RootQuery = new GraphQLObjectType({
     album: {
       type: AlbumType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const album = Album.findOne({ name: args.name });
         return album;
       },
@@ -197,7 +197,7 @@ const RootQuery = new GraphQLObjectType({
     artist: {
       type: ArtistType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const artist = await Artist.findOne({ name: args.name });
         return artist;
       },
@@ -205,7 +205,7 @@ const RootQuery = new GraphQLObjectType({
     country: {
       type: CountryType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const country = await Countries.findOne({ name: args.name });
         return country;
       },
@@ -213,7 +213,7 @@ const RootQuery = new GraphQLObjectType({
     city: {
       type: CityType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const city = await Cities.findOne({ name: args.name });
         return city;
       },
@@ -221,7 +221,7 @@ const RootQuery = new GraphQLObjectType({
     attractions: {
       type: AttractionsType,
       args: { name: { type: GraphQLString } },
-      async resolve(args: { name: string }) {
+      async resolve(parent: unknown, args: { name: string }) {
         const attractions = await Attractions.findOne({ name: args.name });
         return attractions;
       },
@@ -359,6 +359,7 @@ export const getElapsedTime = (
   console.log("elapsed time in mid: ", elapsedTime);
 
   res.locals.time = elapsedTime;
+  console.log('res.locals.time', res.locals.time)
   return next();
 };
 

@@ -34,8 +34,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cors());
 
-// const mongoURI = process.env.MONGO_URI;
-// if (!mongoURI) throw new Error('The MONGO URI environment variable must be')
 
 mongoose
   .connect(process.env.MONGO_URI!, {
@@ -81,10 +79,9 @@ app.use(
 );
 
 app.use("/api/queryTime", getElapsedTime, (req, res) => {
-  // console.log('elapsed time', getElapsedTime);
-  // console.log('elapsed time', res.locals.time);
-  return res.status(200).send(res.locals);
+  
   // console.log('reached /api/queryTime');
+  return res.status(200).send(res.locals);
 });
 
 app.use((req: Request, res: Response) =>
@@ -102,6 +99,8 @@ app.use((err: ServerError, req: Request, res: Response, next: NextFunction) => {
   return res.status(errorObj.status).json(errorObj.message.err);
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server listening on port: ${PORT}...`);
 });
+
+export { app, server, quellCache};
