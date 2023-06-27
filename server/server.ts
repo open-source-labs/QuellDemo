@@ -8,6 +8,7 @@ import cors from "cors";
 import bodyparser from "body-parser";
 import mongoose, { ConnectOptions } from "mongoose";
 import { QuellCache } from "../quell-server/src/quell";
+import { getRedisInfo } from "../quell-server/src/helpers/redisHelpers";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,24 +17,23 @@ const app = express();
 const schema = graphqlSchema;
 
 type ServerError = {
-  log: string,
-  status: number,
-  message: { err: string },
-}
+  log: string;
+  status: number;
+  message: { err: string };
+};
 
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
   redisPort: Number(process.env.REDIS_PORT) || 6379,
-  redisHost: process.env.REDIS_HOST || '127.0.0.1',
-  redisPassword: process.env.REDIS_PASSWORD || '',
+  redisHost: process.env.REDIS_HOST || "127.0.0.1",
+  redisPassword: process.env.REDIS_PASSWORD || "",
 });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyparser.json());
 app.use(cors());
-
 
 mongoose
   .connect(process.env.MONGO_URI!, {
@@ -57,7 +57,7 @@ app.use(
   quellCache.query,
   (req: Request, res: Response) => {
     console.log("inside server route to /api/graphql");
-    console.log('res.locals in server: ', res.locals);
+    console.log("res.locals in server: ", res.locals);
     return res.status(200).send(res.locals);
   }
 );
@@ -66,21 +66,17 @@ app.get("/api/clearCache", quellCache.clearCache, (req, res) => {
   return res.status(200).send("Redis cache successfully cleared");
 });
 
-app.use(
-  "/api/redis",
-  quellCache.getRedisInfo({
-    getStats: true,
-    getKeys: true,
-    getValues: true,
-  }),
-  (req: Request, res: Response) => {
-    return res.status(200).send(res.locals);
-  }
-);
+const redisMiddleware = getRedisInfo({
+  getStats: true,
+  getKeys: true,
+  getValues: true,
+});
+
+app.get("/api/redis", redisMiddleware, (req: Request, res: Response) => {
+  return res.status(200).send(res.locals);
+});
 
 app.use("/api/queryTime", getElapsedTime, (req, res) => {
-  
-  // console.log('reached /api/queryTime');
   return res.status(200).send(res.locals);
 });
 
@@ -103,4 +99,4 @@ const server = app.listen(PORT, () => {
   console.log(`Server listening on port: ${PORT}...`);
 });
 
-export { app, server, quellCache};
+export { app, server, quellCache };
