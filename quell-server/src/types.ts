@@ -217,7 +217,7 @@ export interface DataResponse {
 }
 
 export interface Data {
-  [key: string]: DataField[] | string | Data | Data[];
+  [key: string]: DataField[] | string | number | Data | Data[];
 }
 
 interface DataField {
