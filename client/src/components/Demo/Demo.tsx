@@ -33,7 +33,7 @@ import { parse } from "graphql/language/parser";
 import { DocumentNode } from "graphql";
 import { getElapsedTime } from '../../../../server/schema/schema';
 
-const Demo = memo(() => {
+export const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
   const [errorAlerts, addErrorAlerts] = useState<string[]>([]);
   const [selectedQuery, setQueryChoice] = useState<string>("2depth");
@@ -51,8 +51,6 @@ const Demo = memo(() => {
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
 
   const [visualizerQuery, setVisualizerQuery] = useState<string>(query);
-
-  useEffect(() => {}, [errorAlerts, responseTimes]);
 
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
     // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
@@ -81,11 +79,13 @@ const Demo = memo(() => {
         <h1 id={styles.header}>Demo</h1>
         <Box>
           <FormControlLabel
+            data-testid="demo-toggle-client-cache-label"
             className="text-white font-sans"
             label="Server-side caching"
             control={<Switch checked={isToggled} onChange={handleToggle} />}
           />
           <FormControlLabel
+            data-testid="demo-toggle-visualizer-label"
             className="text-white font-sans"
             label="Visualizer"
             control={
@@ -191,9 +191,7 @@ function QueryDemo({
 
   function submitClientQuery() {
     const startTime = new Date().getTime();
-    fetch("/api/clearCache").then(() =>
-      console.log("Cleared Server Cache!")
-    );
+    fetch("/api/clearCache").then(() => console.log("Cleared Server Cache!"));
     Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate })
       .then((res) => {
         setVisualizerQuery(query);
@@ -203,8 +201,8 @@ function QueryDemo({
         addQueryTypes([...queryTypes, queryType]);
         if (Array.isArray(res)) {
           let responseObj = res[0] as Record<string, any>;
-          if (responseObj && responseObj.hasOwnProperty('key')) {
-            delete responseObj['key'];
+          if (responseObj && responseObj.hasOwnProperty("key")) {
+            delete responseObj["key"];
           }
           let cachedResponse = JSON.stringify(responseObj, null, 2);
           setResponse(cachedResponse);
@@ -244,9 +242,9 @@ function QueryDemo({
     };
     cached: boolean;
   };
-  
+
   type ApiResponse = {
-      queryResponse: QueryResponse;
+    queryResponse: QueryResponse;
   };
 
   function submitServerQuery() {
