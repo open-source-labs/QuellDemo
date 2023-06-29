@@ -31,17 +31,7 @@ import { styled } from "@mui/material/styles";
 import { Visualizer } from "../Visualizer/Visualizer";
 import { parse } from "graphql/language/parser";
 import { DocumentNode } from "graphql";
-// import { getElapsedTime } from '../../../../server/schema/schema';
-
-// interface JSONObject {
-//   [k: string]: JSONValue;
-// };
-
-// type JSONValue = JSONObject | JSONArray | JSONPrimitive;
-// type JSONPrimitive = number | string | boolean | null;
-// type JSONArray = JSONValue[];
-
-// type ResponseTuple = [JSONObject, boolean];
+import { getElapsedTime } from '../../../../server/schema/schema';
 
 const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -490,13 +480,22 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
             Fragment
           </MenuItem>
           <MenuItem style={{ color: "white" }} value={"mutation"}>
-            Mutation
+            Mutation - Add City
           </MenuItem>
           <MenuItem style={{ color: "white" }} value={"countryMut"}>
-            Mutation Country
+            Mutation - Add Country
           </MenuItem>
           <MenuItem style={{ color: "white" }} value={"delete"}>
-            Mutation Delete City
+            Mutation - Delete City
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"addArtist"}>
+            Mutation - Add Artist
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"editArtist"}>
+            Mutation - Edit Artist
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"deleteArtist"}>
+            Mutation - Delete Artist
           </MenuItem>
         </Select>
       </FormControl>
