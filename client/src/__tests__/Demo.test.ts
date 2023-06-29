@@ -1,4 +1,4 @@
-import { React } from "react";
+import React from "react";
 //render allows you to render a React component in a virtual DOM
 //screen contains a set of utility methods for querying and interacting with elements rendered by your component
 import { render, screen } from "@testing-library/react";

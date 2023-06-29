@@ -316,6 +316,28 @@ const RootMutations = new GraphQLObjectType({
         }
       },
     },
+    addAlbum: {
+      type: AlbumType,
+      args: {
+        name: { type: GraphQLString },
+        artistName: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { name: string; artistName: string }) {
+        // Find the artist by name
+        let artist = await Artist.findOne({ name: args.artistName });
+    
+        // If the artist doesn't exist, create a new artist
+        if (!artist) artist = await Artist.create({ name: args.artistName });
+  
+        // Create the album
+        const album = await Album.create({
+          name: args.name,
+          artist: artist.name, // Store the artist's name in the album schema
+        });
+    
+        return album;
+      },
+    },
     addAttraction: {
       type: AttractionsType,
       args: { name: { type: GraphQLString }, city: { type: GraphQLString } },
