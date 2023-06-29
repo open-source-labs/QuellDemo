@@ -36,7 +36,6 @@ interface CustomError extends Error {
   http: { status: number };
 }
 
-
 interface CityDocument extends Document {
   name: string;
   country: string;
@@ -46,6 +45,8 @@ interface CountryDocument extends Document {
   name: string;
 }
 let elapsedTime: ElapsedTime = {};
+
+/////////////////////////////////////////////////////////////////
 
 const ArtistType: GraphQLObjectType = new GraphQLObjectType({
   name: "Artist",
@@ -59,7 +60,6 @@ const ArtistType: GraphQLObjectType = new GraphQLObjectType({
       resolve(parent: { name: string }, args: unknown ) {
         const startTime = new Date().getTime();
         return Album.find({ artist: parent.name}).then((result) => {
-          // console.log(result);
           const endTime = new Date().getTime();
           elapsedTime.albums = endTime - startTime;
           console.log("elapsedTime: ", elapsedTime.albums, "ms");
@@ -91,6 +91,18 @@ const AlbumType = new GraphQLObjectType({
     },
   }),
 });
+
+const SongType = new GraphQLObjectType({
+  name: "Song",
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    artist: { type: ArtistType },
+  }),
+});
+
+/////////////////////////////////////////////////////////////////
+
 //when is this being run?
 const AttractionsType = new GraphQLObjectType({
   name: "Attractions",
@@ -113,7 +125,6 @@ const AttractionsType = new GraphQLObjectType({
             const endTime = new Date().getTime();
             elapsedTime.country = endTime - startTime;
             console.log("elapsedTime: ", elapsedTime.country, "ms");
-            // console.log(result);
             return result;
           });
       },
@@ -136,7 +147,6 @@ const CityType: GraphQLObjectType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.attractions = endTime - startTime;
           console.log("elapsedTime: ", elapsedTime.attractions, "ms");
-          // console.log(result);
           return result;
         });
       },
@@ -158,7 +168,6 @@ const CountryType = new GraphQLObjectType({
           const endTime = new Date().getTime();
           elapsedTime.cities = endTime - startTime;
           console.log("elapsedTime.cities: ", elapsedTime.cities, "ms");
-          // console.log(result);
           return result;
         });
       },
@@ -166,14 +175,7 @@ const CountryType = new GraphQLObjectType({
   }),
 });
 
-const SongType = new GraphQLObjectType({
-  name: "Song",
-  fields: () => ({
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
-    artist: { type: ArtistType },
-  }),
-});
+/////////////////////////////////////////////////////////////////
 
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
@@ -200,6 +202,22 @@ const RootQuery = new GraphQLObjectType({
       async resolve(parent: unknown, args: { name: string }) {
         const artist = await Artist.findOne({ name: args.name });
         return artist;
+      },
+    },
+    editArtist: {
+      type: ArtistType,
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLString }
+      },
+      async resolve(parent: unknown, args: { id: string | number, name: string }) {
+        const { id, name } = args;
+        const updatedArtist = await Artist.findOneAndUpdate(
+          { _id: id },
+          { $set: { name } },
+          { new: true }
+        );
+        return updatedArtist;
       },
     },
     country: {
@@ -229,6 +247,8 @@ const RootQuery = new GraphQLObjectType({
   },
 });
 
+/////////////////////////////////////////////////////////////////
+
 const RootMutations = new GraphQLObjectType({
   name: "RootMutationsType",
   fields: {
@@ -248,7 +268,54 @@ const RootMutations = new GraphQLObjectType({
         return song;
       },
     },
-
+    addArtist: {
+      type: ArtistType,
+      args: {
+        name: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { name: string }) {
+        const artist = await Artist.create({
+          name: args.name,
+        });
+        return artist;
+      },
+    },
+    editArtist: {
+      type: ArtistType,
+      args: {
+        oldName: { type: GraphQLString },
+        newName: { type: GraphQLString }
+      },
+      async resolve(parent: unknown, args: { oldName: string, newName: string }) {
+        const { oldName, newName } = args;
+        const updatedArtist = await Artist.findOneAndUpdate(
+          { name: oldName },
+          { $set: { name: newName } },
+          { new: true }
+        );
+        return updatedArtist;
+      },
+    },
+    deleteArtist: {
+      type: ArtistType,
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { id: number | string, name: string }) {
+        const findArtist = await Artist.findOne({$or: [
+          { _id: args.id },
+          { name: args.name }
+        ]});
+        if (findArtist) {
+          await Artist.deleteOne({$or: [
+            { _id: args.id },
+            { name: args.name }
+          ]});
+          return findArtist;
+        }
+      },
+    },
     addAttraction: {
       type: AttractionsType,
       args: { name: { type: GraphQLString }, city: { type: GraphQLString } },
@@ -266,9 +333,32 @@ const RootMutations = new GraphQLObjectType({
           ) as CustomError;
           error.code = "COST_LIMIT_EXCEEDED";
           error.http = { status: 406 };
-
           throw error;
         }
+      },
+    },
+    updateAttraction: {
+      type: AttractionsType,
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+        city: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { id: string | number, name: string, city: string }) {
+        const { id, name, city } = args;
+        const checkCity = await Cities.findOne({$or: [
+          { _id: args.id },
+          { name: args.name }
+        ]});
+        if (!checkCity) {
+          throw new Error("City not found");
+        }
+        const updatedAttraction = await Attractions.findOneAndUpdate(
+          { _id: id },
+          { $set: { name, city } },
+          { new: true }
+        );
+        return updatedAttraction;
       },
     },
     addCity: {
@@ -285,52 +375,23 @@ const RootMutations = new GraphQLObjectType({
         }
       },
     },
-    editCity: {
-      type: CityType,
-      args: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
-        country: { type: GraphQLString },
-      },
-      async resolve(parent: unknown, args: { id: string | number; name: string; country: string }) {
-        const { id, name, country } = args;
-        const checkCountry = await Countries.findOne({ name: country });
-        if (!checkCountry) {
-          throw new Error("Country not found");
-        }
-        const updatedCity = await Cities.findOneAndUpdate(
-          { _id: id },
-          { $set: { name, country } },
-          { new: true }
-        );
-        return updatedCity;
-      },
-    },
-    // editCity: {
-    //   type: CityType,
-    //   args: { id: { type: GraphQLID }, name: { type: GraphQLString }, country: { type: GraphQLString } },
-    //   async resolve(parent, args) {
-    //     const updatedCity = await Cities.findByIdAndUpdate(
-    //       args.id,
-    //       { name: args.name, country: args.country },
-    //       { new: true }
-    //     );
-
-    //     return updatedCity;
-    //   },
     deleteCity: {
       type: CityType,
       args: {
         id: { type: GraphQLID },
         name: { type: GraphQLString },
       },
-      async resolve(parent: unknown, args: { id: number | string }) {
-        // console.log({ args });
-        // console.log({ parent });
-        const findCity = await Cities.findOne({ _id: args.id });
-        // console.log({ findCity });
+      async resolve(parent: unknown, args: { id: number | string, name: string }) {
+        const findCity = await Cities.findOne({$or: [
+          { _id: args.id },
+          { name: args.name }
+        ]});
         if (findCity) {
-          await Cities.deleteOne({ _id: args.id });
+          await Cities.deleteOne({$or: [
+            { _id: args.id },
+            { name: args.name }
+          ]});
+          return findCity;
         }
       },
     },
@@ -342,8 +403,29 @@ const RootMutations = new GraphQLObjectType({
         return country;
       },
     },
+    deleteCountry: {
+      type: CountryType,
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { id: number | string, name: string }) {
+        const findCountry = await Countries.findOne({$or: [
+          { _id: args.id },
+          { name: args.name }
+        ]});
+        if (findCountry) {
+          await Countries.deleteOne({$or: [
+            { _id: args.id },
+            { name: args.name }
+          ]});
+        }
+      },
+    },
   },
 });
+
+/////////////////////////////////////////////////////////////////
 
 interface ElapsedTimeResponse {
   locals: {
