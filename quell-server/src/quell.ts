@@ -16,6 +16,14 @@ import {
 } from "./helpers/quellHelpers";
 
 import { getFromRedis } from "./helpers/redisHelpers";
+import {
+  deleteCacheById,
+  clearCache,
+  updateIdCache,
+  generateCacheID,
+  writeToCache,
+} from "./helpers/cacheHelpers";
+
 import { GraphQLSchema, ExecutionResult, DocumentNode } from "graphql";
 
 import {
@@ -127,11 +135,11 @@ export class QuellCache {
       password: redisPassword,
     });
     this.query = this.query.bind(this);
-    this.clearCache = this.clearCache.bind(this);
+    // this.clearCache = this.clearCache.bind(this);
     this.buildFromCache = this.buildFromCache.bind(this);
-    this.generateCacheID = this.generateCacheID.bind(this);
+    // this.generateCacheID = this.generateCacheID.bind(this);
     this.updateCacheByMutation = this.updateCacheByMutation.bind(this);
-    this.deleteCacheById = this.deleteCacheById.bind(this);
+    // this.deleteCacheById = this.deleteCacheById.bind(this);
     this.redisCache
       .connect()
       .then((): void => {
@@ -356,7 +364,7 @@ export class QuellCache {
         graphql({ schema: this.schema, source: queryString })
           .then((queryResult: ExecutionResult): void => {
             res.locals.queryResponse = queryResult;
-            this.writeToCache(queryString, queryResult);
+            writeToCache(queryString, queryResult, this.cacheExpiration);
             return next();
           })
           .catch((error: Error): void => {
@@ -555,7 +563,7 @@ export class QuellCache {
           // Use the subID argument if it is a string (used for recursive calls within buildFromCache).
           cacheID = subID;
         } else {
-          cacheID = this.generateCacheID(prototype[typeKey] as ProtoObjType);
+          cacheID = generateCacheID(prototype[typeKey] as ProtoObjType);
         }
 
         let keyName: string | undefined;
@@ -735,7 +743,7 @@ export class QuellCache {
           !typeKey.includes("__") &&
           typeof prototype[typeKey] === "object"
         ) {
-          const cacheID: string = await this.generateCacheID(prototype);
+          const cacheID: string = await generateCacheID(prototype);
           const cacheResponse: string | null | void = await getFromRedis(
             cacheID,
             this.redisCache
@@ -867,7 +875,7 @@ export class QuellCache {
             const cacheIDForIDCache: string = cacheID;
             cacheID += `--${currField[key]}`;
             // call IdCache here idCache(cacheIDForIDCache, cacheID)
-            this.updateIdCache(cacheIDForIDCache, cacheID, currName);
+            updateIdCache(cacheIDForIDCache, cacheID, currName);
           }
 
           fieldStore[key] = currField[key];
@@ -887,63 +895,63 @@ export class QuellCache {
           }
         }
         // Store "current object" on cache in JSON format
-        this.writeToCache(cacheID, fieldStore);
+        writeToCache(cacheID, fieldStore, this.cacheExpiration);
       }
     }
   }
 
-  /**
-   * Helper function that creates cacheIDs based on information from the prototype in the
-   * format of 'field--ID'.
-   * @param {string} key - Unique id under which the cached data will be stored.
-   * @param {Object} item - Item to be cached.
-   */
-  generateCacheID(queryProto: ProtoObjType): string {
-    const cacheID: string = queryProto.__id
-      ? `${queryProto.__type}--${queryProto.__id}`
-      : (queryProto.__type as string);
-    return cacheID;
-  }
+  // /**
+  //  * Helper function that creates cacheIDs based on information from the prototype in the
+  //  * format of 'field--ID'.
+  //  * @param {string} key - Unique id under which the cached data will be stored.
+  //  * @param {Object} item - Item to be cached.
+  //  */
+  // generateCacheID(queryProto: ProtoObjType): string {
+  //   const cacheID: string = queryProto.__id
+  //     ? `${queryProto.__type}--${queryProto.__id}`
+  //     : (queryProto.__type as string);
+  //   return cacheID;
+  // }
 
-  /**
-   * Stringifies and writes an item to the cache unless the key indicates that the item is uncacheable.
-   * Sets the expiration time for each item written to cache to the expiration time set on server connection.
-   * @param {string} key - Unique id under which the cached data will be stored.
-   * @param {Object} item - Item to be cached.
-   */
-  writeToCache(key: string, item: Type | string[] | ExecutionResult): void {
-    const lowerKey: string = key.toLowerCase();
-    if (!key.includes("uncacheable")) {
-      this.redisCache.set(lowerKey, JSON.stringify(item));
-      this.redisCache.EXPIRE(lowerKey, this.cacheExpiration);
-    }
-  }
+  // /**
+  //  * Stringifies and writes an item to the cache unless the key indicates that the item is uncacheable.
+  //  * Sets the expiration time for each item written to cache to the expiration time set on server connection.
+  //  * @param {string} key - Unique id under which the cached data will be stored.
+  //  * @param {Object} item - Item to be cached.
+  //  */
+  // writeToCache(key: string, item: Type | string[] | ExecutionResult): void {
+  //   const lowerKey: string = key.toLowerCase();
+  //   if (!key.includes("uncacheable")) {
+  //     this.redisCache.set(lowerKey, JSON.stringify(item));
+  //     this.redisCache.EXPIRE(lowerKey, this.cacheExpiration);
+  //   }
+  // }
 
-  /**
-   * Stores keys in a nested object under parent name.
-   * If the key is a duplication, it is stored in an array.
-   *  @param {string} objKey - Object key; key to be cached without ID string.
-   *  @param {string} keyWithID - Key to be cached with ID string attached; Redis data is stored under this key.
-   *  @param {string} currName - The parent object name.
-   */
-  updateIdCache(objKey: string, keyWithID: string, currName: string): void {
-    // BUG: Add check - If any of the arguments are missing, return immediately.
-    // Currently, if currName is undefined, this function is adding 'undefined' as a
-    // key in the idCache.
+  // /**
+  //  * Stores keys in a nested object under parent name.
+  //  * If the key is a duplication, it is stored in an array.
+  //  *  @param {string} objKey - Object key; key to be cached without ID string.
+  //  *  @param {string} keyWithID - Key to be cached with ID string attached; Redis data is stored under this key.
+  //  *  @param {string} currName - The parent object name.
+  //  */
+  // updateIdCache(objKey: string, keyWithID: string, currName: string): void {
+  //   // BUG: Add check - If any of the arguments are missing, return immediately.
+  //   // Currently, if currName is undefined, this function is adding 'undefined' as a
+  //   // key in the idCache.
 
-    if (!idCache[currName]) {
-      // If the parent object is not yet defined in the idCache, create the object and add the new key.
-      idCache[currName] = {};
-      idCache[currName][objKey] = keyWithID;
-      return;
-    } else if (!idCache[currName][objKey]) {
-      // If parent object is defined in the idCache, but this is the first child ID, create the
-      // array that the ID will be added to.
-      idCache[currName][objKey] = [];
-    }
-    // Add the ID to the array in the idCache.
-    (idCache[currName][objKey] as string[]).push(keyWithID);
-  }
+  //   if (!idCache[currName]) {
+  //     // If the parent object is not yet defined in the idCache, create the object and add the new key.
+  //     idCache[currName] = {};
+  //     idCache[currName][objKey] = keyWithID;
+  //     return;
+  //   } else if (!idCache[currName][objKey]) {
+  //     // If parent object is defined in the idCache, but this is the first child ID, create the
+  //     // array that the ID will be added to.
+  //     idCache[currName][objKey] = [];
+  //   }
+  //   // Add the ID to the array in the idCache.
+  //   (idCache[currName][objKey] as string[]).push(keyWithID);
+  // }
 
   /**
    * Updates the Redis cache when the operation is a mutation.
@@ -1015,7 +1023,11 @@ export class QuellCache {
               cachedFieldKeysList.splice(removalFieldKeyIdx, 1);
             }
           });
-          this.writeToCache(fieldsListKey, cachedFieldKeysList);
+          writeToCache(
+            fieldsListKey,
+            cachedFieldKeysList,
+            this.cacheExpiration
+          );
         }
       }
     };
@@ -1067,7 +1079,7 @@ export class QuellCache {
 
               if (remove === true) {
                 fieldKeysToRemove.add(fieldKey);
-                this.deleteCacheById(fieldKey.toLowerCase());
+                deleteCacheById(fieldKey.toLowerCase());
               }
             }
           }
@@ -1124,7 +1136,11 @@ export class QuellCache {
             );
 
             if (fieldsToUpdateBy.length > 0) {
-              this.writeToCache(fieldKey, updatedFieldKeyValue);
+              writeToCache(
+                fieldKey,
+                updatedFieldKeyValue,
+                this.cacheExpiration
+              );
             }
           }
         });
@@ -1146,15 +1162,16 @@ export class QuellCache {
         if (mutationName.substring(0, 3) === "del") {
           // If the first 3 letters of the mutationName are 'del' then the mutation is a delete mutation.
           // Users have to prefix their delete mutations with 'del' so that quell can distinguish between delete/update mutations.
-          this.deleteCacheById(
+          deleteCacheById(
             `${mutationType.toLowerCase()}--${mutationQueryObject.__id}`
           );
           removeFromFieldKeysList([`${mutationType}--${dbRespId}`]);
         } else {
           // Update mutation for single dbRespId
-          this.writeToCache(
+          writeToCache(
             `${mutationType.toLowerCase()}--${mutationQueryObject.__id}`,
-            dbRespData
+            dbRespData,
+            this.cacheExpiration
           );
         }
       } else {
@@ -1175,42 +1192,42 @@ export class QuellCache {
       }
     } else {
       // If the key was not found in the Redis server cache, the mutation is an add mutation.
-      this.writeToCache(hypotheticalRedisKey, dbRespData);
+      writeToCache(hypotheticalRedisKey, dbRespData, this.cacheExpiration);
     }
   }
 
-  /**
-   * Removes key-value from the cache unless the key indicates that the item is not available.
-   * @param {string} key - Unique id under which the cached data is stored that needs to be removed.
-   */
-  async deleteCacheById(key: string) {
-    try {
-      await this.redisCache.del(key);
-    } catch (error) {
-      const err: ServerErrorType = {
-        log: `Error inside deleteCacheById function, ${error}`,
-        status: 400,
-        message: {
-          err: "Error in redis - deleteCacheById, Check server log for more details.",
-        },
-      };
-      console.log(err);
-    }
-  }
+  // /**
+  //  * Removes key-value from the cache unless the key indicates that the item is not available.
+  //  * @param {string} key - Unique id under which the cached data is stored that needs to be removed.
+  //  */
+  // async deleteCacheById(key: string) {
+  //   try {
+  //     await this.redisCache.del(key);
+  //   } catch (error) {
+  //     const err: ServerErrorType = {
+  //       log: `Error inside deleteCacheById function, ${error}`,
+  //       status: 400,
+  //       message: {
+  //         err: "Error in redis - deleteCacheById, Check server log for more details.",
+  //       },
+  //     };
+  //     console.log(err);
+  //   }
+  // }
 
-  /**
-   * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
-   * passes the request and response objects to an instance of QuellCache.clearCache.
-   * @param {Object} req - Express request object.
-   * @param {Object} res - Express response object.
-   * @param {Function} next - Express next middleware function.
-   */
-  clearCache(req: Request, res: Response, next: NextFunction) {
-    console.log("Clearing Redis Cache");
-    this.redisCache.flushAll();
-    idCache = {};
-    return next();
-  }
+  // /**
+  //  * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
+  //  * passes the request and response objects to an instance of QuellCache.clearCache.
+  //  * @param {Object} req - Express request object.
+  //  * @param {Object} res - Express response object.
+  //  * @param {Function} next - Express next middleware function.
+  //  */
+  // clearCache(req: Request, res: Response, next: NextFunction) {
+  //   console.log("Clearing Redis Cache");
+  //   this.redisCache.flushAll();
+  //   idCache = {};
+  //   return next();
+  // }
 
   /**
    * Takes in the query, parses it, and identifies the general shape of the request in order
