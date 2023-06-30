@@ -156,9 +156,23 @@ interface querySamples {
         }
     }`,
     'deleteArtist': `mutation {
-        deleteArtist(name: "Billie Eilish") {
+        deleteArtist(name: "Billie Eyelash") {
             id
             name
+        }
+    }`,
+    'addAlbum': `mutation {
+        addAlbum(name: "Ocean Eyes", artistName: "Billie Eilish") {
+            id
+            name
+            artist
+        }
+    }`,
+    'deleteAlbum': `mutation {
+        deleteAlbum(name: "Ocean Ayes") {
+            id
+            name
+            artist
         }
     }`,
 }

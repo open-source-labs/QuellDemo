@@ -28,36 +28,40 @@ import {
 export default function determineType(AST: ASTNode): {
   operationType: string;
   proto: ProtoObjType;
+  fieldNames: string[];
 } {
-  // Initialize prototype as empty object
-  // Information from the AST is distilled into the prototype for easy
-  // access during caching, rebuilding query strings, etc.
+
+  // Initialize an array to keep track of the field names in the AST.
+  let fieldNames: string[] = [];
+
+  // Initialize a prototype object which will be populated with information extracted from the AST.
   const proto: ProtoObjType = {};
 
-  // The frags object will contain the fragments defined in the query in a format
-  // similar to the proto.
+  // Initialize a frags object to keep track of the fragments in the query.
   const frags: FragsType = {};
 
-  // Create an args object that will be populated with the node's arguments.
+  // Initialize an arguments object to store the arguments in the current node.
   const argsObj: ArgsObjType = {};
 
-  // Create variable target object that will be updated to point to prototype when iterating
-  // through Field nodes and to point to frags when iterating through Fragment Definition nodes.
+  // Declare a targetObj which will be used to point to prototype when iterating through Field nodes 
+  // and to point to frags when iterating through Fragment Definition nodes.
   let targetObj: ProtoObjType | FragsType;
 
-  // Create operation type variable. This will be 'query', 'mutation', 'subscription', 'noID', or 'unQuellable'.
+  // Initialize operationType which will hold the type of operation ('query', 'mutation', 'subscription', etc.).
   let operationType = '';
 
-  // Initialize a stack to keep track of depth first parsing path.
+  // Initialize a stack to keep track of nodes while traversing the AST in depth-first order.
   const stack: string[] = [];
 
-  // Tracks depth of selection Set
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Initialize variable to keep track of depth of selection set in the AST.
   let selectionSetDepth = 0;
 
-  // Create field arguments object, which will track the id, type, alias, and args for the fields.
+  // Initialize an object to keep track of the id, type, alias, and args for the fields.
   // The field arguments object will eventually be merged with the prototype object.
   const fieldArgs: FieldArgsType = {};
+
+  // Initialize a variable to keep track of depth in the AST.
+  let depth = 0;
 
   /**
    * visit is a utility provided in the graphql-JS library. It performs a
@@ -137,8 +141,13 @@ export default function determineType(AST: ASTNode): {
     Field: {
       // If the current node is of type Field, this function will be triggered upon entering it.
       enter(node: FieldNode) {
+        // Increment depth if the node has a selection set.
+        if (node.selectionSet) depth++;
+
         // Return introspection queries as unQuellable so that we do not cache them.
         // "__keyname" syntax is later used for Quell's field-specific options, though this does not create collision with introspection.
+
+        // If field's name includes '__', set operationType to 'unQuellable' to prevent caching.
         if (node.name.value.includes('__')) {
           operationType = 'unQuellable';
           // Return BREAK to break out of the current traversal branch.
@@ -189,14 +198,23 @@ export default function determineType(AST: ASTNode): {
 
         // Add the field type to stacks to keep track of depth-first parsing path.
         stack.push(fieldType);
+
+        // If the field has a name and is at depth greater than 1, add it to fieldNames.
+        if ((node.name && node.name.value && depth > 1 && node.selectionSet) || (selectionSetDepth === 1 && depth === 1)) {
+          fieldNames.push(node.name.value);
+        }
       },
 
       // If the current node is of type Field, this function will be triggered after visiting it and all of its children.
-      leave() {
+      leave(node: FieldNode) {
+        // Decrement depth if the node has a selection set.
+        if (node.selectionSet) depth--;
+
         // Pop stacks to keep track of depth-first parsing path.
         stack.pop();
       }
     },
+
     SelectionSet: {
       // If the current node is of type SelectionSet, this function will be triggered upon entering it.
       // The selection sets contain all of the sub-fields.
@@ -280,5 +298,7 @@ export default function determineType(AST: ASTNode): {
       }
     }
   });
-  return { operationType, proto };
+
+  fieldNames = [...new Set(fieldNames)];
+  return { operationType, proto, fieldNames };
 }
