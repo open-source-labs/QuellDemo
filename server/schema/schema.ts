@@ -283,16 +283,24 @@ const RootMutations = new GraphQLObjectType({
     editArtist: {
       type: ArtistType,
       args: {
-        oldName: { type: GraphQLString },
-        newName: { type: GraphQLString }
+        newName: { type: GraphQLString },
+        oldName: { type: GraphQLString }
       },
       async resolve(parent: unknown, args: { oldName: string, newName: string }) {
         const { oldName, newName } = args;
-        const updatedArtist = await Artist.findOneAndUpdate(
+        console.log('oldName: ', oldName)
+        console.log('newName: ', newName)
+
+        
+        const updateArtist = await Artist.updateOne(
           { name: oldName },
-          { $set: { name: newName } },
-          { new: true }
+          { name: newName },
         );
+
+        const updatedArtist = await Artist.findOne(
+          { name: newName },
+        );
+        console.log('updated artist: ', updatedArtist)
         return updatedArtist;
       },
     },
@@ -313,6 +321,48 @@ const RootMutations = new GraphQLObjectType({
             { name: args.name }
           ]});
           return findArtist;
+        }
+      },
+    },
+    addAlbum: {
+      type: AlbumType,
+      args: {
+        name: { type: GraphQLString },
+        artistName: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { name: string; artistName: string }) {
+        // Find the artist by name
+        let artist = await Artist.findOne({ name: args.artistName });
+    
+        // If the artist doesn't exist, create a new artist
+        if (!artist) artist = await Artist.create({ name: args.artistName });
+  
+        // Create the album
+        const album = await Album.create({
+          name: args.name,
+          artist: artist.name, // Store the artist's name in the album schema
+        });
+    
+        return album;
+      },
+    },
+    deleteAlbum: {
+      type: AlbumType,
+      args: {
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+      },
+      async resolve(parent: unknown, args: { id: number | string, name: string }) {
+        const findAlbum = await Album.findOne({$or: [
+          { _id: args.id },
+          { name: args.name }
+        ]});
+        if (findAlbum) {
+          await Album.deleteOne({$or: [
+            { _id: args.id },
+            { name: args.name }
+          ]});
+          return findAlbum;
         }
       },
     },

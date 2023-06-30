@@ -489,6 +489,12 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
           <MenuItem style={{ color: "white" }} value={"addArtist"}>
             Mutation - Add Artist
           </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"addAlbum"}>
+            Mutation - Add Album
+          </MenuItem>
+          <MenuItem style={{ color: "white" }} value={"deleteAlbum"}>
+            Mutation - Delete Album
+          </MenuItem>
           <MenuItem style={{ color: "white" }} value={"editArtist"}>
             Mutation - Edit Artist
           </MenuItem>
@@ -500,6 +506,7 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
     </Box>
   );
 }
+
 
 const StyledDiv = styled("div")(({ theme }) => ({
   ...theme.typography.button,
