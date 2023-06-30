@@ -38,12 +38,9 @@ describe('server test for buildFromCache', () => {
     return Promise.all([promise1, promise2, promise3, promise4]);
   });
 
-  // afterAll((done) => {
+  // afterAll(() => {
   //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit(() => {
-  //     console.log('closing redis server');
-  //     done();
-  //   });
+  //   Quell.redisCache.quit();
   // });
 
   test('Basic query', async () => {
