@@ -168,4 +168,11 @@ interface querySamples {
             artist
         }
     }`,
+    'deleteAlbum': `mutation {
+        deleteAlbum(name: "Ocean Ayes") {
+            id
+            name
+            artist
+        }
+    }`,
 }

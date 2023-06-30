@@ -21,7 +21,11 @@ class ClientError extends Error {
   }
 }
 
-// Factory function for creating client error objects
+/**
+ * Factory function to create custom client error objects
+ * @param message - Error message string
+ * @returns - a custom error object
+ */
 function createClientError(message: string): ClientErrorType {
   return {
     log: message,
@@ -32,8 +36,7 @@ function createClientError(message: string): ClientErrorType {
 
 // Cache configurations
 const MAX_CACHE_SIZE = 2;
-// const mapCache = new Map<string, MapCacheType>();
-const mapCache: Map<string, JSONObject> = new Map();
+const mapCache: Map<string, MapCacheType> = new Map();
 const lruCache = new LRUCache<string, MapCacheType>({ max: MAX_CACHE_SIZE });
 
 ///////////////////////////////////////////////////////
@@ -45,38 +48,25 @@ interface MutationTypeHandlers {
   create: string[];
 } 
 
-// Identifiers for different types of mutations
+// Identifiers for different types of mutations and their name variations
 const mutationTypeHandlers: MutationTypeHandlers = {
   delete: ['delete', 'remove'],
   update: ['update', 'edit'],
   create: ['create', 'add', 'new', 'make']
 };
 
-// Define handlers for mutation types
-// interface MutationHandlers {
-//   [key: string]: (endPoint: string, query: string, fetchConfig: FetchObjType) => Promise<JSONObject>;
-// }
-
-// const mutationHandlers: MutationHandlers = {
-//   delete: async (endPoint: string, query: string, fetchConfig: FetchObjType) => performFetch(endPoint, { ...fetchConfig, method: 'DELETE' }),
-//   update: async (endPoint: string, query: string, fetchConfig: FetchObjType) => performFetch(endPoint, fetchConfig),
-//   create: async (endPoint: string, query: string, fetchConfig: FetchObjType) => performFetch(endPoint, fetchConfig),
-// };
-
-///////////////////////////////////////////////////////
-
-// Function to invalidate the cache for a specific query
-const invalidateCache = (query: string): void => {
-  // console.log('INVALIDATE CACHE QUERY: ', query)
-  // console.log('INVALIDATE CACHE QUERY TYPE: ', typeof query)
-  // console.log('INVALIDATE CACHE - MAP CACHE HAS QUERY: ', mapCache.has(query));
-
-
-  lruCache.delete(query);
-  mapCache.delete(query);
+// NOTE: ULTIMATELY THIS SHOULD BE PASSED BY THE USER TO THE QUELLIFY FUNCTION!
+// THIS MAPS MUTATION NAMES TO SCHEMAS
+const mutationMap: Record<string, string[]> = {
+  addCity: ['cities'],
+  deleteCity: ['cities'],
+  addCountry: ['countries'],
+  addArtist: ['artists'],
+  editArtist: ['artists'],
+  deleteArtist: ['artists'],
+  addAlbum: ['albums'],
+  deleteAlbum: ['albums'],
 };
-
-///////////////////////////////////////////////////////
 
 /**
  * Normalize the results object by recursively normalizing each value.
@@ -85,7 +75,6 @@ const invalidateCache = (query: string): void => {
  */
 const normalizeResults = (results: JSONObject): JSONObject => {
   const normalizedResults: JSONObject = {};
-
   // Iterate over the entries of the results object
   const entries = Object.entries(results);
   for (const [key, value] of entries) {
@@ -94,7 +83,6 @@ const normalizeResults = (results: JSONObject): JSONObject => {
     // Assign the normalized value to the corresponding key in the normalized results object
     normalizedResults[key] = normalizedValue;
   }
-
   return normalizedResults;
 };
 
@@ -147,19 +135,28 @@ const normalizeArray = (arr: JSONValue[]): JSONValue[] => {
 ///////////////////////////////////////////////////////
 
 /**
- * Update the LRU and Map caches with new results after normalizing them.
+ * Update LRU and Map caches with new results after normalizing them.
  * @param query - the query associated with the results.
  * @param results - the results object to be cached.
+ * @param fieldNames - the field names associated with the query.
  */
-const updateLRUCache = (query: string, results: JSONObject): void => {
-  // console.log('UPDATE LRU CACHE QUERY: ', query)
-  // console.log('UPDATE LRU CACHE QUERY TYPE: ', typeof query)
-  // Normalize the results
+const updateCaches = (query: string, results: JSONObject, fieldNames: string[]): void => {
   const normalizedResults = normalizeResults(results);
-  // Update the LRU cache with the normalized results
-  lruCache.set(query, normalizedResults);
-  // Update the Map cache with the normalized results
-  mapCache.set(query, normalizedResults);
+  const cacheEntry = { data: normalizedResults, fieldNames };
+  
+  // Update the LRU cache
+  lruCache.set(query, cacheEntry);
+  
+  // Check if the query already exists in the map cache
+  const mapCacheEntry = mapCache.get(query);
+  if (mapCacheEntry) {
+    // Update the existing map cache entry
+    mapCacheEntry.data = normalizedResults;
+    mapCacheEntry.fieldNames = fieldNames;
+  } else {
+    // Add a new entry to the map cache
+    mapCache.set(query, cacheEntry);
+  }
 };
 
 // Function to clear both the LRU and Map caches
@@ -168,35 +165,40 @@ const clearCache = (): void => {
   lruCache.clear();
 };
 
-// Function to perform an HTTP fetch to a specified endpoint
+/**
+ * Perform an HTTP fetch to a specified endpoint.
+ * @param endPoint - The URL endpoint to fetch data from.
+ * @param fetchConfig - Configuration options for the fetch request.
+ * @returns A promise that resolves with the fetched data.
+ */
 const performFetch = async (endPoint: string, fetchConfig?: FetchObjType): Promise<JSONObject> => {
   try {
+    // Sending a request to the GraphQL endpoint with the given configurations
     const response = await fetch(endPoint, fetchConfig);
+    // Parsing the response as JSON and destructure queryResponse from the response
     const { queryResponse }: QueryResponse = await response.json();
+    console.log('query response: ', queryResponse)
     return queryResponse.data;
   } catch (error) {
     throw createClientError(`Error when trying to perform fetch to graphQL endpoint: ${error}.`);
   }
 };
 
-
-
 /**
-  * The main function that handles GraphQL queries. 
-  * It takes an endpoint, query, cost options, and optional variables as parameters
-  * It returns a promise resolving with the response data and a boolean indicating if the data was from cache.
-*/
+ * Main function that executes GraphQL queries, maintaining a cache for optimization.
+ * @param endPoint - the URL endpoint of the GraphQL server.
+ * @param query - the GraphQL query string to be executed.
+ * @param costOptions - cost parameters to optimize query execution.
+ * @param variables - optional variables for the GraphQL query.
+ * @returns - a promise that resolves with the response data and a boolean indicating if the data was from the cache.
+ * @throws {ClientError} - when an error occurs during the execution process.
+ */
 const Quellify = async (
   endPoint: string,
   query: string,
   costOptions: CostParamsType,
   variables?: Record<string, any>,
 ): Promise<[JSONValue, boolean]> => {
-
-  
-  const AST: DocumentNode = parse(query);
-  const { operationType, proto } = determineType(AST);
-
   console.log('MAP CACHE: ', mapCache)
   console.log('LRU CACHE: ', lruCache.dump())
 
@@ -212,7 +214,7 @@ const Quellify = async (
     const AST: DocumentNode = parse(query);
 
     // Determine the operation type (query, mutation, etc.) of the GraphQL query
-    const { operationType, proto } = determineType(AST);
+    const { operationType, proto, fieldNames } = determineType(AST);
 
     // Handle query operation type
     if (operationType === 'query') {  
@@ -220,22 +222,22 @@ const Quellify = async (
       const lruCachedResults = lruCache.get(query);
       if (lruCachedResults) {
         console.log('LRU CACHED RESULTS: ', lruCachedResults)
-        return [lruCachedResults, true];
+        return [lruCachedResults.data, true];
       }
-      // If not in LRU cache, checks if results are in Map Cache, adds results to LRU Cache and returns the results
+      // If not in LRU cache, checks if results are in Map Cache, adds to LRU Cache and returns results
       const mapCachedResults = mapCache.get(query);
       if (mapCachedResults) {
         console.log('MAP CACHED RESULTS: ', mapCachedResults)
         lruCache.set(query, mapCachedResults as MapCacheType);
         console.log('MAP CACHE: ', mapCache)
         console.log('LRU CACHE: ', lruCache.dump())
-        return [mapCachedResults, true];
+        return [mapCachedResults.data, true];
       } 
-      // If not in either cache, perform fetch, update cache and return results
+      // If not in either cache, perform fetch, update cache, and return results
       else {
         const data = await performFetch(endPoint, fetchConfig);
         console.log('FETCHED DATA - QUERY: ', data)
-        updateLRUCache(query, data);
+        updateCaches(query, data, fieldNames);
         console.log('MAP CACHE: ', mapCache)
         console.log('LRU CACHE: ', lruCache.dump())
         return [data, false];
@@ -244,15 +246,51 @@ const Quellify = async (
     
     // Handle mutation operation type
     if (operationType === 'mutation') {
+      // Extract the name of the mutation (e.g. "addCity") from the 'proto' object by getting the first key
       const mutationType: string = Object.keys(proto)[0];
+
+      // Determine the type of mutation (e.g. "add") by finding a match in mutationTypeHandlers
       const mutationAction = Object.keys(mutationTypeHandlers).find((action) =>
         mutationTypeHandlers[action as keyof MutationTypeHandlers].some((type: string) => mutationType.includes(type))
       ) as keyof MutationTypeHandlers;
+
+      // Check if mutation type is valid (defined in MutationTypeHandlers), perform the mutation and update cache accordingly
       if (mutationAction) {
         const fetchResult: JSONObject = await performFetch(endPoint, fetchConfig);
+        console.log('MUTATION FETCHED RESULT: ', fetchResult)
+
+        // Get the list of fields that could be affected by this mutation from the mutationMap
+        const affectedFields = mutationMap[mutationType];
+
+        // Loop through mapCache to check if the mutation affects any cached queries
+        for (const [cachedQuery, cachedInfo] of mapCache.entries()) {
+          // Get the field names that are present in the current cached query
+          const cachedFieldNames: string[] = cachedInfo.fieldNames;
+          
+          // Determine if any of the fields affected by the mutation are present in the cached query
+          const shouldRefetch = cachedFieldNames.some(fieldName => affectedFields.includes(fieldName));
+      
+          // If affected fields, refetch the data and update cache
+          if (shouldRefetch) {
+            const refetchConfig = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: cachedQuery, costOptions })
+            };
+            try {
+              const refetchedData = await performFetch(endPoint, refetchConfig);
+              // Update the cache with the refetched data
+              updateCaches(cachedQuery, refetchedData, cachedFieldNames);
+            } catch (error) {
+              console.error('Error refetching data:', error);
+            }
+          }
+        }
+
         console.log('MAP CACHE: ', mapCache)
         console.log('LRU CACHE: ', lruCache.dump())
-        invalidateCache(query);
+
+        // Return the result of the mutation and a boolean indicating that the data was not from the cache
         return [fetchResult, false];
       }
       // Throw error if mutation type is not supported
@@ -275,4 +313,4 @@ const Quellify = async (
 };
 
 // Export the Quellify function and the clearCache function
-export { Quellify, clearCache, lruCache, updateLRUCache };
+export { Quellify, clearCache, lruCache, updateCaches };
