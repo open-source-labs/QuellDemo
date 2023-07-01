@@ -55,19 +55,6 @@ const mutationTypeHandlers: MutationTypeHandlers = {
   create: ['create', 'add', 'new', 'make']
 };
 
-// NOTE: ULTIMATELY THIS SHOULD BE PASSED BY THE USER TO THE QUELLIFY FUNCTION!
-// THIS MAPS MUTATION NAMES TO SCHEMAS
-const mutationMap: Record<string, string[]> = {
-  addCity: ['cities'],
-  deleteCity: ['cities'],
-  addCountry: ['countries'],
-  addArtist: ['artists'],
-  editArtist: ['artists'],
-  deleteArtist: ['artists'],
-  addAlbum: ['albums'],
-  deleteAlbum: ['albums'],
-};
-
 /**
  * Normalize the results object by recursively normalizing each value.
  * @param results - the results object to be normalized.
@@ -143,9 +130,11 @@ const normalizeArray = (arr: JSONValue[]): JSONValue[] => {
 const updateCaches = (query: string, results: JSONObject, fieldNames: string[]): void => {
   const normalizedResults = normalizeResults(results);
   const cacheEntry = { data: normalizedResults, fieldNames };
+  const invalidResponse = fieldNames.length > 0 && normalizedResults[fieldNames[0]] === null;
   
   // Update the LRU cache
-  lruCache.set(query, cacheEntry);
+  if (!invalidResponse) {
+    lruCache.set(query, cacheEntry);
   
   // Check if the query already exists in the map cache
   const mapCacheEntry = mapCache.get(query);
@@ -156,6 +145,7 @@ const updateCaches = (query: string, results: JSONObject, fieldNames: string[]):
   } else {
     // Add a new entry to the map cache
     mapCache.set(query, cacheEntry);
+  }
   }
 };
 
@@ -197,10 +187,12 @@ const Quellify = async (
   endPoint: string,
   query: string,
   costOptions: CostParamsType,
+  mutationMap: Record<string, string[]> = {},
   variables?: Record<string, any>,
 ): Promise<[JSONValue, boolean]> => {
   console.log('MAP CACHE: ', mapCache)
   console.log('LRU CACHE: ', lruCache.dump())
+  console.log('MUTATION MAP: ', mutationMap)
 
   // Configuration object for the fetch requests
   const fetchConfig: FetchObjType = {
@@ -221,13 +213,13 @@ const Quellify = async (
       // Check if results are in LRU, returns results if available
       const lruCachedResults = lruCache.get(query);
       if (lruCachedResults) {
-        console.log('LRU CACHED RESULTS: ', lruCachedResults)
+        console.log('FOUND IN LRU CACHED - RESULT: ', lruCachedResults)
         return [lruCachedResults.data, true];
       }
       // If not in LRU cache, checks if results are in Map Cache, adds to LRU Cache and returns results
       const mapCachedResults = mapCache.get(query);
       if (mapCachedResults) {
-        console.log('MAP CACHED RESULTS: ', mapCachedResults)
+        console.log('FOUND IN MAP CACHE - RESULTS: ', mapCachedResults)
         lruCache.set(query, mapCachedResults as MapCacheType);
         console.log('MAP CACHE: ', mapCache)
         console.log('LRU CACHE: ', lruCache.dump())
@@ -236,7 +228,7 @@ const Quellify = async (
       // If not in either cache, perform fetch, update cache, and return results
       else {
         const data = await performFetch(endPoint, fetchConfig);
-        console.log('FETCHED DATA - QUERY: ', data)
+        console.log('NOT IN CACHE - FETCHED QUERY: ', data)
         updateCaches(query, data, fieldNames);
         console.log('MAP CACHE: ', mapCache)
         console.log('LRU CACHE: ', lruCache.dump())
@@ -261,11 +253,13 @@ const Quellify = async (
 
         // Get the list of fields that could be affected by this mutation from the mutationMap
         const affectedFields = mutationMap[mutationType];
+        console.log('affected fields: ', affectedFields)
 
         // Loop through mapCache to check if the mutation affects any cached queries
         for (const [cachedQuery, cachedInfo] of mapCache.entries()) {
           // Get the field names that are present in the current cached query
           const cachedFieldNames: string[] = cachedInfo.fieldNames;
+          console.log('Cached fields names: ', cachedFieldNames)
           
           // Determine if any of the fields affected by the mutation are present in the cached query
           const shouldRefetch = cachedFieldNames.some(fieldName => affectedFields.includes(fieldName));
@@ -300,6 +294,7 @@ const Quellify = async (
     // Handle cases where the query is not optimizable (unQuellable) and directly fetch data
     else if (operationType === 'unQuellable') {
       const data = await performFetch(endPoint, fetchConfig);
+      console.log('BAD QUERY BAD QUERY BAD QUERY - UNQUELLABLE')
       console.log('FETCHED DATA - unQuellable: ', data)
       return [data, false];
     }

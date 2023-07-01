@@ -6,8 +6,8 @@ export interface IAlbums extends Document {
 };
 
 const albumSchema: Schema = new Schema({
-  name: { type: String, require: true },
-  artist: { type: String, require: true },
+  name: { type: String, required: true },
+  artist: { type: String, required: true },
 });
 
 export default mongoose.model<IAlbums>('Album', albumSchema);
