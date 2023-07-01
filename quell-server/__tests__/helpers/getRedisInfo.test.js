@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../../test-config/test-server.js');
 const QuellCache = require('../../src/quell');
 const schema = require('../../test-config/testSchema');
+const writeToCache = require('../../src/helpers/cacheHelpers')
 
 const redisPort = 6379;
 
@@ -23,21 +24,21 @@ xdescribe('server test for getRedisInfo', () => {
   beforeAll(() => {
     const promise1 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('country--1', {
+        writeToCache('country--1', {
           id: '1',
           capitol: { id: '2', name: 'DC' },
         })
       );
     });
     const promise2 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--2', { id: '2' }));
+      resolve(writeToCache('country--2', { id: '2' }));
     });
     const promise3 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--3', { id: '3' }));
+      resolve(writeToCache('country--3', { id: '3' }));
     });
     const promise4 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('countries', [
+        writeToCache('countries', [
           'country--1',
           'country--2',
           'country--3',

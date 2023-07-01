@@ -10,6 +10,7 @@ import mongoose, { ConnectOptions } from "mongoose";
 import { QuellCache } from "../quell-server/src/quell";
 import { getRedisInfo } from "../quell-server/src/helpers/redisHelpers";
 import dotenv from "dotenv";
+// import { clearCache } from "../quell-server/src/helpers/cacheHelpers";
 
 dotenv.config();
 const app = express();
@@ -62,6 +63,9 @@ app.use(
   }
 );
 
+// app.get("/api/clearCache", quellCache.clearCache, (req, res) => {
+//   return res.status(200).send("Redis cache successfully cleared");
+// });
 app.get("/api/clearCache", quellCache.clearCache, (req, res) => {
   return res.status(200).send("Redis cache successfully cleared");
 });
