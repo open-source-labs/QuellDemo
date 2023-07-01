@@ -499,6 +499,19 @@ export const clearElapsedTime = (req: Request, res: Response, next: NextFunction
   return next();
 };
 
+export const mutationMap: Record<string, string[]> = {
+  addCity: ['cities'],
+  addCountry: ['countries'],
+  addAttraction: ['attractions'],
+  addArtist: ['artists'],
+  addAlbum: ['albums'],
+  addSong: ['songs'],
+  deleteCity: ['cities'],
+  deleteArtist: ['artists'],
+  deleteAlbum: ['albums'],
+  editArtist: ['artists'],
+};
+
 export const graphqlSchema = new GraphQLSchema({
   query: RootQuery,
   mutation: RootMutations,

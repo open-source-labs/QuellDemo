@@ -55,21 +55,6 @@ const mutationTypeHandlers: MutationTypeHandlers = {
   create: ['create', 'add', 'new', 'make']
 };
 
-// NOTE: ULTIMATELY THIS SHOULD BE PASSED BY THE USER TO THE QUELLIFY FUNCTION!
-// THIS MAPS MUTATION NAMES TO SCHEMAS
-const mutationMap: Record<string, string[]> = {
-  addCity: ['cities'],
-  addCountry: ['countries'],
-  addAttraction: ['attractions'],
-  addArtist: ['artists'],
-  addAlbum: ['albums'],
-  addSong: ['songs'],
-  deleteCity: ['cities'],
-  deleteArtist: ['artists'],
-  deleteAlbum: ['albums'],
-  editArtist: ['artists'],
-};
-
 /**
  * Normalize the results object by recursively normalizing each value.
  * @param results - the results object to be normalized.
@@ -202,10 +187,12 @@ const Quellify = async (
   endPoint: string,
   query: string,
   costOptions: CostParamsType,
+  mutationMap: Record<string, string[]> = {},
   variables?: Record<string, any>,
 ): Promise<[JSONValue, boolean]> => {
   console.log('MAP CACHE: ', mapCache)
   console.log('LRU CACHE: ', lruCache.dump())
+  console.log('MUTATION MAP: ', mutationMap)
 
   // Configuration object for the fetch requests
   const fetchConfig: FetchObjType = {
@@ -272,7 +259,7 @@ const Quellify = async (
         for (const [cachedQuery, cachedInfo] of mapCache.entries()) {
           // Get the field names that are present in the current cached query
           const cachedFieldNames: string[] = cachedInfo.fieldNames;
-          console.log('Cached fiedls: ', cachedFieldNames)
+          console.log('Cached fields names: ', cachedFieldNames)
           
           // Determine if any of the fields affected by the mutation are present in the cached query
           const shouldRefetch = cachedFieldNames.some(fieldName => affectedFields.includes(fieldName));

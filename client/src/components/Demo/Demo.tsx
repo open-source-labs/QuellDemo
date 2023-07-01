@@ -31,7 +31,7 @@ import { styled } from "@mui/material/styles";
 import { Visualizer } from "../Visualizer/Visualizer";
 import { parse } from "graphql/language/parser";
 import { DocumentNode } from "graphql";
-import { getElapsedTime } from '../../../../server/schema/schema';
+import { getElapsedTime, mutationMap } from '../../../../server/schema/schema';
 
 export const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -192,7 +192,7 @@ function QueryDemo({
   function submitClientQuery() {
     const startTime = new Date().getTime();
     fetch("/api/clearCache").then(() => console.log("Cleared Server Cache!"));
-    Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate })
+    Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate }, mutationMap)
       .then((res) => {
         setVisualizerQuery(query);
         const responseTime: number = new Date().getTime() - startTime;
