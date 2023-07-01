@@ -1,25 +1,27 @@
 import { parse } from 'graphql/language/parser';
 import { parseAST } from '../../src/helpers/quellHelpers';
+// import { writeToCache } from '../../src/helpers/cacheHelpers';
 
 describe('server tests for Quell.parseAST.js', () => {
+  // Refactored below to referenced writeToCache modularized into cacheHelpers, but it does not look it's used in the tests
   // beforeAll(() => {
   //   const promise1 = new Promise((resolve, reject) => {
   //     resolve(
-  //       Quell.writeToCache('country--1', {
+  //       writeToCache('country--1', {
   //         id: '1',
   //         capitol: { id: '2', name: 'DC' },
   //       })
   //     );
   //   });
   //   const promise2 = new Promise((resolve, reject) => {
-  //     resolve(Quell.writeToCache('country--2', { id: '2' }));
+  //     resolve(writeToCache('country--2', { id: '2' }));
   //   });
   //   const promise3 = new Promise((resolve, reject) => {
-  //     resolve(Quell.writeToCache('country--3', { id: '3' }));
+  //     resolve(writeToCache('country--3', { id: '3' }));
   //   });
   //   const promise4 = new Promise((resolve, reject) => {
   //     resolve(
-  //       Quell.writeToCache('countries', [
+  //       writeToCache('countries', [
   //         'country--1',
   //         'country--2',
   //         'country--3',
@@ -29,12 +31,10 @@ describe('server tests for Quell.parseAST.js', () => {
   //   return Promise.all([promise1, promise2, promise3, promise4]);
   // });
 
-  // afterAll((done) => {
+  // afterAll(() => {
   //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit(() => {
-  //     done();
-  //   });
-  // });
+  //   Quell.redisCache.quit(}
+  // );
 
   test('should traverse the abstract syntax tree and create a proto object', () => {
     // define a query string

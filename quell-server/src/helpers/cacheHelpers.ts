@@ -8,6 +8,8 @@ import {
   IdCacheType,
   ProtoObjType,
   Type,
+  ResponseDataType,
+  QueryMapType,
 } from "../types";
 // import {} from "";
 import { ExecutionResult } from "graphql";
@@ -39,21 +41,20 @@ redisCache
     console.log(err);
   });
 
-/**
- * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
- * passes the request and response objects to an instance of QuellCache.clearCache.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
- * @param {Function} next - Express next middleware function.
- */
-let idCache: IdCacheType = {};
+// /**
+//  * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
+//  * passes the request and response objects to an instance of QuellCache.clearCache.
+//  * @param {Object} req - Express request object.
+//  * @param {Object} res - Express response object.
+//  * @param {Function} next - Express next middleware function.
+//  */
 
-export const clearCache = (req: Request, res: Response, next: NextFunction) => {
-  console.log("Clearing Redis Cache");
-  redisCache.flushAll();
-  idCache = {};
-  return next();
-};
+// export const clearCache = (req: Request, res: Response, next: NextFunction) => {
+//   console.log("Clearing Redis Cache");
+//   redisCache.flushAll();
+//   let idCache = {};
+//   return next();
+// };
 
 /**
  * Removes key-value from the cache unless the key indicates that the item is not available.
@@ -84,7 +85,8 @@ export const deleteCacheById = async (key: string) => {
 export const updateIdCache = (
   objKey: string,
   keyWithID: string,
-  currName: string
+  currName: string,
+  idCache: IdCacheType
 ): void => {
   // BUG: Add check - If any of the arguments are missing, return immediately.
   // Currently, if currName is undefined, this function is adding 'undefined' as a
@@ -101,6 +103,7 @@ export const updateIdCache = (
     idCache[currName][objKey] = [];
   }
   // Add the ID to the array in the idCache.
+
   (idCache[currName][objKey] as string[]).push(keyWithID);
 };
 
@@ -133,5 +136,111 @@ export const writeToCache = (
   if (!key.includes("uncacheable")) {
     redisCache.set(lowerKey, JSON.stringify(item));
     redisCache.EXPIRE(lowerKey, cacheExpiration);
+  }
+};
+
+/**
+ * Traverses over response data and formats it appropriately so that it can be stored in the cache.
+ * @param {Object} responseData - Data we received from an external source of data such as a database or API.
+ * @param {Object} map - Map of queries to their desired data types, used to ensure accurate and consistent caching.
+ * @param {Object} protoField - Slice of the prototype currently being used as a template and reference for the responseData to send information to the cache.
+ * @param {string} currName - Parent object name, used to pass into updateIDCache.
+ */
+export const normalizeForCache = async (
+  responseData: ResponseDataType,
+  map: QueryMapType = {},
+  protoField: ProtoObjType,
+  currName: string,
+  cacheExpiration: number,
+  idCache: IdCacheType
+) => {
+  console.log("normalizing cache");
+  for (const resultName in responseData) {
+    const currField = responseData[resultName];
+    const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
+    if (Array.isArray(currField)) {
+      for (let i = 0; i < currField.length; i++) {
+        const el: ResponseDataType = currField[i];
+
+        const dataType: string | undefined | string[] = map[resultName];
+
+        if (typeof el === "object" && typeof dataType === "string") {
+          await normalizeForCache(
+            { [dataType]: el },
+            map,
+            {
+              [dataType]: currProto,
+            },
+            currName,
+            cacheExpiration,
+            idCache
+          );
+        }
+      }
+    } else if (typeof currField === "object") {
+      // Need to get non-Alias ID for cache
+
+      // Temporary store for field properties
+      const fieldStore: ResponseDataType = {};
+
+      // Create a cacheID based on __type and __id from the prototype.
+      let cacheID: string = Object.prototype.hasOwnProperty.call(
+        map,
+        currProto.__type as string
+      )
+        ? (map[currProto.__type as string] as string)
+        : (currProto.__type as string);
+
+      cacheID += currProto.__id ? `--${currProto.__id}` : "";
+
+      // Iterate over keys in nested object
+      for (const key in currField) {
+        // If prototype has no ID, check field keys for ID (mostly for arrays)
+        if (
+          !currProto.__id &&
+          (key === "id" || key === "_id" || key === "ID" || key === "Id")
+        ) {
+          // If currname is undefined, assign to responseData at cacheid to lower case at name
+          if (responseData[cacheID.toLowerCase()]) {
+            const responseDataAtCacheID = responseData[cacheID.toLowerCase()];
+            if (
+              typeof responseDataAtCacheID !== "string" &&
+              !Array.isArray(responseDataAtCacheID)
+            ) {
+              if (typeof responseDataAtCacheID.name === "string") {
+                currName = responseDataAtCacheID.name;
+              }
+            }
+          }
+          // If the responseData at lower-cased cacheID at name is not undefined, store under name variable
+          // and copy the logic of writing to cache to update the cache with same things, all stored under name.
+          // Store objKey as cacheID without ID added
+          const cacheIDForIDCache: string = cacheID;
+          cacheID += `--${currField[key]}`;
+          // call IdCache here idCache(cacheIDForIDCache, cacheID)
+          updateIdCache(cacheIDForIDCache, cacheID, currName, idCache);
+        }
+
+        fieldStore[key] = currField[key];
+
+        // If object, recurse normalizeForCache assign in that object
+        if (typeof currField[key] === "object") {
+          if (protoField[resultName] !== null) {
+            await normalizeForCache(
+              { [key]: currField[key] },
+              map,
+              {
+                [key]: (protoField[resultName] as ProtoObjType)[key],
+              },
+              currName,
+              cacheExpiration,
+              idCache
+            );
+          }
+        }
+      }
+      // Store "current object" on cache in JSON format
+      writeToCache(cacheID, fieldStore, cacheExpiration);
+    }
   }
 };

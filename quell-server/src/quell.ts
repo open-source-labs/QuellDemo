@@ -18,10 +18,11 @@ import {
 import { getFromRedis } from "./helpers/redisHelpers";
 import {
   deleteCacheById,
-  clearCache,
+  // clearCache,
   updateIdCache,
   generateCacheID,
   writeToCache,
+  normalizeForCache,
 } from "./helpers/cacheHelpers";
 
 import { GraphQLSchema, ExecutionResult, DocumentNode } from "graphql";
@@ -135,7 +136,7 @@ export class QuellCache {
       password: redisPassword,
     });
     this.query = this.query.bind(this);
-    // this.clearCache = this.clearCache.bind(this);
+    this.clearCache = this.clearCache.bind(this);
     this.buildFromCache = this.buildFromCache.bind(this);
     // this.generateCacheID = this.generateCacheID.bind(this);
     this.updateCacheByMutation = this.updateCacheByMutation.bind(this);
@@ -465,7 +466,7 @@ export class QuellCache {
       // If the cached response is incomplete, reformulate query,
       // handoff query, join responses, and cache joined responses.
       if (Object.keys(queryObject).length > 0) {
-        console.log("OBJECT KEYS LONGER THAN LENGTH!!!");
+        console.log("OBJECT KEYS LONGER THAN LENGTH");
 
         // Create a new query string that contains only the fields not found in the cache so that we can
         // request only that information from the database.
@@ -502,11 +503,13 @@ export class QuellCache {
               : databaseResponse;
 
             const currName = "string it should not be again";
-            await this.normalizeForCache(
+            await normalizeForCache(
               mergedResponse.data as ResponseDataType,
               this.queryMap,
               prototype,
-              currName
+              currName,
+              this.cacheExpiration,
+              this.idCache
             );
 
             // The response is given a cached key equal to false to indicate to the front end of the demo site that the
@@ -800,105 +803,105 @@ export class QuellCache {
     return { data: itemFromCache };
   }
 
-  /**
-   * Traverses over response data and formats it appropriately so that it can be stored in the cache.
-   * @param {Object} responseData - Data we received from an external source of data such as a database or API.
-   * @param {Object} map - Map of queries to their desired data types, used to ensure accurate and consistent caching.
-   * @param {Object} protoField - Slice of the prototype currently being used as a template and reference for the responseData to send information to the cache.
-   * @param {string} currName - Parent object name, used to pass into updateIDCache.
-   */
-  async normalizeForCache(
-    responseData: ResponseDataType,
-    map: QueryMapType = {},
-    protoField: ProtoObjType,
-    currName: string
-  ) {
-    console.log("normalizing cache");
-    for (const resultName in responseData) {
-      const currField = responseData[resultName];
-      const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
-      if (Array.isArray(currField)) {
-        for (let i = 0; i < currField.length; i++) {
-          const el: ResponseDataType = currField[i];
+  // /**
+  //  * Traverses over response data and formats it appropriately so that it can be stored in the cache.
+  //  * @param {Object} responseData - Data we received from an external source of data such as a database or API.
+  //  * @param {Object} map - Map of queries to their desired data types, used to ensure accurate and consistent caching.
+  //  * @param {Object} protoField - Slice of the prototype currently being used as a template and reference for the responseData to send information to the cache.
+  //  * @param {string} currName - Parent object name, used to pass into updateIDCache.
+  //  */
+  // async normalizeForCache(
+  //   responseData: ResponseDataType,
+  //   map: QueryMapType = {},
+  //   protoField: ProtoObjType,
+  //   currName: string
+  // ) {
+  //   console.log("normalizing cache");
+  //   for (const resultName in responseData) {
+  //     const currField = responseData[resultName];
+  //     const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
+  //     if (Array.isArray(currField)) {
+  //       for (let i = 0; i < currField.length; i++) {
+  //         const el: ResponseDataType = currField[i];
 
-          const dataType: string | undefined | string[] = map[resultName];
+  //         const dataType: string | undefined | string[] = map[resultName];
 
-          if (typeof el === "object" && typeof dataType === "string") {
-            await this.normalizeForCache(
-              { [dataType]: el },
-              map,
-              {
-                [dataType]: currProto,
-              },
-              currName
-            );
-          }
-        }
-      } else if (typeof currField === "object") {
-        // Need to get non-Alias ID for cache
+  //         if (typeof el === "object" && typeof dataType === "string") {
+  //           await this.normalizeForCache(
+  //             { [dataType]: el },
+  //             map,
+  //             {
+  //               [dataType]: currProto,
+  //             },
+  //             currName
+  //           );
+  //         }
+  //       }
+  //     } else if (typeof currField === "object") {
+  //       // Need to get non-Alias ID for cache
 
-        // Temporary store for field properties
-        const fieldStore: ResponseDataType = {};
+  //       // Temporary store for field properties
+  //       const fieldStore: ResponseDataType = {};
 
-        // Create a cacheID based on __type and __id from the prototype.
-        let cacheID: string = Object.prototype.hasOwnProperty.call(
-          map,
-          currProto.__type as string
-        )
-          ? (map[currProto.__type as string] as string)
-          : (currProto.__type as string);
+  //       // Create a cacheID based on __type and __id from the prototype.
+  //       let cacheID: string = Object.prototype.hasOwnProperty.call(
+  //         map,
+  //         currProto.__type as string
+  //       )
+  //         ? (map[currProto.__type as string] as string)
+  //         : (currProto.__type as string);
 
-        cacheID += currProto.__id ? `--${currProto.__id}` : "";
+  //       cacheID += currProto.__id ? `--${currProto.__id}` : "";
 
-        // Iterate over keys in nested object
-        for (const key in currField) {
-          // If prototype has no ID, check field keys for ID (mostly for arrays)
-          if (
-            !currProto.__id &&
-            (key === "id" || key === "_id" || key === "ID" || key === "Id")
-          ) {
-            // If currname is undefined, assign to responseData at cacheid to lower case at name
-            if (responseData[cacheID.toLowerCase()]) {
-              const responseDataAtCacheID = responseData[cacheID.toLowerCase()];
-              if (
-                typeof responseDataAtCacheID !== "string" &&
-                !Array.isArray(responseDataAtCacheID)
-              ) {
-                if (typeof responseDataAtCacheID.name === "string") {
-                  currName = responseDataAtCacheID.name;
-                }
-              }
-            }
-            // If the responseData at lower-cased cacheID at name is not undefined, store under name variable
-            // and copy the logic of writing to cache to update the cache with same things, all stored under name.
-            // Store objKey as cacheID without ID added
-            const cacheIDForIDCache: string = cacheID;
-            cacheID += `--${currField[key]}`;
-            // call IdCache here idCache(cacheIDForIDCache, cacheID)
-            updateIdCache(cacheIDForIDCache, cacheID, currName);
-          }
+  //       // Iterate over keys in nested object
+  //       for (const key in currField) {
+  //         // If prototype has no ID, check field keys for ID (mostly for arrays)
+  //         if (
+  //           !currProto.__id &&
+  //           (key === "id" || key === "_id" || key === "ID" || key === "Id")
+  //         ) {
+  //           // If currname is undefined, assign to responseData at cacheid to lower case at name
+  //           if (responseData[cacheID.toLowerCase()]) {
+  //             const responseDataAtCacheID = responseData[cacheID.toLowerCase()];
+  //             if (
+  //               typeof responseDataAtCacheID !== "string" &&
+  //               !Array.isArray(responseDataAtCacheID)
+  //             ) {
+  //               if (typeof responseDataAtCacheID.name === "string") {
+  //                 currName = responseDataAtCacheID.name;
+  //               }
+  //             }
+  //           }
+  //           // If the responseData at lower-cased cacheID at name is not undefined, store under name variable
+  //           // and copy the logic of writing to cache to update the cache with same things, all stored under name.
+  //           // Store objKey as cacheID without ID added
+  //           const cacheIDForIDCache: string = cacheID;
+  //           cacheID += `--${currField[key]}`;
+  //           // call IdCache here idCache(cacheIDForIDCache, cacheID)
+  //           updateIdCache(cacheIDForIDCache, cacheID, currName);
+  //         }
 
-          fieldStore[key] = currField[key];
+  //         fieldStore[key] = currField[key];
 
-          // If object, recurse normalizeForCache assign in that object
-          if (typeof currField[key] === "object") {
-            if (protoField[resultName] !== null) {
-              await this.normalizeForCache(
-                { [key]: currField[key] },
-                map,
-                {
-                  [key]: (protoField[resultName] as ProtoObjType)[key],
-                },
-                currName
-              );
-            }
-          }
-        }
-        // Store "current object" on cache in JSON format
-        writeToCache(cacheID, fieldStore, this.cacheExpiration);
-      }
-    }
-  }
+  //         // If object, recurse normalizeForCache assign in that object
+  //         if (typeof currField[key] === "object") {
+  //           if (protoField[resultName] !== null) {
+  //             await this.normalizeForCache(
+  //               { [key]: currField[key] },
+  //               map,
+  //               {
+  //                 [key]: (protoField[resultName] as ProtoObjType)[key],
+  //               },
+  //               currName
+  //             );
+  //           }
+  //         }
+  //       }
+  //       // Store "current object" on cache in JSON format
+  //       writeToCache(cacheID, fieldStore, this.cacheExpiration);
+  //     }
+  //   }
+  // }
 
   // /**
   //  * Helper function that creates cacheIDs based on information from the prototype in the
@@ -1215,19 +1218,20 @@ export class QuellCache {
   //   }
   // }
 
-  // /**
-  //  * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
-  //  * passes the request and response objects to an instance of QuellCache.clearCache.
-  //  * @param {Object} req - Express request object.
-  //  * @param {Object} res - Express response object.
-  //  * @param {Function} next - Express next middleware function.
-  //  */
-  // clearCache(req: Request, res: Response, next: NextFunction) {
-  //   console.log("Clearing Redis Cache");
-  //   this.redisCache.flushAll();
-  //   idCache = {};
-  //   return next();
-  // }
+  /**
+   * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
+   * passes the request and response objects to an instance of QuellCache.clearCache.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  clearCache(req: Request, res: Response, next: NextFunction) {
+    console.log("Clearing Redis Cache");
+    this.redisCache.flushAll();
+    this.idCache = {};
+    // console.log(this.idCache)
+    return next();
+  }
 
   /**
    * Takes in the query, parses it, and identifies the general shape of the request in order
