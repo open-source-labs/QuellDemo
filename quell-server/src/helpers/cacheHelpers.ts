@@ -78,13 +78,15 @@ export const updateIdCache = (
     idCache[currName] = {};
     idCache[currName][objKey] = keyWithID;
     return;
-  } else if (!idCache[currName][objKey]) {
+  } else if (
+    !Array.isArray(idCache[currName][objKey]) ||
+    !idCache[currName][objKey]
+  ) {
     // If parent object is defined in the idCache, but this is the first child ID, create the
     // array that the ID will be added to.
     idCache[currName][objKey] = [];
   }
   // Add the ID to the array in the idCache.
-
   (idCache[currName][objKey] as string[]).push(keyWithID);
 };
 
