@@ -486,16 +486,12 @@ export const getElapsedTime = (
   res: ElapsedTimeResponse,
   next: NextFunction
 ) => {
-  console.log("elapsed time in mid: ", elapsedTime);
-
   res.locals.time = elapsedTime;
-  console.log('res.locals.time', res.locals.time)
   return next();
 };
 
 export const clearElapsedTime = (req: Request, res: Response, next: NextFunction) => {
   elapsedTime = {};
-  console.log(elapsedTime);
   return next();
 };
 

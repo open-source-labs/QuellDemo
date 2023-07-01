@@ -370,6 +370,9 @@ const CacheControls = ({
   }
 
   const clearClientCache = () => {
+    addResponseTimes([]);
+    setCacheHit((cacheHit = 0));
+    setCacheMiss((cacheMiss = 0));
     return clearCache();
   };
 
@@ -377,6 +380,9 @@ const CacheControls = ({
     fetch("/api/clearCache").then((res) =>
       console.log("Cleared Server Cache!")
     );
+    addResponseTimes([]);
+    setCacheHit((cacheHit = 0));
+    setCacheMiss((cacheMiss = 0));
   };
 
   return (
@@ -492,7 +498,6 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
     </Box>
   );
 }
-
 
 const StyledDiv = styled("div")(({ theme }) => ({
   ...theme.typography.button,

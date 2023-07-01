@@ -1,40 +1,7 @@
 import { parse } from 'graphql/language/parser';
 import { parseAST } from '../../src/helpers/quellHelpers';
 
-describe('server tests for Quell.parseAST.js', () => {
-  // beforeAll(() => {
-  //   const promise1 = new Promise((resolve, reject) => {
-  //     resolve(
-  //       Quell.writeToCache('country--1', {
-  //         id: '1',
-  //         capitol: { id: '2', name: 'DC' },
-  //       })
-  //     );
-  //   });
-  //   const promise2 = new Promise((resolve, reject) => {
-  //     resolve(Quell.writeToCache('country--2', { id: '2' }));
-  //   });
-  //   const promise3 = new Promise((resolve, reject) => {
-  //     resolve(Quell.writeToCache('country--3', { id: '3' }));
-  //   });
-  //   const promise4 = new Promise((resolve, reject) => {
-  //     resolve(
-  //       Quell.writeToCache('countries', [
-  //         'country--1',
-  //         'country--2',
-  //         'country--3',
-  //       ])
-  //     );
-  //   });
-  //   return Promise.all([promise1, promise2, promise3, promise4]);
-  // });
-
-  // afterAll((done) => {
-  //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit(() => {
-  //     done();
-  //   });
-  // });
+describe('server tests for parseAST', () => {
 
   test('should traverse the abstract syntax tree and create a proto object', () => {
     // define a query string

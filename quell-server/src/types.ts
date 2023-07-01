@@ -67,7 +67,6 @@ export interface CustomError extends Error {
 }
 
 export interface ProtoObjType {
-  // [key: string]: unknown;
   [key: string]: string | number | boolean | null | ProtoObjType;
 }
 
@@ -306,16 +305,6 @@ export type RedisValue = string | null | void;
 export interface RequestType extends Request {
   body: RequestBodyType;
 }
-
-// export interface ResLocals {
-//   AST?: DocumentNode;
-//   parsedAST?: ParsedASTType;
-//   queryResponse?: ExecutionResult | RedisValue;
-//   redisStats?: RedisStatsType;
-//   queryErr?: ServerErrorType;
-//   redisValues?: (string | null)[];
-//   redisKeys?: string[];
-// }
 
 export interface ResLocals extends Response {
   AST?: DocumentNode;

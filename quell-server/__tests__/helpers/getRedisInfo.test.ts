@@ -1,59 +1,61 @@
-const request = require('supertest');
-const app = require('../../test-config/test-server.js');
-const QuellCache = require('../../src/quell');
-const schema = require('../../test-config/testSchema');
-
-const redisPort = 6379;
+import request from 'supertest';
+import app from '../../test-config/test-server';
+import { QuellCache } from '../../src/quell';
+import schema from '../../test-config/testSchema';
+import { writeToCache } from '../../src/helpers/cacheHelpers';
+import { getRedisInfo } from '../../src/helpers/redisHelpers';
 
 // tests pass locally, but time out in travis CI build...
 xdescribe('server test for getRedisInfo', () => {
-  const Quell = new QuellCache(schema, redisPort);
+  const Quell = new QuellCache({
+    schema: schema,
+    redisPort: Number(process.env.REDIS_PORT) || 6379,
+    redisHost: process.env.REDIS_HOST || '127.0.0.1',
+    redisPassword: process.env.REDIS_PASSWORD || '',
+  });
 
   app.use(
     '/redis',
-    ...Quell.getRedisInfo({
+    ...getRedisInfo({
       getStats: true,
       getKeys: true,
       getValues: true,
     })
   );
 
-  const server = app.listen(3000, () => console.log('Listening on port 3000'));
+  const server = app.listen(3000, () => {});
 
   beforeAll(() => {
     const promise1 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('country--1', {
+        writeToCache('country--1', {
           id: '1',
           capitol: { id: '2', name: 'DC' },
-        })
+        }, 1209600)
       );
     });
     const promise2 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--2', { id: '2' }));
+      resolve(writeToCache('country--2', { id: '2' }, 1209600));
     });
     const promise3 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--3', { id: '3' }));
+      resolve(writeToCache('country--3', { id: '3' }, 1209600));
     });
     const promise4 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('countries', [
+        writeToCache('countries', [
           'country--1',
           'country--2',
           'country--3',
-        ])
+        ], 1209600)
       );
     });
     return Promise.all([promise1, promise2, promise3, promise4]);
   });
 
-  afterAll((done) => {
+  afterAll(() => {
     server.close();
-    Quell.redisCache.flushall();
-    Quell.redisCache.quit(() => {
-      console.log('closing redis server');
-      done();
-    });
+    Quell.redisCache.flushAll();
+    Quell.redisCache.quit();
   });
 
   it('responds with a 200 status code', async () => {

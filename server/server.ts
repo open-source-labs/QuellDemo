@@ -56,8 +56,6 @@ app.use(
   quellCache.depthLimit,
   quellCache.query,
   (req: Request, res: Response) => {
-    console.log("inside server route to /api/graphql");
-    console.log("res.locals in server: ", res.locals);
     return res.status(200).send(res.locals);
   }
 );

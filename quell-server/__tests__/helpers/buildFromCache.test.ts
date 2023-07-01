@@ -1,4 +1,5 @@
 import { QuellCache } from '../../src/quell';
+import { writeToCache } from '../../src/helpers/cacheHelpers';
 import schema from '../../test-config/testSchema';
 
 describe('server test for buildFromCache', () => {
@@ -8,43 +9,41 @@ describe('server test for buildFromCache', () => {
     redisHost: process.env.REDIS_HOST || '127.0.0.1',
     redisPassword: process.env.REDIS_PASSWORD || '',
   });
+
   // inputs: prototype object (which contains args), collection (defaults to an empty array)
   // outputs: protoype object with fields that were not found in the cache set to false
 
   beforeAll(() => {
     const promise1 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('country--1', {
+        writeToCache('country--1', {
           id: '1',
           capitol: { id: '2', name: 'DC' },
-        })
+        }, 1209600)
       );
     });
     const promise2 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--2', { id: '2' }));
-    });
+      resolve(writeToCache('country--2', { id: '2' }, 1209600));
+    }, );
     const promise3 = new Promise((resolve, reject) => {
-      resolve(Quell.writeToCache('country--3', { id: '3' }));
+      resolve(writeToCache('country--3', { id: '3' }, 1209600));
     });
     const promise4 = new Promise((resolve, reject) => {
       resolve(
-        Quell.writeToCache('countries', [
+        writeToCache('countries', [
           'country--1',
           'country--2',
           'country--3',
-        ])
+        ], 1209600)
       );
     });
     return Promise.all([promise1, promise2, promise3, promise4]);
   });
 
-  // afterAll((done) => {
-  //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit(() => {
-  //     console.log('closing redis server');
-  //     done();
-  //   });
-  // });
+  afterAll(() => {
+    Quell.redisCache.flushAll();
+    Quell.redisCache.quit();
+  });
 
   test('Basic query', async () => {
     const testProto = {
