@@ -1,5 +1,5 @@
-import { Quellify, clearCache, lruCache } from '../../client/src/quell-client/src/Quellify';
-import { CostParamsType } from '../../client/src/quell-client/src/types';
+import { Quellify, clearCache, lruCache } from '../src/Quellify';
+import { CostParamsType } from '../src/types';
 
 const defaultCostOptions: CostParamsType = {
   maxCost: 5000,

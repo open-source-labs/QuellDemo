@@ -19,9 +19,7 @@ const redisCache: any = createClient({
 
 redisCache
   .connect()
-  .then((): void => {
-    console.log("Connected to redisCache");
-  })
+  .then((): void => {})
   .catch((error: string) => {
     const err: ServerErrorType = {
       log: `Error when trying to connect to redisCache, ${error}`,

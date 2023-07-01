@@ -123,7 +123,6 @@ export function createQueryStr(
   }
 
   // Create the final query string.
-  console.log("quellhelper querystr", mainStr);
   const queryStr: string = openCurly + mainStr + " " + closeCurly;
   return operationType ? operationType + " " + queryStr : queryStr;
 }
@@ -747,7 +746,6 @@ export function getQueryMap(schema: GraphQLSchema): QueryMapType {
  */
 export function getFieldsMap(schema: any): FieldsMapType {
   const fieldsMap: FieldsMapType = {};
-  // console.log({ schema });
   const typesList: GraphQLSchema["_typeMap"] = schema?.default?._typeMap || {};
   const builtInTypes: string[] = [
     "String",

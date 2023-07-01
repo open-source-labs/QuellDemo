@@ -11,9 +11,7 @@ import {
   ResponseDataType,
   QueryMapType,
 } from "../types";
-// import {} from "";
 import { ExecutionResult } from "graphql";
-import { QuellCache } from "../quell";
 
 const redisPort = Number(process.env.REDIS_PORT) || 6379;
 const redisHost = process.env.REDIS_HOST || "127.0.0.1";
@@ -27,9 +25,7 @@ const redisCache: any = createClient({
 
 redisCache
   .connect()
-  .then((): void => {
-    console.log("Connected to redisCache");
-  })
+  .then((): void => {})
   .catch((error: string) => {
     const err: ServerErrorType = {
       log: `Error when trying to connect to redisCache, ${error}`,
@@ -40,21 +36,6 @@ redisCache
     };
     console.log(err);
   });
-
-// /**
-//  * Flushes the Redis cache. To clear the cache from the client, establish an endpoint that
-//  * passes the request and response objects to an instance of QuellCache.clearCache.
-//  * @param {Object} req - Express request object.
-//  * @param {Object} res - Express response object.
-//  * @param {Function} next - Express next middleware function.
-//  */
-
-// export const clearCache = (req: Request, res: Response, next: NextFunction) => {
-//   console.log("Clearing Redis Cache");
-//   redisCache.flushAll();
-//   let idCache = {};
-//   return next();
-// };
 
 /**
  * Removes key-value from the cache unless the key indicates that the item is not available.
@@ -126,7 +107,6 @@ export const generateCacheID = (queryProto: ProtoObjType): string => {
  * @param {string} key - Unique id under which the cached data will be stored.
  * @param {Object} item - Item to be cached.
  */
-
 export const writeToCache = (
   key: string,
   item: Type | string[] | ExecutionResult,
@@ -154,7 +134,6 @@ export const normalizeForCache = async (
   cacheExpiration: number,
   idCache: IdCacheType
 ) => {
-  console.log("normalizing cache");
   for (const resultName in responseData) {
     const currField = responseData[resultName];
     const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
