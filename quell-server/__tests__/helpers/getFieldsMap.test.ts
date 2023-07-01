@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const { getFieldsMap } = require("../../src/helpers/quellHelpers");
+import { getFieldsMap } from "../../src/helpers/quellHelpers";
 const schema = require("../../test-config/testSchema");
 const schemaWithoutFields = require("../../test-config/testSchemaWithoutFields");
 
@@ -8,7 +8,6 @@ describe("server side tests for getFieldsMap", () => {
     done();
   });
   test("Correctly returns valid fields and their respective type based on schema", () => {
-    // console.log('asdfasdfsdf', schema)
     expect(getFieldsMap(schema)).toEqual({
       Book: {
         author: "String",
