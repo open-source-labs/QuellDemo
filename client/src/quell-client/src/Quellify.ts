@@ -145,9 +145,11 @@ const normalizeArray = (arr: JSONValue[]): JSONValue[] => {
 const updateCaches = (query: string, results: JSONObject, fieldNames: string[]): void => {
   const normalizedResults = normalizeResults(results);
   const cacheEntry = { data: normalizedResults, fieldNames };
+  const invalidResponse = fieldNames.length > 0 && normalizedResults[fieldNames[0]] === null;
   
   // Update the LRU cache
-  lruCache.set(query, cacheEntry);
+  if (!invalidResponse) {
+    lruCache.set(query, cacheEntry);
   
   // Check if the query already exists in the map cache
   const mapCacheEntry = mapCache.get(query);
@@ -158,6 +160,7 @@ const updateCaches = (query: string, results: JSONObject, fieldNames: string[]):
   } else {
     // Add a new entry to the map cache
     mapCache.set(query, cacheEntry);
+  }
   }
 };
 
