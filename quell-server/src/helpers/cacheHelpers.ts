@@ -130,7 +130,7 @@ export const generateCacheID = (queryProto: ProtoObjType): string => {
 export const writeToCache = (
   key: string,
   item: Type | string[] | ExecutionResult,
-  cacheExpiration?: number
+  cacheExpiration: number
 ): void => {
   const lowerKey: string = key.toLowerCase();
   if (!key.includes("uncacheable")) {

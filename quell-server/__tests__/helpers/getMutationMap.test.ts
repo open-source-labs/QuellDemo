@@ -7,7 +7,6 @@ describe('server side tests for getMutationMap', () => {
   afterAll((done) => {
     done();
   });
-  console.log(getMutationMap(schema));
   test('Correctly returns valid mutations and their respective type based on schema', () => {
     expect(getMutationMap(schema)).toEqual({
       addBook: 'Book',

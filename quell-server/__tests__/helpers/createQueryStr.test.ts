@@ -1,21 +1,6 @@
-// const QuellCache = require('../../src/quell.ts');
-// const schema = require('../../test-config/testSchema');
-// const redisPort = 6379;
-// const timeout = 100;
-
 import { createQueryStr } from "../../src/helpers/quellHelpers";
 
 describe("server side tests for createQueryStr.js", () => {
-  // const Quell = new QuellCache(schema, redisPort, timeout);
-
-  // afterAll((done) => {
-  //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit(() => {
-  //     console.log('closing redis server');
-  //     done();
-  //   });
-  // });
-
   test("inputs query object w/ no values", () => {
     const queryObject = {};
 
@@ -34,8 +19,6 @@ describe("server side tests for createQueryStr.js", () => {
         capitol: false,
       },
     };
-    console.log("this is test", createQueryStr(queryObject));
-
 
     expect(createQueryStr(queryObject)).toEqual(
       `{ countries { id name capitol } }`
@@ -117,9 +100,6 @@ describe("server side tests for createQueryStr.js", () => {
       },
     };
 
-    console.log("this is broken test", createQueryStr(queryObject));
-
-
     expect(createQueryStr(queryObject)).toEqual(
       `{ country(id: "1") { id name capitol cities { id country_id name population } } }`
     );
@@ -174,7 +154,6 @@ describe("server side tests for createQueryStr.js", () => {
         },
       },
     };
-    console.log("this is test", createQueryStr(queryObject));
 
     expect(createQueryStr(queryObject)).toEqual(
       `{ Canada: country(id: "3") { id cities { id name } } }`
@@ -198,8 +177,6 @@ describe("server side tests for createQueryStr.js", () => {
       },
     };
     
-    console.log("this is broken test", createQueryStr(queryObject));
-
     expect(createQueryStr(queryObject)).toEqual(
       `{ Canada: country(id: "3") { id Toronto: city(id: "5") { id name } } }`
     );

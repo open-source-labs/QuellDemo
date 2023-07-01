@@ -9,6 +9,7 @@ describe('server test for buildFromCache', () => {
     redisHost: process.env.REDIS_HOST || '127.0.0.1',
     redisPassword: process.env.REDIS_PASSWORD || '',
   });
+
   // inputs: prototype object (which contains args), collection (defaults to an empty array)
   // outputs: protoype object with fields that were not found in the cache set to false
 
@@ -39,10 +40,10 @@ describe('server test for buildFromCache', () => {
     return Promise.all([promise1, promise2, promise3, promise4]);
   });
 
-  // afterAll(() => {
-  //   Quell.redisCache.flushall();
-  //   Quell.redisCache.quit();
-  // });
+  afterAll(() => {
+    Quell.redisCache.flushAll();
+    Quell.redisCache.quit();
+  });
 
   test('Basic query', async () => {
     const testProto = {
