@@ -74,11 +74,44 @@ import YusufB from '../assets/images/new_profile_pics/Yusuf-Bhaiyat.jpeg';
 import JonahW from '../assets/images/new_profile_pics/Jonah-Weinbaum.jpg';
 import LennyL from '../assets/images/new_profile_pics/Lenny-Yambao.jpeg';
 import JustinH from '../assets/images/new_profile_pics/Justin-Hua.jpeg';
-import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg'
+import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg';
+import Andrew from '../assets/images/new_profile_pics/Andrew-Dai.jpeg';
+import Stacey from '../assets/images/new_profile_pics/Stacey-Lee.jpeg';
+import Ian from '../assets/images/new_profile_pics/Ian-Weinholtz.jpeg';
+import Cassidy from '../assets/images/new_profile_pics/Cassidy-Komp.jpeg';
 
 /* 
   Reusable component to generate each team member
 */
+
+const ANDREWD = {
+  name: 'Andrew Dai',
+  src: Andrew,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/andrewmdai/',
+  github: 'https://github.com/andrewmdai',
+};
+const STACEYL = {
+  name: 'Stacey Lee',
+  src: Stacey,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/stacey-lee-136298147/',
+  github: 'https://github.com/staceyjhlee',
+};
+const IANW = {
+  name: 'Ian Weinholtz',
+  src: Ian,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/ian-weinholtz/',
+  github: 'https://github.com/itsHackinTime',
+};
+const CASSIDYK = {
+  name: 'Cassidy Komp',
+  src: Cassidy,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/cassidy-komp-a400ab148/',
+  github: 'https://github.com/mimikomp',
+};
 const JONAHW = {
   name: 'Jonah Weinbaum',
   src: JonahW,
@@ -360,6 +393,10 @@ const JUSTINJAEGAR = {
   github: 'https://github.com/justinjaeger',
 };
 export const TeamArr = [
+  ANDREWD,
+  STACEYL,
+  IANW,
+  CASSIDYK,
   JONAHW,
   LENNYL,
   JUSTINH,

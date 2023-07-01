@@ -3,5 +3,5 @@ module.exports = {
   testEnvironment: 'node',
   testPathIgnorePatterns: ["dist"],
   forceCoverageMatch: ['**/*.test.js'],
-  collectCoverage: true
+  collectCoverage: true,
 };

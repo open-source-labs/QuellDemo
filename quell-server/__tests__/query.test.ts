@@ -1,8 +1,8 @@
 import e from 'express';
-import { QuellCache } from '../../src/quell';
-import { RequestType } from '../../src/types';
-import schema from '../../test-config/testSchema';
-import { writeToCache } from '../../src/helpers/cacheHelpers';
+import { QuellCache } from '../src/quell';
+import { RequestType } from '../src/types';
+import schema from '../test-config/testSchema';
+import { writeToCache } from '../src/helpers/cacheHelpers';
 
 describe('server test for query', () => {
   const Quell = new QuellCache({
@@ -45,6 +45,8 @@ describe('server test for query', () => {
   //   Quell.redisCache.flushAll();
   //   Quell.redisCache.quit();
   // });
+
+  
 
   test('If query is empty, should error out in rateLimiter', async () => {
     const mockReq = <RequestType> {
