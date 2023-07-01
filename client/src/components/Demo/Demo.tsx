@@ -31,7 +31,7 @@ import { styled } from "@mui/material/styles";
 import { Visualizer } from "../Visualizer/Visualizer";
 import { parse } from "graphql/language/parser";
 import { DocumentNode } from "graphql";
-import { getElapsedTime } from '../../../../server/schema/schema';
+import { getElapsedTime } from "../../../../server/schema/schema";
 
 export const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
@@ -370,6 +370,9 @@ const CacheControls = ({
   }
 
   const clearClientCache = () => {
+    addResponseTimes([]);
+    setCacheHit((cacheHit = 0));
+    setCacheMiss((cacheMiss = 0));
     return clearCache();
   };
 
@@ -377,6 +380,9 @@ const CacheControls = ({
     fetch("/api/clearCache").then((res) =>
       console.log("Cleared Server Cache!")
     );
+    addResponseTimes([]);
+    setCacheHit((cacheHit = 0));
+    setCacheMiss((cacheMiss = 0));
   };
 
   return (
@@ -506,7 +512,6 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
     </Box>
   );
 }
-
 
 const StyledDiv = styled("div")(({ theme }) => ({
   ...theme.typography.button,
