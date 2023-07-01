@@ -36,7 +36,7 @@ import { getElapsedTime } from '../../../../server/schema/schema';
 export const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
   const [errorAlerts, addErrorAlerts] = useState<string[]>([]);
-  const [selectedQuery, setQueryChoice] = useState<string>("2depth");
+  const [selectedQuery, setQueryChoice] = useState<string>("2depthArtist");
   const [query, setQuery] = useState<string>(querySamples[selectedQuery]);
   const [queryTypes, addQueryTypes] = useState<string[]>([]);
   const [maxDepth, setDepth] = useState<number>(15);
@@ -462,45 +462,31 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
           label="Query"
           onChange={handleChange}
         >
-          <MenuItem style={{ color: "white" }} value={"2depth"}>
-            2-Depth
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"3depth"}>
-            3-Depth Country and Cities
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"costly"}>
-            Costly
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"nested"}>
-            Nested
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"fragment"}>
-            Fragment
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"mutation"}>
-            Mutation - Add City
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"countryMut"}>
-            Mutation - Add Country
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"delete"}>
-            Mutation - Delete City
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"addArtist"}>
-            Mutation - Add Artist
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"addAlbum"}>
-            Mutation - Add Album
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"deleteAlbum"}>
-            Mutation - Delete Album
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"editArtist"}>
-            Mutation - Edit Artist
-          </MenuItem>
-          <MenuItem style={{ color: "white" }} value={"deleteArtist"}>
-            Mutation - Delete Artist
-          </MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthArtist"}>2-Depth: Artist</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthAlbum"}>2-Depth: Album</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthSong"}>2-Depth: Song</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthCity"}>2-Depth: City</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthCountry"}>2-Depth: Country</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"2depthAttraction"}>2-Depth: Attraction</MenuItem>
+          <hr />
+          <MenuItem className={styles.menuListItem} value={"3depthCountry"}>3-Depth: Country, Cities & Attractions</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"3depthArtist"}>3-Depth: Artist, Albums & Songs</MenuItem>
+          <hr />
+          <MenuItem className={styles.menuListItem} value={"costly"}>Costly</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"nested"}>Nested</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"fragment"}>Fragment</MenuItem>
+          <hr />
+          <MenuItem className={styles.menuListItem} value={"mutationAddCity"}>Mutation - Add: City</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationAddCountry"}>Mutation - Add: Country</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationAddArtist"}>Mutation - Add: Artist</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationAddAlbum"}>Mutation - Add: Album</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationAddSong"}>Mutation - Add: Song</MenuItem>
+          <hr />
+          <MenuItem className={styles.menuListItem} value={"mutationDeleteCity"}>Mutation - Delete: City</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationDeleteAlbum"}>Mutation - Delete: Album</MenuItem>
+          <MenuItem className={styles.menuListItem} value={"mutationDeleteArtist"}>Mutation - Delete: Artist</MenuItem>
+          <hr />
+          <MenuItem className={styles.menuListItem} value={"mutationEditArtist"}>Mutation - Edit: Artist</MenuItem>
         </Select>
       </FormControl>
     </Box>

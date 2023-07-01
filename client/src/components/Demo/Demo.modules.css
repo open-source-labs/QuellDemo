@@ -199,3 +199,13 @@
     padding: 2 em 10em;
   }
 }
+
+.menuListItem {
+  color: white !important;
+  padding: 2px 18px !important;
+  font-size: 17px !important;
+}
+
+hr {
+  margin: 6px 0;
+}
