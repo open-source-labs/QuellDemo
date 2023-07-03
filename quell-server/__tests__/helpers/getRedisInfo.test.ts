@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../test-config/test-server';
 import { QuellCache } from '../../src/quell';
 import schema from '../../test-config/testSchema';
-import { writeToCache } from '../../src/helpers/cacheHelpers';
+// import { writeToCache } from '../../src/helpers/cacheHelpers';
 import { getRedisInfo } from '../../src/helpers/redisHelpers';
 
 // tests pass locally, but time out in travis CI build...
@@ -28,25 +28,25 @@ xdescribe('server test for getRedisInfo', () => {
   beforeAll(() => {
     const promise1 = new Promise((resolve, reject) => {
       resolve(
-        writeToCache('country--1', {
+        Quell.writeToCache('country--1', {
           id: '1',
           capitol: { id: '2', name: 'DC' },
-        }, 1209600)
+        })
       );
     });
     const promise2 = new Promise((resolve, reject) => {
-      resolve(writeToCache('country--2', { id: '2' }, 1209600));
+      resolve(Quell.writeToCache('country--2', { id: '2' }));
     });
     const promise3 = new Promise((resolve, reject) => {
-      resolve(writeToCache('country--3', { id: '3' }, 1209600));
+      resolve(Quell.writeToCache('country--3', { id: '3' }));
     });
     const promise4 = new Promise((resolve, reject) => {
       resolve(
-        writeToCache('countries', [
+        Quell.writeToCache('countries', [
           'country--1',
           'country--2',
           'country--3',
-        ], 1209600)
+        ])
       );
     });
     return Promise.all([promise1, promise2, promise3, promise4]);
