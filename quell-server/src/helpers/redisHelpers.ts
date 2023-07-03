@@ -1,35 +1,14 @@
 import { Response, Request, NextFunction, RequestHandler } from "express";
 import { RedisClientType } from "redis";
-import { createClient } from "redis";
+import { redisCacheMain } from "./redisConnection";
 import {
   RedisOptionsType,
   RedisStatsType,
   ServerErrorType,
 } from "../types";
 
-const redisPort = Number(process.env.REDIS_PORT) || 6379;
-const redisHost = process.env.REDIS_HOST || "127.0.0.1";
-const redisPassword = process.env.REDIS_PASSWORD || "";
-
 //connection to Redis server
-const redisCache: any = createClient({
-  socket: { host: redisHost, port: redisPort },
-  password: redisPassword,
-});
-
-redisCache
-  .connect()
-  .then((): void => {})
-  .catch((error: string) => {
-    const err: ServerErrorType = {
-      log: `Error when trying to connect to redisCache, ${error}`,
-      status: 400,
-      message: {
-        err: "Could not connect to redisCache. Check server log for more details.",
-      },
-    };
-    console.log(err);
-  });
+const redisCache: RedisClientType = redisCacheMain;
 
 /**
  * Reads from Redis cache and returns a promise (Redis v4 natively returns a promise).
