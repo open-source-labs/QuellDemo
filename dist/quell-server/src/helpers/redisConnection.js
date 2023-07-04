@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.redisCacheMain = void 0;
 const redis_1 = require("redis");
-const redisPort = Number(process.env.REDIS_PORT) || 6379;
-const redisHost = process.env.REDIS_HOST || "127.0.0.1";
-const redisPassword = process.env.REDIS_PASSWORD || "";
+const redisPort = Number(process.env.REDIS_PORT);
+const redisHost = process.env.REDIS_HOST;
+const redisPassword = process.env.REDIS_PASSWORD;
 // Create and export the Redis client instance
 exports.redisCacheMain = (0, redis_1.createClient)({
     socket: { host: redisHost, port: redisPort },
