@@ -39,9 +39,9 @@ export interface ConstructorOptions {
   schema: GraphQLSchema;
   cacheExpiration?: number;
   costParameters?: CostParamsType;
-  redisPort: number;
-  redisHost: string;
-  redisPassword: string;
+  redisPort?: number;
+  redisHost?: string;
+  redisPassword?: string;
 }
 
 export interface IdCacheType {
