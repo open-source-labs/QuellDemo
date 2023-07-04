@@ -12,7 +12,8 @@
     "build": "webpack --mode production",
     "prod": "npm install && npm run build && npm start",
     "docker": "docker compose up",
-    "ts-coverage": "typescript-coverage-report"
+    "ts-coverage": "typescript-coverage-report",
+    "tsc": "tsc"
   },
   "browser": {
     "crypto": false,
