@@ -7,9 +7,9 @@
 
 # @quell/client
 
-@quell/client is an easy-to-implement JavaScript library providing a client-side caching solution and cache invalidation for GraphQL. Quell's schema-governed, type-level normalization algorithm caches GraphQL query responses as flattened key-value representations of the graph's nodes, making it possible to partially satisfy queries from LokiJS (client-side cache storage), reformulate the query, and then fetch additional data from other APIs or databases.
+@quell/client is an easy-to-implement JavaScript library providing a client-side caching solution and cache invalidation for GraphQL. Quell's schema-governed, type-level normalization algorithm caches GraphQL query responses as flattened key-value representations of the graph's nodes, making it possible to partially satisfy queries from the client-side cache storage, reformulate the query, and then fetch additional data from other APIs or databases.
 
-@quell/client is an open-source NPM package accelerated by [OS Labs](https://github.com/open-source-labs) and developed by [Angelo Chengcuenca](https://github.com/amchengcuenca), [Emily Hoang](https://github.com/emilythoang), [Keely Timms](https://github.com/keelyt), [Yusuf Bhaiyat](https://github.com/yusuf-bha), [David Lopez](https://github.com/DavidMPLopez), [Sercan Tuna](https://github.com/srcntuna), [Idan Michael](https://github.com/IdanMichael), [Tom Pryor](https://github.com/Turmbeoz), [Chang Cai](https://github.com/ccai89), [Robert Howton](https://github.com/roberthowton), [Joshua Jordan](https://github.com/jjordan-90), [Jinhee Choi](https://github.com/jcroadmovie), [Nayan Parmar](https://github.com/nparmar1), [Tashrif Sanil](https://github.com/tashrifsanil), [Tim Frenzel](https://github.com/TimFrenzel), [Robleh Farah](https://github.com/farahrobleh), [Angela Franco](https://github.com/ajfranco18), [Ken Litton](https://github.com/kenlitton), [Thomas Reeder](https://github.com/nomtomnom), [Andrei Cabrera](https://github.com/Andreicabrerao), [Dasha Kondratenko](https://github.com/dasha-k), [Derek Sirola](https://github.com/dsirola1), [Xiao Yu Omeara](https://github.com/xyomeara), [Nick Kruckenberg](https://github.com/kruckenberg), [Mike Lauri](https://github.com/MichaelLauri), [Rob Nobile](https://github.com/RobNobile) and [Justin Jaeger](https://github.com/justinjaeger).
+@quell/client is an open-source NPM package accelerated by [OS Labs](https://github.com/open-source-labs) and developed by [Cassidy Komp](https://github.com/mimikomp), [Andrew Dai](https://github.com/andrewmdai), [Stacey Lee](https://github.com/staceyjhlee), [Ian Weinholtz](https://github.com/itsHackinTime), [Angelo Chengcuenca](https://github.com/amchengcuenca), [Emily Hoang](https://github.com/emilythoang), [Keely Timms](https://github.com/keelyt), [Yusuf Bhaiyat](https://github.com/yusuf-bha), [David Lopez](https://github.com/DavidMPLopez), [Sercan Tuna](https://github.com/srcntuna), [Idan Michael](https://github.com/IdanMichael), [Tom Pryor](https://github.com/Turmbeoz), [Chang Cai](https://github.com/ccai89), [Robert Howton](https://github.com/roberthowton), [Joshua Jordan](https://github.com/jjordan-90), [Jinhee Choi](https://github.com/jcroadmovie), [Nayan Parmar](https://github.com/nparmar1), [Tashrif Sanil](https://github.com/tashrifsanil), [Tim Frenzel](https://github.com/TimFrenzel), [Robleh Farah](https://github.com/farahrobleh), [Angela Franco](https://github.com/ajfranco18), [Ken Litton](https://github.com/kenlitton), [Thomas Reeder](https://github.com/nomtomnom), [Andrei Cabrera](https://github.com/Andreicabrerao), [Dasha Kondratenko](https://github.com/dasha-k), [Derek Sirola](https://github.com/dsirola1), [Xiao Yu Omeara](https://github.com/xyomeara), [Nick Kruckenberg](https://github.com/kruckenberg), [Mike Lauri](https://github.com/MichaelLauri), [Rob Nobile](https://github.com/RobNobile), and [Justin Jaeger](https://github.com/justinjaeger).
 
 ## Installation
 
@@ -56,19 +56,21 @@ To make that same request with Quell:
 - The `Quellify` method takes in three parameters
   1. **_endpoint_** - your GraphQL endpoint as a string (ex. '/graphQL')
   2. **_query_** - your GraphQL query as a string (ex. see sampleQuery, above)
-  3. **_costOptions_** - your cost limit, depth limit, and ip rate limit for your queries (ex. see costOptions, above)
+  3. **_costOptions_** - your cost limit, depth limit, and IP rate limit for your queries (ex. see costOptions, above)
+  4. **_mutationMap_** - maps mutation names to corresponding parts of the schema.   
+        *(For more information, see the Schema section in @quell/server [README file](https://github.com/open-source-labs/Quell/tree/master/quell-server))*
 
 
 And in the end , your Quell-powered GraphQL fetch would look like this:
 
 ```javascript
-Quellify('/graphQL', sampleQuery, costOptions)
+Quellify('/graphQL', sampleQuery, costOptions, mutationMap)
   .then( /* use parsed response */ );
 ```
 
 Note: Quell will return a promise that resolves into an array with two elements. The first element will be a JS object containing your data; this is in the same form as the response found on the 'data' key of a typical GraphQL response `{ data: // response }`. The second element will be a boolean indicating whether or not the data was found in the client-side cache.
 
-That's it! You're now caching your GraphQL queries in the LokiJS client-side cache storage.
+That's it! You're now caching your GraphQL queries in the client-side cache storage.
 
 ### Usage Notes
 

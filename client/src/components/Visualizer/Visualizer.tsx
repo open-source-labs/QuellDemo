@@ -1,5 +1,4 @@
 import styles from './Visualizer.modules.css';
-import { useState, useEffect } from 'react';
 import FlowTree from "./FlowTree";
 import FlowTable from "./FlowTable";
 
@@ -19,6 +18,6 @@ export function Visualizer({ query, elapsed }: VisualizerProps) {
 }
 
 interface VisualizerProps {
-  query: string;
-  elapsed: {};
+    query: string;
+    elapsed: {};
 }

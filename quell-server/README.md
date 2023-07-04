@@ -9,7 +9,7 @@
 
 @quell/server is an easy-to-implement Node.js/Express middleware that satisfies and caches GraphQL queries and mutations. Quell's schema-governed, type-level normalization algorithm caches GraphQL query and mutation responses as flattened key-value representations of the graph's nodes, making it possible to partially satisfy queries from the server's Redis cache, reformulate the query, and then fetch additional data from other APIs or databases.
 
-@quell/server is an open-source NPM package accelerated by [OS Labs](https://github.com/open-source-labs) and developed by [Angelo Chengcuenca](https://github.com/amchengcuenca), [Emily Hoang](https://github.com/emilythoang), [Keely Timms](https://github.com/keelyt), [Yusuf Bhaiyat](https://github.com/yusuf-bha), [Chang Cai](https://github.com/ccai89), [Robert Howton](https://github.com/roberthowton), [Joshua Jordan](https://github.com/jjordan-90), [Jinhee Choi](https://github.com/jcroadmovie), [Nayan Parmar](https://github.com/nparmar1), [Tashrif Sanil](https://github.com/tashrifsanil), [Tim Frenzel](https://github.com/TimFrenzel), [Robleh Farah](https://github.com/farahrobleh), [Angela Franco](https://github.com/ajfranco18), [Ken Litton](https://github.com/kenlitton), [Thomas Reeder](https://github.com/nomtomnom), [Andrei Cabrera](https://github.com/Andreicabrerao), [Dasha Kondratenko](https://github.com/dasha-k), [Derek Sirola](https://github.com/dsirola1), [Xiao Yu Omeara](https://github.com/xyomeara), [Nick Kruckenberg](https://github.com/kruckenberg), [Mike Lauri](https://github.com/MichaelLauri), [Rob Nobile](https://github.com/RobNobile) and [Justin Jaeger](https://github.com/justinjaeger).
+@quell/server is an open-source NPM package accelerated by [OS Labs](https://github.com/open-source-labs) and developed by [Cassidy Komp](https://github.com/mimikomp), [Andrew Dai](https://github.com/andrewmdai), [Stacey Lee](https://github.com/staceyjhlee), [Ian Weinholtz](https://github.com/itsHackinTime), [Angelo Chengcuenca](https://github.com/amchengcuenca), [Emily Hoang](https://github.com/emilythoang), [Keely Timms](https://github.com/keelyt), [Yusuf Bhaiyat](https://github.com/yusuf-bha), [Chang Cai](https://github.com/ccai89), [Robert Howton](https://github.com/roberthowton), [Joshua Jordan](https://github.com/jjordan-90), [Jinhee Choi](https://github.com/jcroadmovie), [Nayan Parmar](https://github.com/nparmar1), [Tashrif Sanil](https://github.com/tashrifsanil), [Tim Frenzel](https://github.com/TimFrenzel), [Robleh Farah](https://github.com/farahrobleh), [Angela Franco](https://github.com/ajfranco18), [Ken Litton](https://github.com/kenlitton), [Thomas Reeder](https://github.com/nomtomnom), [Andrei Cabrera](https://github.com/Andreicabrerao), [Dasha Kondratenko](https://github.com/dasha-k), [Derek Sirola](https://github.com/dsirola1), [Xiao Yu Omeara](https://github.com/xyomeara), [Nick Kruckenberg](https://github.com/kruckenberg), [Mike Lauri](https://github.com/MichaelLauri), [Rob Nobile](https://github.com/RobNobile), and [Justin Jaeger](https://github.com/justinjaeger).
 
 ## Installation
 
@@ -26,11 +26,13 @@ If not already installed on your server, install Redis.
   - Follow installation instructions
   - Once Redis is successfully installed, follow instructions to open a Redis database connection (note the port on which it is listening)
 
+
 ### Install @quell/server
 
 Install the NPM package from your terminal: `npm i @quell/server`.
 `@quell/server` will be added as a dependency to your package.json file.
 
+---
 ## Implementation
 
 1. Import quell-server into your Node.js/Express file:
@@ -109,6 +111,7 @@ app.listen(3000);
 
 That's it! You now have a normalized cache for your GraphQL endpoint.
 
+---
 ## Rate and Cost Limiting Implementation
 
 @quell/server now offers optional cost- and rate-limiting of incoming GraphQL queries for additional endpoint security from malicious nested or costly queries.
@@ -133,6 +136,7 @@ If the cost of a query ever exceeds the `maxCost` defined in our Cost Object, th
 The `ipRate` variable limits the ammount of requests a user can submit per second. Any requests above this threshold will be invalidated.
 
 Using the implementation described in our "Cache Implementation" section, we could implement depth- and cost-limiting like so:
+
 
 ```javascript
 // instantiate quell-server
@@ -162,9 +166,14 @@ app.use('/graphql',
 
 Note: Both of these middleware packages work individually or combined, with or without the caching provided by `quellCache.query`.
 
+---
 ### Schema
 
 Quell's current iteration requires all schemas passed in to match the schema structure defined in the [GraphQL Docs.](https://graphql.org/learn/schema/) Any other GraphQL schema types (i.e: those made by GraphQL's 'buildSchema' or Apollo's 'makeExecutableSchema') are unreadable by Quell's current schema parser and will result in errors.
+
+In order to efficiently track and invalidate caches associated with specific mutations, you need to map each mutation name to the relevant parts of the schema that it affects. This is crucial for Quell to know which parts of the cache should be invalidated when a mutation occurs.
+
+To do this, you should create a mapping object where each key is the mutation name (as used in your GraphQL queries) and the value is an array of schema names that are affected by this mutation. 
 
 Below is an example of a Quell-compatible schema:
 
@@ -174,23 +183,31 @@ const UserType = new GraphQLObjectType({
   fields: () => {
     id: {type: GraphQLID},
     usernames: {type: GraphQLString},
-    /// fields
+    // fields
   }
 })
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQuery',
   field: {
-    /// queries
+    users: { ... },
+    // other queries
   }
 })
 
 const RootMutation = new GraphQLObjectType({
   name: 'RootMutation',
   fields: {
-    /// mutations
+    addUsers: { ... },
+    deleteUsers: { ... },
+    // other mutations
   }
 })
+
+export const mutationMap = {
+  addUser: ['users'],
+  deleteUser: ['users'],
+};
 
 module.exports = new GraphQLSchema({
     query: RootQuery,
@@ -198,11 +215,24 @@ module.exports = new GraphQLSchema({
     types: [UserType]
   });
 ```
+Once you have created this mapping object, you need to export it from the file where it is defined and then import it into the file where Quell is being used. This mapping object should be passed into the invocation of Quellify.
+```javascript
+const { Quellify, clearCache } = require("@quell/client");
+const { mutationMap } = require('./schema/schema');
+...
+Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate }, mutationMap) { ... }
+```
+By doing this, Quell will be aware of the relationships between mutations and parts of your schema, and can intelligently invalidate the cache as needed when mutations occur.
 
+
+---
 ### Usage Notes
 
 - @quell/server reads queries from Express' request object at `request.body.query` and attaches the query response to Express' response object at `response.locals.queryResponse`.
 - @quell/server can only cache items it can uniquely identify. It will will look for fields called `id`, `_id`, `Id`, or `ID`. If a query lacks all four, it will execute the query without caching the response.
-- Currently, Quell can cache 1) query-type requests without variables or directives and 2) mutation-type requests (add, update, and delete) with cache invalidation implemented. Quell will still process other requests, but will not cache the responses.
+- Currently, Quell can cache: 
+  - query-type requests without variables or directives.
+  - mutation-type requests (add, update, and delete) with cache invalidation implemented.
+- Quell will still process other requests, but will not cache the responses.
 
 #### For information on @quell/client, please visit the corresponding [README file](https://github.com/open-source-labs/Quell/tree/master/quell-client).

@@ -20,11 +20,12 @@ export const Hero = () => {
           setButtonText('npm install @quell/client')
         }, 2000);
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.log('Failed to copy text:', error);
       });
   };
 
+  // Effect to reset button text after 2 seconds if it is 'Copied!'
   useEffect(() => {
     if (buttonText === 'Copied!') {
       const timeoutId = setTimeout(() => {

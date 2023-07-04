@@ -6,10 +6,10 @@ import { querySamples } from '../helperFunctions';
 
 export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   const handleChange = (
-    value?: any,
+    value?: string | undefined,
     ev?: editor.IModelContentChangedEvent
   ): any => {
-    setQuery(value);
+    setQuery(value || '');
   };
 
   const query = querySamples[selectedQuery];
@@ -17,7 +17,6 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   return (
     <div className="h-64 p-5 rounded-xl overflow-hidden">
       <ControlledEditor
-        // className={styles.editor}
         defaultLanguage="graphql"
         value={query}
         onChange={handleChange}

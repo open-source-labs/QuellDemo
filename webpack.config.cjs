@@ -1,18 +1,18 @@
-const path = require('path');
-const HTMLWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const HTMLWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  entry: path.resolve(__dirname, './client/src/index.tsx'),
-  mode: 'production',
+  entry: path.resolve(__dirname, "./client/src/index.tsx"),
+  mode: "production",
   output: {
-    path: path.join(__dirname, '/dist'),
-    filename: 'bundle.js',
+    path: path.join(__dirname, "/dist"),
+    filename: "bundle.js",
   },
 
   plugins: [
     new HTMLWebpackPlugin({
-      template: './client/src/index.html',
-      favicon: './client/src/favicon.ico'
+      template: "./client/src/index.html",
+      favicon: "./client/src/favicon.ico",
     }),
   ],
 
@@ -22,9 +22,9 @@ module.exports = {
         test: /\.jsx?/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
           options: {
-            presets: ['@babel/env', '@babel/react'],
+            presets: ["@babel/env", "@babel/react"],
           },
         },
       },
@@ -32,38 +32,38 @@ module.exports = {
         test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
           options: {
             presets: [
-              '@babel/preset-typescript',
-              '@babel/preset-env',
-              ['@babel/preset-react', { runtime: 'automatic' }],
+              "@babel/preset-typescript",
+              "@babel/preset-env",
+              ["@babel/preset-react", { runtime: "automatic" }],
             ],
           },
         },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader',],
+        use: ["style-loader", "css-loader", "postcss-loader"],
       },
       {
         test: /\.(jpeg|jpg|png|gif|svg|ico)$/i,
-        use: ['file-loader'],
+        use: ["file-loader"],
       },
     ],
   },
   devServer: {
     static: {
-      publicPath: '/dist',
-      directory: path.resolve(__dirname, 'dist'),
+      publicPath: "/dist",
+      directory: path.resolve(__dirname, "dist"),
     },
     historyApiFallback: true,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/api/graphql': 'http://localhost:3000',
-      '/api/clearCache': 'http://localhost:3000/',
-      '/api/redis': 'http://localhost:3000/',
-      '/api/queryTime': 'http://localhost:3000/',
+      "/api": "http://localhost:3000",
+      "/api/graphql": "http://localhost:3000",
+      "/api/clearCache": "http://localhost:3000/",
+      "/api/redis": "http://localhost:3000/",
+      "/api/queryTime": "http://localhost:3000/",
     },
     client: { overlay: false },
   },
@@ -74,6 +74,6 @@ module.exports = {
     fallback: {
       fs: false,
     },
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.react.js'],
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".react.js"],
   },
 };

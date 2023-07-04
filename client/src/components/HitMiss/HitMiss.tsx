@@ -1,8 +1,17 @@
 import styles from './HitMiss.modules.css';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+
+// Register necessary components with ChartJS
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Interface for the props of the HitMiss component
+interface HitMissProps {
+  cacheHit: number; // Number of cache hits
+  cacheMiss: number; // Number of cache misses
+}
+
+// Component that displays a doughnut chart of cache hit vs cache miss
 export function HitMiss({ cacheMiss, cacheHit }: HitMissProps) {
   const data = {
     labels: ['Cache Hit', 'Cache Miss'],
@@ -22,9 +31,4 @@ export function HitMiss({ cacheMiss, cacheHit }: HitMissProps) {
       <Doughnut data={data} />
     </div>
   );
-}
-
-interface HitMissProps {
-  cacheHit: number;
-  cacheMiss: number;
 }
