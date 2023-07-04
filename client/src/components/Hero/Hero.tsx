@@ -25,6 +25,7 @@ export const Hero = () => {
       });
   };
 
+  // Effect to reset button text after 2 seconds if it is 'Copied!'
   useEffect(() => {
     if (buttonText === 'Copied!') {
       const timeoutId = setTimeout(() => {

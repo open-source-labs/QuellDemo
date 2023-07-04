@@ -167,7 +167,6 @@ const performFetch = async (endPoint: string, fetchConfig?: FetchObjType): Promi
     const response = await fetch(endPoint, fetchConfig);
     // Parsing the response as JSON and destructure queryResponse from the response
     const { queryResponse }: QueryResponse = await response.json();
-    console.log('query response: ', queryResponse)
     return queryResponse.data;
   } catch (error) {
     throw createClientError(`Error when trying to perform fetch to graphQL endpoint: ${error}.`);
@@ -190,9 +189,6 @@ const Quellify = async (
   mutationMap: Record<string, string[]> = {},
   variables?: Record<string, any>,
 ): Promise<[JSONValue, boolean]> => {
-  console.log('MAP CACHE: ', mapCache)
-  console.log('LRU CACHE: ', lruCache.dump())
-  console.log('MUTATION MAP: ', mutationMap)
 
   // Configuration object for the fetch requests
   const fetchConfig: FetchObjType = {
@@ -213,25 +209,18 @@ const Quellify = async (
       // Check if results are in LRU, returns results if available
       const lruCachedResults = lruCache.get(query);
       if (lruCachedResults) {
-        console.log('FOUND IN LRU CACHED - RESULT: ', lruCachedResults)
         return [lruCachedResults.data, true];
       }
       // If not in LRU cache, checks if results are in Map Cache, adds to LRU Cache and returns results
       const mapCachedResults = mapCache.get(query);
       if (mapCachedResults) {
-        console.log('FOUND IN MAP CACHE - RESULTS: ', mapCachedResults)
         lruCache.set(query, mapCachedResults as MapCacheType);
-        console.log('MAP CACHE: ', mapCache)
-        console.log('LRU CACHE: ', lruCache.dump())
         return [mapCachedResults.data, true];
       } 
       // If not in either cache, perform fetch, update cache, and return results
       else {
         const data = await performFetch(endPoint, fetchConfig);
-        console.log('NOT IN CACHE - FETCHED QUERY: ', data)
         updateCaches(query, data, fieldNames);
-        console.log('MAP CACHE: ', mapCache)
-        console.log('LRU CACHE: ', lruCache.dump())
         return [data, false];
       }
     }
@@ -249,22 +238,20 @@ const Quellify = async (
       // Check if mutation type is valid (defined in MutationTypeHandlers), perform the mutation and update cache accordingly
       if (mutationAction) {
         const fetchResult: JSONObject = await performFetch(endPoint, fetchConfig);
-        console.log('MUTATION FETCHED RESULT: ', fetchResult)
+        
 
         // Get the list of fields that could be affected by this mutation from the mutationMap
         const affectedFields = mutationMap[mutationType];
-        console.log('affected fields: ', affectedFields)
-
+        
         // Loop through mapCache to check if the mutation affects any cached queries
         for (const [cachedQuery, cachedInfo] of mapCache.entries()) {
           // Get the field names that are present in the current cached query
           const cachedFieldNames: string[] = cachedInfo.fieldNames;
-          console.log('Cached fields names: ', cachedFieldNames)
           
           // Determine if any of the fields affected by the mutation are present in the cached query
           const shouldRefetch = cachedFieldNames.some(fieldName => affectedFields.includes(fieldName));
       
-          // If affected fields, refetch the data and update cache
+          // If affected fields, refetch the data and update the cache
           if (shouldRefetch) {
             const refetchConfig = {
               method: 'POST',
@@ -281,9 +268,6 @@ const Quellify = async (
           }
         }
 
-        console.log('MAP CACHE: ', mapCache)
-        console.log('LRU CACHE: ', lruCache.dump())
-
         // Return the result of the mutation and a boolean indicating that the data was not from the cache
         return [fetchResult, false];
       }
@@ -294,14 +278,10 @@ const Quellify = async (
     // Handle cases where the query is not optimizable (unQuellable) and directly fetch data
     else if (operationType === 'unQuellable') {
       const data = await performFetch(endPoint, fetchConfig);
-      console.log('BAD QUERY BAD QUERY BAD QUERY - UNQUELLABLE')
-      console.log('FETCHED DATA - unQuellable: ', data)
       return [data, false];
     }
     // Throw error if operation type is not supported
-    else {
-      throw createClientError('The operation type is not supported.');
-    }
+    else throw createClientError('The operation type is not supported.');
   } catch (error) {
     throw error instanceof ClientError ? error : createClientError(`Error occurred during Quellify process: ${error}.`);
   }

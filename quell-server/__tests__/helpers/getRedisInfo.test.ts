@@ -2,7 +2,6 @@ import request from 'supertest';
 import app from '../../test-config/test-server';
 import { QuellCache } from '../../src/quell';
 import schema from '../../test-config/testSchema';
-// import { writeToCache } from '../../src/helpers/cacheHelpers';
 import { getRedisInfo } from '../../src/helpers/redisHelpers';
 
 // tests pass locally, but time out in travis CI build...

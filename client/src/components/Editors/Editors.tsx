@@ -17,7 +17,6 @@ export const QueryEditor = ({ setQuery, selectedQuery }: QueryEditorProps) => {
   return (
     <div className="h-64 p-5 rounded-xl overflow-hidden">
       <ControlledEditor
-        // className={styles.editor}
         defaultLanguage="graphql"
         value={query}
         onChange={handleChange}

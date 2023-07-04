@@ -16,7 +16,6 @@ import {
   getFieldsMap,
 } from "./helpers/quellHelpers";
 
-
 import {
   ConstructorOptions,
   IdCacheType,
@@ -43,7 +42,6 @@ import {
   RequestType,
   ResLocals,
   FieldKeyValue,
-  // Response
 } from "./types";
 
 /*
@@ -198,11 +196,6 @@ export class QuellCache {
         };
         return next(err);
       }
-
-      console.log(
-        `IP ${ipAddress} made a request. Limit is: ${ipRateLimit} requests per second. Result: OK.`
-      );
-
       return next();
     } catch (error) {
       const err: ServerErrorType = {
@@ -265,8 +258,6 @@ export class QuellCache {
     // Quell can handle mutations and queries.
 
     if (operationType === "unQuellable") {
-      console.log("IN UNQUELLABLE");
-
       /*
        * If the operation is unQuellable (cannot be cached), execute the operation,
        * add the result to the response, and return.
@@ -287,7 +278,6 @@ export class QuellCache {
           return next(err);
         });
     } else if (operationType === "noID") {
-      console.log("IN NO ID");
       /*
        * If ID was not included in the query, it will not be included in the cache. Execute the GraphQL
        * operation without writing the result to cache and return.
@@ -325,14 +315,11 @@ export class QuellCache {
       );
 
       if (redisValue != null) {
-        console.log("IN REDISVALUE NULL");
-
         // If the query string is found in Redis, add the result to the response and return.
         redisValue = JSON.parse(redisValue);
         res.locals.queryResponse = redisValue;
         return next();
       } else {
-        console.log("IN ELSE");
         // Execute the operation, add the result to the response, write the query string and result to cache, and return.
         graphql({ schema: this.schema, source: queryString })
           .then((queryResult: ExecutionResult): void => {
@@ -352,8 +339,6 @@ export class QuellCache {
           });
       }
     } else if (operationType === "mutation") {
-      console.log("IN MUTATIONS");
-
       // TODO: If the operation is a mutation, we are currently clearing the cache because it is stale.
       // The goal would be to instead have a normalized cache and update the cache following a mutation.
       this.redisCache.flushAll();
@@ -404,13 +389,11 @@ export class QuellCache {
           return next(err);
         });
     } else {
-      console.log("IN ELSE!!!");
-
       /*
        * Otherwise, the operation type is a query.
        */
+      
       // Combine fragments on prototype so we can access fragment values in cache.
-      console.log("idCache:", idCache);
       const prototype: ProtoObjType =
         Object.keys(frags).length > 0
           ? updateProtoWithFragment(proto, frags)
@@ -425,9 +408,6 @@ export class QuellCache {
         data: ItemFromCacheType;
         cached?: boolean;
       } = await this.buildFromCache(prototype, prototypeKeys);
-
-      console.log("cacheResponse:", cacheResponse);
-
       // Create merged response object to merge the data from the cache and the data from the database.
       let mergedResponse: MergedResponse;
 
@@ -438,8 +418,6 @@ export class QuellCache {
       // If the cached response is incomplete, reformulate query,
       // handoff query, join responses, and cache joined responses.
       if (Object.keys(queryObject).length > 0) {
-        console.log("OBJECT KEYS LONGER THAN LENGTH!!!");
-
         // Create a new query string that contains only the fields not found in the cache so that we can
         // request only that information from the database.
         const newQueryString: string = createQueryStr(
@@ -458,6 +436,7 @@ export class QuellCache {
 
             // Check if the cache response has any data by iterating over the keys in cache response.
             let cacheHasData = false;
+
             for (const key in cacheResponse.data) {
               if (Object.keys(cacheResponse.data[key]).length > 0) {
                 cacheHasData = true;
@@ -475,17 +454,19 @@ export class QuellCache {
               : databaseResponse;
 
             const currName = "string it should not be again";
-            await this.normalizeForCache(
+            const test = await this.normalizeForCache(
               mergedResponse.data as ResponseDataType,
               this.queryMap,
               prototype,
               currName
             );
-
+            
             // The response is given a cached key equal to false to indicate to the front end of the demo site that the
             // information was *NOT* entirely found in the cache.
             mergedResponse.cached = false;
+
             res.locals.queryResponse = { ...mergedResponse };
+
             return next();
           })
           .catch((error: Error): void => {
@@ -571,7 +552,6 @@ export class QuellCache {
           cacheID,
           this.redisCache
         );
-        console.log("cache response AAAAAAAAAAAAAa", cacheResponse);
         itemFromCache[typeKey] = cacheResponse ? JSON.parse(cacheResponse) : {};
       }
 
@@ -786,11 +766,15 @@ export class QuellCache {
     protoField: ProtoObjType,
     currName: string
   ) {
-    console.log("normalizing cache");
+    
+
     for (const resultName in responseData) {
       const currField = responseData[resultName];
       const currProto: ProtoObjType = protoField[resultName] as ProtoObjType;
       if (Array.isArray(currField)) {
+       
+
+        
         for (let i = 0; i < currField.length; i++) {
           const el: ResponseDataType = currField[i];
 
@@ -813,16 +797,14 @@ export class QuellCache {
         // Temporary store for field properties
         const fieldStore: ResponseDataType = {};
 
+
         // Create a cacheID based on __type and __id from the prototype.
-        let cacheID: string = Object.prototype.hasOwnProperty.call(
-          map,
-          currProto.__type as string
-        )
+        let cacheID: string = Object.prototype.hasOwnProperty.call(map, currProto.__type as string)
           ? (map[currProto.__type as string] as string)
           : (currProto.__type as string);
 
         cacheID += currProto.__id ? `--${currProto.__id}` : "";
-
+        
         // Iterate over keys in nested object
         for (const key in currField) {
           // If prototype has no ID, check field keys for ID (mostly for arrays)
@@ -846,17 +828,29 @@ export class QuellCache {
             // and copy the logic of writing to cache to update the cache with same things, all stored under name.
             // Store objKey as cacheID without ID added
             const cacheIDForIDCache: string = cacheID;
+           
+
+            
+
             cacheID += `--${currField[key]}`;
             // call IdCache here idCache(cacheIDForIDCache, cacheID)
+           
+
             this.updateIdCache(cacheIDForIDCache, cacheID, currName);
+
           }
 
           fieldStore[key] = currField[key];
 
+
           // If object, recurse normalizeForCache assign in that object
           if (typeof currField[key] === "object") {
+        
+
             if (protoField[resultName] !== null) {
-              await this.normalizeForCache(
+            
+
+              const test = await this.normalizeForCache(
                 { [key]: currField[key] },
                 map,
                 {
@@ -907,24 +901,22 @@ export class QuellCache {
    *  @param {string} keyWithID - Key to be cached with ID string attached; Redis data is stored under this key.
    *  @param {string} currName - The parent object name.
    */
+ 
+
   updateIdCache(objKey: string, keyWithID: string, currName: string): void {
-    // BUG: Add check - If any of the arguments are missing, return immediately.
-    // Currently, if currName is undefined, this function is adding 'undefined' as a
-    // key in the idCache.
 
     if (!idCache[currName]) {
-      // If the parent object is not yet defined in the idCache, create the object and add the new key.
       idCache[currName] = {};
       idCache[currName][objKey] = keyWithID;
-      return;
-    } else if (!idCache[currName][objKey]) {
-      // If parent object is defined in the idCache, but this is the first child ID, create the
-      // array that the ID will be added to.
+      return undefined; // Explicitly return undefined
+    } else if (!Array.isArray(idCache[currName][objKey]) || !idCache[currName][objKey]) {
       idCache[currName][objKey] = [];
+    } else {
+      (idCache[currName][objKey] as string[]).push(keyWithID);    
     }
-    // Add the ID to the array in the idCache.
-    (idCache[currName][objKey] as string[]).push(keyWithID);
+    return undefined; // Explicitly return undefined
   }
+  
 
   /**
    * Updates the Redis cache when the operation is a mutation.
@@ -991,7 +983,6 @@ export class QuellCache {
             // Index position of field key to remove from list of field keys
             const removalFieldKeyIdx: number =
               cachedFieldKeysList.indexOf(fieldKey);
-
             if (removalFieldKeyIdx !== -1) {
               cachedFieldKeysList.splice(removalFieldKeyIdx, 1);
             }

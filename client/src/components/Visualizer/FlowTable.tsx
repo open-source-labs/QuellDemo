@@ -4,10 +4,10 @@ import MonacoEditor from '@monaco-editor/react';
 import styles from './Visualizer.modules.css';
 import { editor } from 'monaco-editor';
 
-// defining the expected type
+// Defining the expected type
 interface Props {
-  query: string;
-  elapsed: { [key: string]: number };
+  query: string; // GraphQL query string
+  elapsed: { [key: string]: number }; // Object containing elapsed time for each query operation
 }
 
 // The FC stands for Function Component
@@ -16,7 +16,7 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
   const [elapsedTime, setElapsedTime] = useState<{ [key: string]: number }>(elapsed);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
-  // Set elapsed time
+  // Set elapsed time when it changes
   useEffect(() => {
     setElapsedTime(elapsed);
   }, [query, elapsed]);
@@ -29,10 +29,9 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
       setQueryOperations(operationOrder);
   }, [elapsedTime]);
 
-  // parses the query
+  // Parses the query and returns the SelectionSetNode or OperationDefinitionNode
   const parseQuery = (query: string): SelectionSetNode | OperationDefinitionNode | undefined => {
     const ast: DocumentNode = parse(query);
-
     if (ast.definitions.length === 1) {
         const definition = ast.definitions[0];
         if (definition.kind === 'OperationDefinition') {
@@ -41,11 +40,10 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
           return definition.selectionSet;
         }
       }
-    
     return undefined;
   };
 
-  // function that takes the query and returns an array of operations in order of the query
+  // Function that takes the query and returns an array of operations in order of the query
   const generateOperationOrder = (operation: SelectionSetNode | OperationDefinitionNode | undefined, parentName = ''): string[] => {
     const operationOrder: string[] = [];
     if (!operation) {
@@ -70,16 +68,15 @@ const FlowTable: React.FC<Props> = ({ query, elapsed }) => {
       } else {
         operationOrder.push(fieldName);
       }
-      // Recursively generate the operation order for nested selection
+      // Recursively generate the operation order for nested selections
       if (selection.selectionSet) {
         const nestedSelections = generateOperationOrder(selection.selectionSet, fieldName);
         operationOrder.push(...nestedSelections);
       }
     }
   });
-
   return operationOrder;
-  };
+};
 
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;

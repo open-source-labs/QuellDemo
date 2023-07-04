@@ -101,7 +101,6 @@ const SongType = new GraphQLObjectType({
 
 /////////////////////////////////////////////////////////////////
 
-//when is this being run?
 const AttractionsType = new GraphQLObjectType({
   name: "Attractions",
   fields: () => ({
@@ -454,10 +453,6 @@ const RootMutations = new GraphQLObjectType({
       },
       async resolve(parent: unknown, args: { oldName: string, newName: string }) {
         const { oldName, newName } = args;
-        console.log('oldName: ', oldName)
-        console.log('newName: ', newName)
-
-        
         const updateArtist = await Artist.updateOne(
           { name: oldName },
           { name: newName },
@@ -466,7 +461,6 @@ const RootMutations = new GraphQLObjectType({
         const updatedArtist = await Artist.findOne(
           { name: newName },
         );
-        console.log('updated artist: ', updatedArtist)
         return updatedArtist;
       },
     },

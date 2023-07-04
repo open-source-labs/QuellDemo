@@ -12,12 +12,11 @@ const defaultCostOptions: CostParamsType = {
 };
 
 // Command to run jest tests:
-// npx jest client-tests/__tests__/quellify.test.ts
-
+// npx jest client/src/quell-client/client-tests/__tests__/quellify.test.ts
 
 describe('Quellify', () => {
   beforeEach(() => {
-    // Clear the Loki cache before each test
+    // Clear the client cache before each test
     clearCache();
   });
 

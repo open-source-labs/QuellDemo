@@ -1,3 +1,5 @@
+import { TextEncoder, TextDecoder } from 'util';
+Object.assign(global, { TextDecoder, TextEncoder });
 import { fireEvent, getByTestId, render, screen } from '@testing-library/react';
 import Demo from '../../../components/Demo/Demo';
 

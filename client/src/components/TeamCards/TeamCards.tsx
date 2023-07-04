@@ -5,14 +5,16 @@ import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
 import Header from '/client/src/assets/images/quell_logos/quell-bird-border.svg';
 import { TeamArr } from '../teaminfo';
 
+// Props for the TeamMember component
 interface TeamMemberProps {
-  src: string;
-  bio: string;
-  name: string;
-  linkedin: string;
-  github: string;
+  src: string; // Profile picture source
+  bio: string; // Team member's bio
+  name: string; // Team member's name
+  linkedin: string; // Link to the team member's LinkedIn profile
+  github: string; // Link to the team member's GitHub profile
 }
 
+// Individual team member card component
 const TeamMember = ({ src, bio, name, linkedin, github }: TeamMemberProps) => {
   return (
     <div className={styles.profilePic}>
@@ -31,18 +33,18 @@ const TeamMember = ({ src, bio, name, linkedin, github }: TeamMemberProps) => {
   );
 };
 
+// Team component
 const Team = memo(() => {
   const [renderFx, toggleRenderFx] = useState<string>('unrendered');
 
-  // runs once on render, then procs the useState for rendered to change to renderedLogo
-  // these two strings are ID's in our CSS.
+  // Runs once on render, then updates the state to trigger a CSS transition effect
   useEffect(() => {
     setTimeout(() => {
       toggleRenderFx('rendered');
     }, 550);
   }, []);
 
-  //scrolls back to top
+  // Scrolls back to the top of the page
   useEffect(() => {
     if (window.location.href.includes('scroll-demo')) {
       window.scrollTo(0, 0);

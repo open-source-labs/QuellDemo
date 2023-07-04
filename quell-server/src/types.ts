@@ -60,6 +60,12 @@ export interface CostParamsType {
   ipRate: number;
 }
 
+/**
+ * The 'CustomError' interface extends the built-in 'Error' class and represents a custom error object
+ * It adds optional properties for additional error information 
+ * @interface CustomError
+ * @extends Error
+ */
 export interface CustomError extends Error {
   log?: string;
   status?: number;

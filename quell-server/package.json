@@ -1,6 +1,6 @@
 {
   "name": "@quell/server",
-  "version": "7.0.0",
+  "version": "9.0.0",
   "description": "Quell is an open-source NPM package providing a light-weight caching layer implementation and cache invalidation for GraphQL responses on both the client- and server-side. Use Quell to prevent redundant client-side API requests and to minimize costly server-side response latency.",
   "main": "dist/src/quell.js",
   "scripts": {
@@ -142,6 +142,22 @@
     {
       "name": "Nick Kruckenberg",
       "url": "https://github.com/kruckenberg"
+    },
+    {
+      "name": "Cassidy Komp",
+      "url": "https://github.com/mimikomp"
+    },
+    {
+      "name": "Andrew Dai",
+      "url": "https://github.com/andrewmdai"
+    },
+    {
+      "name": "Stacey Lee",
+      "url": "https://github.com/staceyjhlee"
+    },
+    {
+      "name": "Ian Weinholtz",
+      "url": "https://github.com/itsHackinTime"
     }
   ],
   "homepage": "http://quellql.io",

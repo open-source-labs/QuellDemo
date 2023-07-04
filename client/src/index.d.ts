@@ -4,7 +4,7 @@ declare module '@mui/material/' {
       danger: string;
     };
   }
-  // allow configuration using `createTheme`
+  // Allow configuration using `createTheme`
   interface ThemeOptions {
     status?: {
       danger?: string;

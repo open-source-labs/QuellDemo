@@ -12,8 +12,15 @@ import {
   TimeScale,
   TooltipItem
 } from 'chart.js';
-import { title } from 'process';
 
+// Interface for the props of the Graph component
+interface GraphProps {
+  responseTimes: any[]; // Array of response times
+  selectedQuery: string; // Currently selected query
+  queryTypes: any[]; // Array of query types
+}
+
+// Register necessary components with ChartJS
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,28 +30,25 @@ ChartJS.register(
   Legend
 );
 
-export function Graph({
-  responseTimes,
-  selectedQuery,
-  queryTypes,
-}: GraphProps) {
+// Component that displays a bar graph of response times
+export function Graph({ responseTimes, selectedQuery, queryTypes }: GraphProps) {
   let number = 0;
   let dataset = {
     labels: number++,
     datasets: responseTimes,
   };
 
-  // function to display accurate time in tooltip
+  // Variable to store the label for the chart in the tooltip
   const labelChart: string = 'Response Times';
 
+  // Callback function for the title of the tooltip
   const titleTooltip = (tooltipItems: TooltipItem<'bar'>[]): string => {
     return labelChart;
   };
 
+  // Callback function for the label of the tooltip
   const labelTooltip = (tooltipItem: TooltipItem<'bar'>): string | string[] => {
-    if (Array.isArray(tooltipItem)) {
-      return tooltipItem.map(() => '');
-    }
+    if (Array.isArray(tooltipItem)) return tooltipItem.map(() => '');
     const responseTime: number = responseTimes[tooltipItem.dataIndex];
     return `${responseTime} ms`;
   };
@@ -83,11 +87,9 @@ export function Graph({
     },
   };
 
+  // Empty effect that is triggered when the 'responseTimes' dependency changes
   useEffect(() => {}, [responseTimes]);
 
-
-
-  
   return (
     <div className="graph h-80 pt-1">
       <Bar
@@ -105,10 +107,4 @@ export function Graph({
       />
     </div>
   );
-}
-
-interface GraphProps {
-  responseTimes: any[];
-  selectedQuery: string;
-  queryTypes: any[];
 }

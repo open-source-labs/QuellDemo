@@ -10,9 +10,7 @@ import { CTA } from "../../../components/CTA/CTA";
 /**
  * Unit testing making for CTA testing 
  * @returns {JSX.Element} The rendered CTA component (render);
- * 
  * @type {jest.Mock} mockWriteText is a jest mock function
- * 
  */
 
 describe("Unit testing for CTA.tsx", () => {

@@ -1,5 +1,4 @@
 import { QuellCache } from '../../src/quell';
-// import { writeToCache } from '../../src/helpers/cacheHelpers';
 import schema from '../../test-config/testSchema';
 
 describe('server test for buildFromCache', () => {

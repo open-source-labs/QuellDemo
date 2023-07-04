@@ -1,4 +1,20 @@
 import styles from "./Demo.modules.css";
+import { QueryEditor } from "../Editors/Editors";
+import { querySamples } from "../helperFunctions";
+import { Graph } from "../Graph/Graph";
+import { HitMiss } from "../HitMiss/HitMiss";
+import { SuccessfulQuery, BadQuery } from "../Alert/Alert";
+import { Quellify, clearCache } from "../../quell-client/src/Quellify";
+import { Visualizer } from "../Visualizer/Visualizer";
+import { mutationMap } from '../../../../server/schema/schema';
+
+import React, {
+  Dispatch,
+  memo,
+  SetStateAction,
+  useState,
+} from "react";
+
 import {
   Box,
   Divider,
@@ -13,26 +29,10 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
-import React, {
-  Dispatch,
-  memo,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
-import { QueryEditor } from "../Editors/Editors";
-import { querySamples } from "../helperFunctions";
-import ForwardRoundedIcon from "@mui/icons-material/ForwardRounded";
-import { Graph } from "../Graph/Graph";
-import { HitMiss } from "../HitMiss/HitMiss";
-import { SuccessfulQuery, BadQuery } from "../Alert/Alert";
-import { Quellify, clearCache } from "../../quell-client/src/Quellify";
 import { styled } from "@mui/material/styles";
-import { Visualizer } from "../Visualizer/Visualizer";
-import { parse } from "graphql/language/parser";
-import { DocumentNode } from "graphql";
-import { getElapsedTime, mutationMap } from '../../../../server/schema/schema';
+import ForwardRoundedIcon from "@mui/icons-material/ForwardRounded";
 
+// Memoizing the Demo component to avoid unnecessary re-renders
 export const Demo = memo(() => {
   const [responseTimes, addResponseTimes] = useState<number[] | []>([]);
   const [errorAlerts, addErrorAlerts] = useState<string[]>([]);
@@ -47,25 +47,17 @@ export const Demo = memo(() => {
   const [cacheMiss, setCacheMiss] = useState<number>(0);
   const [elapsed, setElapsed] = useState<{}>({});
 
-  // Hook for visualizer toggled
+  // State for visualizer toggled
   const [isVisualizer, setIsVisualizer] = useState<boolean>(false);
-
   const [visualizerQuery, setVisualizerQuery] = useState<string>(query);
 
+  // Handler function to toggle the switch
   function handleToggle(event: React.ChangeEvent<HTMLInputElement>): void {
-    // Removed client cache clear on toggle, but kept on 'Clear Client Cache' button click.
-    // Clear both cache on the toggle event
-    // clearLokiCache();
-    // fetch('/api/clearCache').then((res) =>
-    //   console.log('Cleared Server Cache!')
-    // );
     setIsToggled(event.target.checked);
   }
 
-  // Function to handle visualizer toggle
-  function handleVisualizerToggle(
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void {
+  // Handler function to toggle visualizer
+  function handleVisualizerToggle(event: React.ChangeEvent<HTMLInputElement>): void {
     setIsVisualizer(event.target.checked);
   }
 
@@ -164,6 +156,7 @@ export const Demo = memo(() => {
   );
 });
 
+// Component that displays a query demo and allows users to submit queries
 function QueryDemo({
   addErrorAlerts,
   responseTimes,
@@ -189,9 +182,12 @@ function QueryDemo({
 }: QueryDemoProps) {
   const [response, setResponse] = useState<string>("");
 
+  // Function to submit a client query
   function submitClientQuery() {
     const startTime = new Date().getTime();
     fetch("/api/clearCache").then(() => console.log("Cleared Server Cache!"));
+
+    // Quellify is a function that makes a GraphQL query
     Quellify("/api/graphql", query, { maxDepth, maxCost, ipRate }, mutationMap)
       .then((res) => {
         setVisualizerQuery(query);
@@ -236,6 +232,7 @@ function QueryDemo({
       });
   }
 
+  // Type for the query response
   type QueryResponse = {
     data: {
       [key: string]: unknown;
@@ -243,10 +240,12 @@ function QueryDemo({
     cached: boolean;
   };
 
+  // Type for the API response
   type ApiResponse = {
     queryResponse: QueryResponse;
   };
 
+  // Function to submit a server query
   function submitServerQuery() {
     const startTime = new Date().getTime();
     const fetchOptions = {
@@ -288,8 +287,8 @@ function QueryDemo({
           },
         };
         console.log("Error in fetch: ", error);
-        err = resError;
-        addErrorAlerts((prev) => [...prev, err]);
+        addErrorAlerts((prev) => [...prev, error.log]);
+
       });
   }
 
@@ -318,12 +317,15 @@ function QueryDemo({
   );
 }
 
+// Interface for DemoControls component props
 interface DemoControls {
   selectedQuery: string;
   setQueryChoice: Dispatch<SetStateAction<string>>;
   submitQuery: () => void;
 }
 
+// The DemoControls component is used to select a query and submit it.
+// It accepts properties such as selectedQuery, setQueryChoice, and submitQuery.
 const DemoControls = ({
   selectedQuery,
   setQueryChoice,
@@ -350,6 +352,8 @@ const DemoControls = ({
   );
 };
 
+// The CacheControls component is used for controlling the cache and resetting the graph.
+// It accepts various properties like setDepth, setCost, setIPRate, addResponseTimes, setCacheHit, setCacheMiss, etc.
 const CacheControls = ({
   setDepth,
   setCost,
@@ -361,6 +365,8 @@ const CacheControls = ({
   cacheMiss,
   isToggled,
 }: CacheControlProps) => {
+  // Function to reset the graph
+  // Resets both Hit/Miss Graph & Pie Graph
   function resetGraph() {
     addResponseTimes([]);
     clearCache();
@@ -369,6 +375,7 @@ const CacheControls = ({
     setCacheMiss((cacheMiss = 0));
   }
 
+  // Function to clear the client cache
   const clearClientCache = () => {
     addResponseTimes([]);
     setCacheHit((cacheHit = 0));
@@ -376,6 +383,7 @@ const CacheControls = ({
     return clearCache();
   };
 
+  // Function to clear the server cache
   const clearServerCache = () => {
     fetch("/api/clearCache").then((res) =>
       console.log("Cleared Server Cache!")
@@ -447,7 +455,7 @@ const CacheControls = ({
 //Query Dropdown Menu
 function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   const handleChange = (event: SelectChangeEvent) => {
-    //this state is controlled by the demoControls aka the parent component
+    // this state is controlled by the demoControls aka the parent component
     setQueryChoice(event.target.value as string);
   };
 
@@ -499,6 +507,7 @@ function QuerySelect({ setQueryChoice, selectedQuery }: BasicSelectProps) {
   );
 }
 
+// StyledDiv component with custom styles using styled-components library
 const StyledDiv = styled("div")(({ theme }) => ({
   ...theme.typography.button,
   backgroundColor: theme.palette.primary.main,
@@ -509,6 +518,7 @@ const StyledDiv = styled("div")(({ theme }) => ({
     "0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%)",
 }));
 
+// Limit component - displays limit inputs for max depth, max cost, and IP rate
 function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
   return (
     <div>
@@ -555,45 +565,48 @@ function Limit({ setDepth, setCost, setIPRate }: CacheControlProps) {
   );
 }
 
+// Interface for props of the BasicSelect component
 interface BasicSelectProps {
   setQueryChoice: Dispatch<SetStateAction<string>>;
   selectedQuery: string;
 }
 
+// Interface for props of the QueryDemo component
 interface QueryDemoProps {
-  responseTimes: number[];
-  addResponseTimes: React.Dispatch<React.SetStateAction<any[]>>;
-  addErrorAlerts: React.Dispatch<React.SetStateAction<string[]>>;
-  setQueryChoice: Dispatch<SetStateAction<string>>;
-  selectedQuery: string;
-  query: string;
-  setQuery: React.Dispatch<React.SetStateAction<string>>;
-  queryTypes: string[];
-  addQueryTypes: React.Dispatch<React.SetStateAction<any[]>>;
-  maxDepth: number;
-  maxCost: number;
-  ipRate: number;
-  cacheHit: number;
-  cacheMiss: number;
-  setCacheHit: Dispatch<SetStateAction<number>>;
-  setCacheMiss: Dispatch<SetStateAction<number>>;
-  isToggled: boolean;
-  visualizerQuery: string;
-  setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>;
-  setElapsed?: React.Dispatch<React.SetStateAction<{}>>;
-  elapsed?: {};
+  responseTimes: number[]; // Array of response times
+  addResponseTimes: React.Dispatch<React.SetStateAction<any[]>>; // Function to add response times
+  addErrorAlerts: React.Dispatch<React.SetStateAction<string[]>>; // Function to add error alerts
+  setQueryChoice: Dispatch<SetStateAction<string>>; // Function to set the selected query
+  selectedQuery: string; // Currently selected query
+  query: string; // Query string
+  setQuery: React.Dispatch<React.SetStateAction<string>>; // Function to set the query string
+  queryTypes: string[]; // Array of query types
+  addQueryTypes: React.Dispatch<React.SetStateAction<any[]>>; // Function to add query types
+  maxDepth: number; // Maximum depth for the query
+  maxCost: number; // Maximum cost for the query
+  ipRate: number; // IP rate for the query
+  cacheHit: number; // Number of cache hits
+  cacheMiss: number; // Number of cache misses
+  setCacheHit: Dispatch<SetStateAction<number>>; // Function to set the number of cache hits
+  setCacheMiss: Dispatch<SetStateAction<number>>; // Function to set the number of cache misses
+  isToggled: boolean; // Toggle for client/server query mode
+  visualizerQuery: string; // Query string for visualizer
+  setVisualizerQuery: React.Dispatch<React.SetStateAction<string>>; // Function to set the visualizer query string
+  setElapsed?: React.Dispatch<React.SetStateAction<{}>>; // Function to set the elapsed time
+  elapsed?: {}; // Elapsed time
 }
 
+// Interface for the props of the CacheControl component
 interface CacheControlProps {
-  setDepth: (val: number) => void;
-  setCost: (val: number) => void;
-  setIPRate: (val: number) => void;
-  addResponseTimes: React.Dispatch<React.SetStateAction<any[]>>;
-  cacheHit: number;
-  cacheMiss: number;
-  setCacheHit: Dispatch<SetStateAction<number>>;
-  setCacheMiss: Dispatch<SetStateAction<number>>;
-  isToggled?: boolean;
+  setDepth: (val: number) => void; // Function to set the depth value
+  setCost: (val: number) => void; // Function to set the cost value
+  setIPRate: (val: number) => void; // Function to set the IP rate value
+  addResponseTimes: React.Dispatch<React.SetStateAction<any[]>>; // Function to add response times
+  cacheHit: number; // Number of cache hits
+  cacheMiss: number; // Number of cache misses
+  setCacheHit: Dispatch<SetStateAction<number>>; // Function to set the number of cache hits
+  setCacheMiss: Dispatch<SetStateAction<number>>; // Function to set the number of cache misses
+  isToggled?: boolean; // Toggle for client/server query mode (optional)
 }
 
 export default Demo;

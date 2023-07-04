@@ -4,12 +4,12 @@ import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg
 import hamburgerIcon from '/client/src/assets/images/graphics/hamburger.svg';
 
 type NavbarProps = {
-  teamComp: boolean;
-  toggleRenderTeam: Dispatch<SetStateAction<boolean>>;
+  teamComp: boolean; // Flag to determine if the team component is rendered
+  toggleRenderTeam: Dispatch<SetStateAction<boolean>>; // Function to toggle the rendering of the team component
 }
 
+// Navbar component:
 export const Navbar: React.FC<NavbarProps> = ({ teamComp, toggleRenderTeam }) => {
-
   // Hook for navigating to different routes
   const navigate = useNavigate();
 
@@ -24,20 +24,20 @@ export const Navbar: React.FC<NavbarProps> = ({ teamComp, toggleRenderTeam }) =>
   };
 
   // Function close menu when clicking on nav bar item
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const closeMenu = () => setIsMenuOpen(false);
 
-  // Function to close menu when clicking outside of the menu
+  // Function to close the menu when clicking outside of the menu
   useEffect(() => {
+    // Check if the menuRef exists and the clicked element is not inside the menuRef
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        // Close the menu if the clicked element is outside the menu
         setIsMenuOpen(false);
       }
     };
-
+    // Add event listener for click events on the window
     window.addEventListener('click', handleClickOutside);
-
+    // Clean up the event listener when the component is unmounted or the dependencies change
     return () => {
       window.removeEventListener('click', handleClickOutside);
     };
