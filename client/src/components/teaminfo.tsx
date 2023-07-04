@@ -1,40 +1,3 @@
-// import Nick from '../assets/images/profile_pics/QUELL-headshot w border-Nick.png';
-// import Mike from '../assets/images/profile_pics/QUELL-headshot w border-Mike.png';
-// import Rob from '../assets/images/profile_pics/QUELL-headshot w border-Rob.png';
-// import Justin from '../assets/images/profile_pics/QUELL-headshot w border-Justin.png';
-// import Andrei from '../assets/images/profile_pics/QUELL-headshot w border-Andrei.png';
-// import Dasha from '../assets/images/profile_pics/QUELL-headshot w border-Dasha.png';
-// import Derek from '../assets/images/profile_pics/QUELL-headshot w border-Derek.png';
-// import Xiao from '../assets/images/profile_pics/QUELL-headshot w border-Xiao.png';
-// import Robleh from '../assets/images/profile_pics/QUELL-headshot w border-Robleh.png';
-// import Thomas from '../assets/images/profile_pics/QUELL-headshot w border-Thomas.png';
-// import Angela from '../assets/images/profile_pics/QUELL-headshot w border-Angela.png';
-// import Ken from '../assets/images/profile_pics/QUELL-headshot w border-Ken.png';
-// import Jinhee from '../assets/images/profile_pics/QUELL-headshot w border-Jinhee.png';
-// import Nayan from '../assets/images/profile_pics/QUELL-headshot w border-Nayan.png';
-// import Tash from '../assets/images/profile_pics/QUELL-headshot w border-Tash.png';
-// import Tim from '../assets/images/profile_pics/QUELL-headshot w border-Tim.png';
-// import Chang from '../assets/images/profile_pics/QUELL-headshot w border-Chang.png';
-// import Josh from '../assets/images/profile_pics/QUELL-headshot w border-Josh.png';
-// import Robert from '../assets/images/profile_pics/QUELL-headshot w border-Robert.png';
-// import DavidLopez from '../assets/images/profile_pics/QUELL-headshot w border-DavidLopez.png';
-// import IdanMichael from '../assets/images/profile_pics/QUELL-headshot w border-IdanMichael.png';
-// import SercanTuna from '../assets/images/profile_pics/QUELL-headshot w border-SercanTuna.png';
-// import ThomasPryor from '../assets/images/profile_pics/QUELL-headshot w border-ThomasPryor.png';
-// import ZoeH from '../assets/images/profile_pics/QUELL-headshot ZoeH.png';
-// import JackieHe from '../assets/images/profile_pics/QUELL-headshot JackieHe.png';
-// import CeraB from '../assets/images/profile_pics/QUELL-headshot CeraB.png';
-// import AlexMartinez from '../assets/images/profile_pics/QUELL-headshot AlexM.png';
-// import RylanW from '../assets/images/profile_pics/QUELL-headshot w border-RylanW.png';
-// import SarahC from '../assets/images/profile_pics/QUELL-headshot w border-SarahC.png';
-// import HannahS from '../assets/images/profile_pics/QUELL-headshot w border-HannahS.png';
-// import KatieS from '../assets/images/profile_pics/QUELL-headshot w border-KatieS.png';
-// import Garik from '../assets/images/profile_pics/QUELL-headshot w border-GarikA.png';
-// import AngeloC from '../assets/images/profile_pics/QUELL-headshot w border-Angelo.png';
-// import EmilyH from '../assets/images/profile_pics/QUELL-headshot w border-EmilyH.png';
-// import KeelyT from '../assets/images/profile_pics/QUELL-headshot w border-Keely.png';
-// import YusufB from '../assets/images/profile_pics/QUELL-headshot w border-Yusuf.png';
-
 import Nick from '../assets/images/new_profile_pics/Nick-Kruckenberg.jpeg';
 import Mike from '../assets/images/new_profile_pics/Mike-Lauri.png';
 import Rob from '../assets/images/new_profile_pics/Rob-Nobile.jpeg';
@@ -74,11 +37,44 @@ import YusufB from '../assets/images/new_profile_pics/Yusuf-Bhaiyat.jpeg';
 import JonahW from '../assets/images/new_profile_pics/Jonah-Weinbaum.jpg';
 import LennyL from '../assets/images/new_profile_pics/Lenny-Yambao.jpeg';
 import JustinH from '../assets/images/new_profile_pics/Justin-Hua.jpeg';
-import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg'
+import MichaelL from '../assets/images/new_profile_pics/Michael-Lav.jpeg';
+import Andrew from '../assets/images/new_profile_pics/Andrew-Dai.jpeg';
+import Stacey from '../assets/images/new_profile_pics/Stacey-Lee.jpeg';
+import Ian from '../assets/images/new_profile_pics/Ian-Weinholtz.jpeg';
+import Cassidy from '../assets/images/new_profile_pics/Cassidy-Komp.jpeg';
 
 /* 
   Reusable component to generate each team member
 */
+
+const ANDREWD = {
+  name: 'Andrew Dai',
+  src: Andrew,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/andrewmdai/',
+  github: 'https://github.com/andrewmdai',
+};
+const STACEYL = {
+  name: 'Stacey Lee',
+  src: Stacey,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/stacey-lee-136298147/',
+  github: 'https://github.com/staceyjhlee',
+};
+const IANW = {
+  name: 'Ian Weinholtz',
+  src: Ian,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/ian-weinholtz/',
+  github: 'https://github.com/itsHackinTime',
+};
+const CASSIDYK = {
+  name: 'Cassidy Komp',
+  src: Cassidy,
+  bio: 'coconut juice',
+  linkedin: 'https://www.linkedin.com/in/cassidy-komp-a400ab148/',
+  github: 'https://github.com/mimikomp',
+};
 const JONAHW = {
   name: 'Jonah Weinbaum',
   src: JonahW,
@@ -360,6 +356,10 @@ const JUSTINJAEGAR = {
   github: 'https://github.com/justinjaeger',
 };
 export const TeamArr = [
+  ANDREWD,
+  STACEYL,
+  IANW,
+  CASSIDYK,
   JONAHW,
   LENNYL,
   JUSTINH,

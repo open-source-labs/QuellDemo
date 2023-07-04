@@ -1,7 +1,6 @@
 import quellLogo from '/client/src/assets/images/quell_logos/quell-logo-side.svg';
 import React from 'react';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-// import { HashLink } from 'react-router-hash-link'; 
 
 export const Footer = () => {
 
@@ -25,7 +24,6 @@ export const Footer = () => {
         </div>
         <div className="hidden font-sans font-light space-x-12 md:flex">
           <a href="https://github.com/open-source-labs/Quell#quell" className="hover:underline underline-offset-8 decoration-lightblue">Docs</a>
-          {/* <a href="#" className="hover:underline underline-offset-8 decoration-lightblue">Team</a> */}
           <Link to="/team" onClick={scrollToTeamSection}>
           <button className="hover:underline underline-offset-8 decoration-lightblue" onClick={scrollToTeamSection}>
             Team

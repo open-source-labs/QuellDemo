@@ -12,22 +12,8 @@ This app is currently deployed on our website: [Quell](https://quell.dev/)</br>
 
 </br>
 
-</br>
-</br>
-
-# New Features
-
-### The newest addition to our app is an Execution Context Visualizer to help outline your GraphQL queries!
-
 <img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Visualizer.gif">
 
-</br>
-
-- Our execution context visualizer for GraphQL queries provides a clear and intuitive representation of the query execution process along with displaying field resolver resolution speeds, enabling developers to easily understand and debug complex query workflows.
-
-- Last but not least, users can enjoy the more sleek, modern look with an updated color scheme and styling features!
-
-</br>
 
 # Features
 
@@ -43,13 +29,14 @@ This app is currently deployed on our website: [Quell](https://quell.dev/)</br>
 
 - The website facilitates a more intuitive user experience with new feature labeling and is also now mobile-friendly.
 
+- Our execution context visualizer for GraphQL queries provides a clear and intuitive representation of the query execution process along with displaying field resolver resolution speeds, enabling developers to easily understand and debug complex query workflows.
 
 
 #### Quell-Client:
 
-<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Client-Side.gif">
+<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Client-Side-Demo.gif">
 
 #### Quell-Server:
 
-<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Server-Side.gif">
+<img width="1511" alt="QuellClientDemo" src="./client/src/assets/images/screenshots/QuellDemo-Server-Side-Demo.gif">
 

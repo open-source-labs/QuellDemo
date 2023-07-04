@@ -1,22 +1,50 @@
 import styles from './TeamCards.modules.css';
-import React, { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Linkedin from '/client/src/assets/images/icons/QUELL-icons-linkedin.svg';
 import Github from '/client/src/assets/images/icons/QUELL-icons-github.svg';
 import Header from '/client/src/assets/images/quell_logos/quell-bird-border.svg';
 import { TeamArr } from '../teaminfo';
 
+// Props for the TeamMember component
+interface TeamMemberProps {
+  src: string; // Profile picture source
+  bio: string; // Team member's bio
+  name: string; // Team member's name
+  linkedin: string; // Link to the team member's LinkedIn profile
+  github: string; // Link to the team member's GitHub profile
+}
+
+// Individual team member card component
+const TeamMember = ({ src, bio, name, linkedin, github }: TeamMemberProps) => {
+  return (
+    <div className={styles.profilePic}>
+      <img src={src} alt="Quell Team Member"></img>
+      <p className={styles.name}>{name}</p>
+      <p>{bio}</p>
+      <div className={styles.socialIcons}>
+        <a href={linkedin} target="_blank">
+          <img src={Linkedin}></img>
+        </a>
+        <a href={github} target="_blank">
+          <img src={Github}></img>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+// Team component
 const Team = memo(() => {
   const [renderFx, toggleRenderFx] = useState<string>('unrendered');
 
-  // runs once on render, then procs the useState for rendered to change to renderedLogo
-  // these two strings are ID's in our CSS.
+  // Runs once on render, then updates the state to trigger a CSS transition effect
   useEffect(() => {
     setTimeout(() => {
       toggleRenderFx('rendered');
     }, 550);
   }, []);
 
-  //scrolls back to top
+  // Scrolls back to the top of the page
   useEffect(() => {
     if (window.location.href.includes('scroll-demo')) {
       window.scrollTo(0, 0);
@@ -30,7 +58,7 @@ const Team = memo(() => {
       <img id={styles.logo} src={Header}></img>
       <h2>The Good Eggs of Quell</h2>
       <div id={styles.team}>
-        {TeamArr.map((currTeamObj: any, i: number) => {
+        {TeamArr.map((currTeamObj: TeamMemberProps, i: number) => {
           return (
             <article key={i} className={styles.card}>
               <TeamMember
@@ -48,31 +76,5 @@ const Team = memo(() => {
     </div>
   );
 });
-
-interface TeamMember {
-  src: string;
-  bio: string;
-  name: string;
-  linkedin: string;
-  github: string;
-}
-
-const TeamMember = ({ src, bio, name, linkedin, github }: TeamMember) => {
-  return (
-    <div className={styles.profilePic}>
-      <img src={src} alt="Quell Team Member"></img>
-      <p className={styles.name}>{name}</p>
-      <p>{bio}</p>
-      <div className={styles.socialIcons}>
-        <a href={linkedin} target="_blank">
-          <img src={Linkedin}></img>
-        </a>
-        <a href={github} target="_blank">
-          <img src={Github}></img>
-        </a>
-      </div>
-    </div>
-  );
-};
 
 export default Team;
