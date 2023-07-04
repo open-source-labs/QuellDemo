@@ -5,8 +5,8 @@ netifly.toml
 **/.DS_Store
 .env
 coverage-ts/
-dist/
-dist
+# dist/
+# dist
 dump.rdb
 
 coverage/
