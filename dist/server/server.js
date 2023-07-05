@@ -23,8 +23,8 @@ const schema = schema_1.graphqlSchema;
 const quellCache = new quell_1.QuellCache({
     schema: schema,
     cacheExpiration: 3600,
-    redisPort: Number(process.env.REDIS_PORT) || 6379,
-    redisHost: process.env.REDIS_HOST || 'red-ciisb0p5rnut2se112ug',
+    redisPort: Number(process.env.REDIS_PORT),
+    redisHost: process.env.REDIS_HOST,
     redisPassword: process.env.REDIS_PASSWORD,
 });
 exports.quellCache = quellCache;
