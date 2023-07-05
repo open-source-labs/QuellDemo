@@ -1,8 +1,8 @@
 import { RedisClientType } from "redis";
 import { createClient } from "redis";
 
-const redisPort = Number(process.env.REDIS_PORT) || 6379;
-const redisHost = process.env.REDIS_HOST || 'red-ciisb0p5rnut2se112ug';
+const redisPort = Number(process.env.REDIS_PORT);
+const redisHost = process.env.REDIS_HOST;
 const redisPassword = process.env.REDIS_PASSWORD;
 
 // Create and export the Redis client instance
