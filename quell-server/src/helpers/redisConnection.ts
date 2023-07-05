@@ -1,7 +1,7 @@
 import { RedisClientType } from "redis";
 import { createClient } from "redis";
 
-const redisPort = Number(process.env.REDIS_PORT);
+const redisPort = Number(process.env.REDIS_PORT) || 6379;
 const redisHost = process.env.REDIS_HOST;
 const redisPassword = process.env.REDIS_PASSWORD;
 
