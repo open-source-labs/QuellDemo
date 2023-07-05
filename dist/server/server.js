@@ -24,7 +24,7 @@ const quellCache = new quell_1.QuellCache({
     schema: schema,
     cacheExpiration: 3600,
     redisPort: Number(process.env.REDIS_PORT) || 6379,
-    redisHost: process.env.REDIS_HOST,
+    redisHost: process.env.REDIS_HOST || 'red-ciisb0p5rnut2se112ug',
     redisPassword: process.env.REDIS_PASSWORD,
 });
 exports.quellCache = quellCache;

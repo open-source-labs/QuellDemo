@@ -29,8 +29,8 @@ type ServerError = {
 const quellCache = new QuellCache({
   schema: schema,
   cacheExpiration: 3600,
-  redisPort: Number(process.env.REDIS_PORT),
-  redisHost: process.env.REDIS_HOST,
+  redisPort: Number(process.env.REDIS_PORT) || 6379,
+  redisHost: process.env.REDIS_HOST || 'red-ciisb0p5rnut2se112ug',
   redisPassword: process.env.REDIS_PASSWORD,
 });
 
