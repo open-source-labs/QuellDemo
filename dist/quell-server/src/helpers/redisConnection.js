@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.redisCacheMain = void 0;
 const redis_1 = require("redis");
-const redisPort = Number(process.env.REDIS_PORT) || 6379;
+const redisPort = Number(process.env.REDIS_PORT);
 const redisHost = process.env.REDIS_HOST;
 const redisPassword = process.env.REDIS_PASSWORD;
 // Create and export the Redis client instance
