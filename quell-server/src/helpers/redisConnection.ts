@@ -1,5 +1,7 @@
 import { RedisClientType } from "redis";
 import { createClient } from "redis";
+import dotenv from "dotenv";
+dotenv.config();
 
 const redisPort = Number(process.env.REDIS_PORT);
 const redisHost = process.env.REDIS_HOST;

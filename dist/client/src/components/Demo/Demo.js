@@ -50,28 +50,51 @@ exports.Demo = (0, react_1.memo)(() => {
                                 return (0, jsx_runtime_1.jsx)(Alert_1.BadQuery, { errorMessage: el }, i);
                             })] })] })] }));
 });
-// Component that displays a query demo and allows users to submit queries
+// QueryDemo Component that displays a demo query and allows users to submit queries. 
+// It takes various props for querying and visualizations, and utilizes the useEffect hook 
+// for setting the query based on the selected query type.
 function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, maxCost, ipRate, selectedQuery, setQueryChoice, query, setQuery, queryTypes, addQueryTypes, cacheHit, cacheMiss, setCacheHit, setCacheMiss, isToggled, visualizerQuery, setVisualizerQuery, setElapsed, elapsed, }) {
+    // Use the useEffect hook to update the query when the selected query type changes
+    (0, react_1.useEffect)(() => {
+        setQuery(helperFunctions_1.querySamples[selectedQuery]);
+    }, [selectedQuery, setQuery]);
+    // Initialize the state for the response
     const [response, setResponse] = (0, react_1.useState)("");
     // Function to submit a client query
     function submitClientQuery() {
+        // Record the start time for measuring response time
         const startTime = new Date().getTime();
+        // Make a request to the server to clear any cached data
         fetch("/api/clearCache").then(() => console.log("Cleared Server Cache!"));
-        // Quellify is a function that makes a GraphQL query
+        /**
+         * Quellify makes a GraphQL query to the provided endpoint.
+         * @param {string} "/api/graphql" - The endpoint to send the query to.
+         * @param {string} query - The GraphQL query string.
+         * @param {Object} options - Options for query execution, including maxDepth, maxCost, and ipRate.
+         * @param {Object} mutationMap - For tracking mutations, if any, in the query.
+         */
         (0, Quellify_1.Quellify)("/api/graphql", query, { maxDepth, maxCost, ipRate }, schema_1.mutationMap)
             .then((res) => {
+            // Set the visualizer query with the query used.
             setVisualizerQuery(query);
+            // Calculate the time taken for the response and store it
             const responseTime = new Date().getTime() - startTime;
             addResponseTimes([...responseTimes, responseTime]);
             const queryType = selectedQuery;
+            // Store the type of query executed
             addQueryTypes([...queryTypes, queryType]);
+            // Check if the response is an array and process accordingly
             if (Array.isArray(res)) {
+                // Extract the first element of the response array and type cast it to an object.
                 let responseObj = res[0];
                 if (responseObj && responseObj.hasOwnProperty("key")) {
+                    // If response object has a property "key", delete it
                     delete responseObj["key"];
                 }
+                // Stringify the response object in a formatted manner and store it.
                 let cachedResponse = JSON.stringify(responseObj, null, 2);
                 setResponse(cachedResponse);
+                // Check if the second element in the response array is a cache status and update cache miss or hit accordingly
                 if (res[1] === false) {
                     setCacheMiss(cacheMiss + 1);
                 }
@@ -81,9 +104,11 @@ function QueryDemo({ addErrorAlerts, responseTimes, addResponseTimes, maxDepth, 
             }
         })
             .then(() => {
+            // Make an API call to fetch the query execution time.
             fetch("/api/queryTime")
                 .then((res) => res.json())
                 .then((time) => {
+                // If setElapsed is defined, set the elapsed time with the fetched time.
                 if (setElapsed) {
                     setElapsed(time.time);
                 }
