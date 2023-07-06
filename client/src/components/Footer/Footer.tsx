@@ -29,7 +29,7 @@ export const Footer = () => {
             Team
           </button>
         </Link>
-          <a href="https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+          <a href="https://medium.com/@quellcache/graphql-caching-made-easy-quell-9-0s-time-to-shine-57c684dee001" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
       </div>
     </nav>

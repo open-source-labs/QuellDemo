@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ teamComp, toggleRenderTeam }) =>
           <Link to="/team">
             <span className="hover:underline underline-offset-8 decoration-lightblue">Team</span>
           </Link>
-          <a href="https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+          <a href="https://medium.com/@quellcache/graphql-caching-made-easy-quell-9-0s-time-to-shine-57c684dee001" className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
         <div className="block cursor-pointer md:hidden" onClick={toggleMenu}>
           <img className="w-4 h-auto" src={hamburgerIcon} alt="Hamburger Icon" />
@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ teamComp, toggleRenderTeam }) =>
           <Link to="/team" onClick={closeMenu} >
             <span className="hover:underline underline-offset-8 decoration-lightblue">Team</span>
           </Link>
-          <a href='https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f' className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
+          <a href='https://medium.com/@quellcache/graphql-caching-made-easy-quell-9-0s-time-to-shine-57c684dee001' className="hover:underline underline-offset-8 decoration-lightblue">Blog</a>
         </div>
       </div>
     </nav>
