@@ -6,10 +6,7 @@ import { theme } from './themes'
 import { ThemeProvider } from '@mui/material'
 import 'reactflow/dist/style.css';
 
-
 let root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-
-
 
 root.render(
   <ThemeProvider theme={theme}>

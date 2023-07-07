@@ -3,4 +3,10 @@ node_modules/
 _redirects
 netifly.toml
 **/.DS_Store
-.env
+# .env
+coverage-ts/
+# dist/
+# dist
+dump.rdb
+
+coverage/

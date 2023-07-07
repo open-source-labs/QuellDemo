@@ -17,9 +17,9 @@ const SuccessfulQuery = () => {
             toggleRendered(false);
         }, 3000);
     }, []);
-    return ((0, jsx_runtime_1.jsx)("div", Object.assign({ id: Alert_modules_css_1.default.container }, { children: (0, jsx_runtime_1.jsx)(material_1.Fade, Object.assign({ in: rendered, timeout: { enter: 600, exit: 550 }, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Alert, Object.assign({ className: Alert_modules_css_1.default.alert, onClose: () => {
+    return ((0, jsx_runtime_1.jsx)("div", { id: Alert_modules_css_1.default.container, children: (0, jsx_runtime_1.jsx)(material_1.Fade, { in: rendered, timeout: { enter: 600, exit: 550 }, mountOnEnter: true, unmountOnExit: true, children: (0, jsx_runtime_1.jsx)(material_1.Alert, { className: Alert_modules_css_1.default.alert, onClose: () => {
                     toggleRendered(false);
-                }, severity: "success" }, { children: "Successful Query!" })) })) })));
+                }, severity: "success", children: "Successful Query!" }) }) }));
 };
 exports.SuccessfulQuery = SuccessfulQuery;
 const BadQuery = (props) => {
@@ -32,8 +32,8 @@ const BadQuery = (props) => {
             toggleRendered(false);
         }, 3000);
     }, []);
-    return ((0, jsx_runtime_1.jsx)("div", Object.assign({ id: Alert_modules_css_1.default.container }, { children: (0, jsx_runtime_1.jsx)(material_1.Fade, Object.assign({ in: rendered, timeout: { enter: 600, exit: 550 }, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Alert, Object.assign({ className: Alert_modules_css_1.default.alert, onClose: () => {
+    return ((0, jsx_runtime_1.jsx)("div", { id: Alert_modules_css_1.default.container, children: (0, jsx_runtime_1.jsx)(material_1.Fade, { in: rendered, timeout: { enter: 600, exit: 550 }, mountOnEnter: true, unmountOnExit: true, children: (0, jsx_runtime_1.jsx)(material_1.Alert, { className: Alert_modules_css_1.default.alert, onClose: () => {
                     toggleRendered(false);
-                }, severity: "error" }, { children: props.errorMessage })) })) })));
+                }, severity: "error", children: props.errorMessage }) }) }));
 };
 exports.BadQuery = BadQuery;

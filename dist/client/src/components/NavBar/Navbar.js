@@ -5,78 +5,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Navbar = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const styles_1 = require("@mui/material/styles");
-const Navbar_modules_css_1 = __importDefault(require("./Navbar.modules.css"));
 const react_1 = require("react");
-const material_1 = require("@mui/material");
-const quell_bird_svg_1 = __importDefault(require("/client/src/assets/images/quell_logos/quell-bird.svg"));
-const icons_material_1 = require("@mui/icons-material");
-const buttons = {
-    about: { id: 'about', href: '#scroll-about', text: 'About' },
-    demo: {
-        id: 'demo',
-        href: '#scroll-demo',
-        text: 'Demo',
-    },
-    docs: {
-        id: 'docs',
-        href: 'https://github.com/open-source-labs/Quell#quell',
-        text: 'Docs',
-    },
-};
-function Navbar({ teamComp, toggleRenderTeam }) {
-    const [rendered, setRendered] = (0, react_1.useState)(false);
-    const [anchorElNav, setAnchorElNav] = (0, react_1.useState)(null);
-    const handleOpenNavMenu = (event) => {
-        setAnchorElNav(event.currentTarget);
+const react_router_dom_1 = require("react-router-dom");
+const quell_logo_side_svg_1 = __importDefault(require("/client/src/assets/images/quell_logos/quell-logo-side.svg"));
+const hamburger_svg_1 = __importDefault(require("/client/src/assets/images/graphics/hamburger.svg"));
+// Navbar component:
+const Navbar = ({ teamComp, toggleRenderTeam }) => {
+    // Hook for navigating to different routes
+    const navigate = (0, react_router_dom_1.useNavigate)();
+    // State for checking if if the hamburger is open/closed
+    const [isMenuOpen, setIsMenuOpen] = (0, react_1.useState)(false);
+    const menuRef = (0, react_1.useRef)(null);
+    // Function to toggle the menu upon click
+    const toggleMenu = (event) => {
+        event.stopPropagation();
+        setIsMenuOpen(!isMenuOpen);
     };
-    const handleCloseNavMenu = () => {
-        setAnchorElNav(null);
-    };
+    // Function close menu when clicking on nav bar item
+    const closeMenu = () => setIsMenuOpen(false);
+    // Function to close the menu when clicking outside of the menu
     (0, react_1.useEffect)(() => {
-        setRendered(true);
+        // Check if the menuRef exists and the clicked element is not inside the menuRef
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                // Close the menu if the clicked element is outside the menu
+                setIsMenuOpen(false);
+            }
+        };
+        // Add event listener for click events on the window
+        window.addEventListener('click', handleClickOutside);
+        // Clean up the event listener when the component is unmounted or the dependencies change
+        return () => {
+            window.removeEventListener('click', handleClickOutside);
+        };
     }, []);
-    const BirdLogo = () => {
-        const [birdEffect, toggleBirdEffect] = (0, react_1.useState)('');
-        (0, react_1.useEffect)(() => {
-            setTimeout(() => {
-                toggleBirdEffect('quell-bird-pick');
-                setTimeout(() => {
-                    toggleBirdEffect('');
-                }, 800);
-            }, 450);
-        }, []);
-        return ((0, jsx_runtime_1.jsx)(material_1.Box, { children: (0, jsx_runtime_1.jsx)("img", { className: "bird-icon", id: birdEffect, src: quell_bird_svg_1.default }) }));
-    };
-    const NavButton = ({ id, href, text }) => {
-        const [hover, setHover] = (0, react_1.useState)(false);
-        return ((0, jsx_runtime_1.jsxs)(material_1.Button, Object.assign({ id: id, onClick: () => {
-                teamComp ? toggleRenderTeam(false) : null;
-            }, disableElevation: true, href: href, sx: {
-                width: '90px',
-                height: '40px',
-            }, color: "secondary", variant: "contained" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Slide, Object.assign({ direction: "down", timeout: { enter: 400, exit: 350 }, in: !hover, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, Object.assign({ sx: { position: 'relative' }, variant: "button" }, { children: text })) })), (0, jsx_runtime_1.jsx)(material_1.Slide, Object.assign({ direction: "up", timeout: { enter: 400, exit: 100 }, in: hover, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.Code, { sx: { position: 'relative' } }) }))] })));
-    };
-    const TeamToggle = () => {
-        const [hover, setHover] = (0, react_1.useState)(false);
-        return ((0, jsx_runtime_1.jsxs)(material_1.Button, Object.assign({ color: "secondary", variant: "contained", disableElevation: true, sx: {
-                width: '90px',
-                height: '40px',
-            }, onClick: () => {
-                toggleRenderTeam(!teamComp);
-            } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Slide, Object.assign({ direction: "down", timeout: { enter: 400, exit: 350 }, in: !hover, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, Object.assign({ sx: { position: 'relative' }, variant: "button" }, { children: teamComp ? 'HOME' : 'TEAM' })) })), (0, jsx_runtime_1.jsx)(material_1.Slide, Object.assign({ direction: "up", timeout: { enter: 400, exit: 100 }, in: hover, mountOnEnter: true, unmountOnExit: true }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.Code, { sx: { position: 'relative' } }) }))] })));
-    };
-    const navButtons = Object.values(buttons).map((button) => {
-        return (0, jsx_runtime_1.jsx)(NavButton, { id: button.id, href: button.href, text: button.text });
-    });
-    return ((0, jsx_runtime_1.jsx)(styles_1.StyledEngineProvider, Object.assign({ injectFirst: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.AppBar, Object.assign({ id: rendered ? Navbar_modules_css_1.default.renderedNav : '', className: Navbar_modules_css_1.default.navBar, color: "primary", position: "sticky", elevation: 5 }, { children: [(0, jsx_runtime_1.jsx)(BirdLogo, {}), (0, jsx_runtime_1.jsx)(material_1.Stack, Object.assign({ id: Navbar_modules_css_1.default.horizontalMenu, sx: { display: { xs: 'none', sm: 'flex' } }, direction: "row", justifyContent: "center", divider: (0, jsx_runtime_1.jsx)(material_1.Divider, { color: "grey", orientation: "vertical", flexItem: true }), spacing: 2 }, { children: navButtons })), (0, jsx_runtime_1.jsx)(material_1.Box, Object.assign({ sx: { display: { xs: 'none', sm: 'flex' } } }, { children: (0, jsx_runtime_1.jsx)(TeamToggle, {}) })), (0, jsx_runtime_1.jsxs)(material_1.Box, Object.assign({ id: Navbar_modules_css_1.default.verticalMenu, sx: { display: { xs: 'flex', sm: 'none' } } }, { children: [(0, jsx_runtime_1.jsx)(material_1.IconButton, Object.assign({ size: "large", "aria-controls": "menu-appbar", "aria-haspopup": "true", onClick: handleOpenNavMenu, color: "inherit" }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.Menu, {}) })), (0, jsx_runtime_1.jsxs)(material_1.Menu, Object.assign({ id: Navbar_modules_css_1.default.dropDownMenu, anchorEl: anchorElNav, anchorOrigin: {
-                                vertical: 'bottom',
-                                horizontal: 'center',
-                            }, keepMounted: true, transformOrigin: {
-                                vertical: 'top',
-                                horizontal: 'center',
-                            }, open: Boolean(anchorElNav), onClose: handleCloseNavMenu, sx: {
-                                display: { xs: 'block', sm: 'none' },
-                            } }, { children: [(0, jsx_runtime_1.jsx)(material_1.MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: (0, jsx_runtime_1.jsx)(NavButton, { id: buttons['about'].id, href: buttons['about'].href, text: buttons['about'].text }) })), (0, jsx_runtime_1.jsx)(material_1.MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: (0, jsx_runtime_1.jsx)(NavButton, { id: buttons['demo'].id, href: buttons['demo'].href, text: buttons['demo'].text }) })), (0, jsx_runtime_1.jsx)(material_1.MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: (0, jsx_runtime_1.jsx)(NavButton, { id: buttons['docs'].id, href: buttons['docs'].href, text: buttons['docs'].text }) })), (0, jsx_runtime_1.jsx)(material_1.MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: (0, jsx_runtime_1.jsx)(TeamToggle, {}) }))] }))] }))] })) })));
-}
+    return ((0, jsx_runtime_1.jsxs)("nav", { className: "relative container mx-auto bg-background w-full p-8 text-white xl:max-w-10xl", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex items-center justify-between", children: [(0, jsx_runtime_1.jsx)("div", { className: "pt-2", children: (0, jsx_runtime_1.jsx)(react_router_dom_1.Link, { to: "/", onClick: closeMenu, children: (0, jsx_runtime_1.jsx)("img", { className: "bird-icon", src: quell_logo_side_svg_1.default, alt: "Quell Logo" }) }) }), (0, jsx_runtime_1.jsxs)("div", { className: "hidden font-sans font-light space-x-12 md:flex", children: [(0, jsx_runtime_1.jsx)("a", { href: "https://github.com/open-source-labs/Quell#quell", className: "hover:underline underline-offset-8 decoration-lightblue", children: "Docs" }), (0, jsx_runtime_1.jsx)(react_router_dom_1.Link, { to: "/team", children: (0, jsx_runtime_1.jsx)("span", { className: "hover:underline underline-offset-8 decoration-lightblue", children: "Team" }) }), (0, jsx_runtime_1.jsx)("a", { href: "https://medium.com/@quellcache/graphql-caching-made-easy-quell-9-0s-time-to-shine-57c684dee001", className: "hover:underline underline-offset-8 decoration-lightblue", children: "Blog" })] }), (0, jsx_runtime_1.jsx)("div", { className: "block cursor-pointer md:hidden", onClick: toggleMenu, children: (0, jsx_runtime_1.jsx)("img", { className: "w-4 h-auto", src: hamburger_svg_1.default, alt: "Hamburger Icon" }) })] }), (0, jsx_runtime_1.jsx)("div", { className: `md:hidden ${isMenuOpen ? '' : 'hidden'}`, children: (0, jsx_runtime_1.jsxs)("div", { ref: menuRef, id: "menu", className: `absolute flex flex-col items-center self-end py-8 mt-10 space-y-6 bg-background sm:w-auto sm:self-center left-6 right-6 drop-shadow-md ${isMenuOpen ? '' : 'hidden'}`, style: { zIndex: 9999 }, children: [(0, jsx_runtime_1.jsx)("a", { href: 'https://github.com/open-source-labs/Quell#quell', className: "hover:underline underline-offset-8 decoration-lightblue", children: "Docs" }), (0, jsx_runtime_1.jsx)(react_router_dom_1.Link, { to: "/team", onClick: closeMenu, children: (0, jsx_runtime_1.jsx)("span", { className: "hover:underline underline-offset-8 decoration-lightblue", children: "Team" }) }), (0, jsx_runtime_1.jsx)("a", { href: 'https://medium.com/@quellcache/graphql-caching-made-easy-quell-9-0s-time-to-shine-57c684dee001', className: "hover:underline underline-offset-8 decoration-lightblue", children: "Blog" })] }) })] }));
+};
 exports.Navbar = Navbar;

@@ -1,40 +1,40 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Graph = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const Graph_modules_css_1 = __importDefault(require("./Graph.modules.css"));
 const react_1 = require("react");
 const react_chartjs_2_1 = require("react-chartjs-2");
 const chart_js_1 = require("chart.js");
+// Register necessary components with ChartJS
 chart_js_1.Chart.register(chart_js_1.CategoryScale, chart_js_1.LinearScale, chart_js_1.BarElement, chart_js_1.Title, chart_js_1.Tooltip, chart_js_1.Legend);
-function Graph({ responseTimes, selectedQuery, queryTypes, }) {
+// Component that displays a bar graph of response times
+function Graph({ responseTimes, selectedQuery, queryTypes }) {
     let number = 0;
     let dataset = {
         labels: number++,
         datasets: responseTimes,
     };
-    // function to display accurate time in tooltip
+    // Variable to store the label for the chart in the tooltip
     const labelChart = 'Response Times';
+    // Callback function for the title of the tooltip
     const titleTooltip = (tooltipItems) => {
         return labelChart;
     };
+    // Callback function for the label of the tooltip
     const labelTooltip = (tooltipItem) => {
-        if (Array.isArray(tooltipItem)) {
+        if (Array.isArray(tooltipItem))
             return tooltipItem.map(() => '');
-        }
         const responseTime = responseTimes[tooltipItem.dataIndex];
         return `${responseTime} ms`;
     };
     const options = {
+        color: 'white',
         maintainAspectRatio: false,
         responsive: true,
         scales: {
             y: {
                 min: 0,
-                max: 750,
+                max: 800,
                 display: true,
                 align: 'center',
                 text: 'Response times in ms',
@@ -42,6 +42,7 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
                     callback: function (value) {
                         return value + ' ms';
                     },
+                    color: 'white',
                 },
             },
         },
@@ -49,17 +50,19 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
             title: {
                 display: true,
                 text: 'Fetch Speeds',
+                color: 'white'
             },
             tooltip: {
                 callbacks: {
                     title: titleTooltip,
-                    label: labelTooltip
+                    label: labelTooltip,
                 },
             },
         },
     };
+    // Empty effect that is triggered when the 'responseTimes' dependency changes
     (0, react_1.useEffect)(() => { }, [responseTimes]);
-    return ((0, jsx_runtime_1.jsx)("div", Object.assign({ className: Graph_modules_css_1.default.container }, { children: (0, jsx_runtime_1.jsx)(react_chartjs_2_1.Bar, { options: options, data: {
+    return ((0, jsx_runtime_1.jsx)("div", { className: "graph h-80 pt-1", children: (0, jsx_runtime_1.jsx)(react_chartjs_2_1.Bar, { options: options, data: {
                 labels: [...Array(responseTimes.length + 1).keys()].slice(1),
                 datasets: [
                     {
@@ -68,6 +71,6 @@ function Graph({ responseTimes, selectedQuery, queryTypes, }) {
                         backgroundColor: 'rgba(53, 162, 235,0.75)',
                     },
                 ],
-            } }) })));
+            } }) }));
 }
 exports.Graph = Graph;

@@ -18,13 +18,22 @@
     "isolatedModules": true,
     "noEmit": false,
     "noImplicitAny": true,
+    // "noImplicitReturns": true,
     "strictNullChecks": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,  
     "jsx": "react-jsx",
-    "baseUrl": ",",
+    "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]
-    }
+    },
+    "plugins": [{ 
+      "name": "typescript-plugin-css-modules",
+      "options": {
+        "postcssOptions": {"useConfig": true },
+      }
+    }],
   },
-  "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts", "tailwind.config.js"],
-  "exclude": ["node_modules", "target"]
+  "include": ["client/src/**/*", "client-tests/__tests__/quellify.test.ts", "tailwind.config.js", "quell-server/**/*", "server/**/*", "custom.d.ts", "__mocks__"],
+  "exclude": ["node_modules", "target", "dist"]
 }

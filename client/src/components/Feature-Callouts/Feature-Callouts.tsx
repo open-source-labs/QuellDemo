@@ -17,9 +17,8 @@ export const FeatureCallouts = () => {
                 <div className="flex flex-col md:flex-row">
                   <div className="flex flex-col ml-6 md:w-3/4 xl:w-1/2">    
                       <div className="flex flex-col mb-3">
-                        <h1 className="leading-snug text-2xl font-sans font-semibold text-lightblue mb-4 lg:text-3xl">New Feature 🔥</h1>
                         <h1 className="leading-snug text-3xl font-sans font-semibold text-white mb-4 lg:text-4xl ">Context Visualizer</h1>
-                        <p className="font-sans font-extralight text-white mb-6 lg:text-xl">Use Quell's new context visualizer to better understand the relationship between a query and its GraphQL structure, view response speeds on each field, and get data for more effective debugging.</p>
+                        <p className="font-sans font-extralight text-white mb-6 lg:text-xl">Use Quell's context visualizer to better understand the relationship between a query and its GraphQL structure, view response speeds on each field, and get data for more effective debugging.</p>
                         <button className="bg-transparent border border-lightblue text-lightblue font-sans py-3 px-6 rounded hover:bg-lightblue hover:text-white md:w-1/2 xl:text-xl" onClick={() => { window.location.href = 'https://medium.com/@quellcache/query-without-worry-quell-8-0-launches-to-amplify-graphql-queries-35448c694e4f'; } }>Learn more</button>
                       </div>
                     </div>
