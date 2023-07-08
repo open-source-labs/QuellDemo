@@ -1,5 +1,5 @@
 import Nick from '../assets/images/new_profile_pics/Nick-Kruckenberg.jpeg';
-import Mike from '../assets/images/new_profile_pics/Mike-Lauri.png';
+import Mike from '../assets/images/new_profile_pics/Mike-Lauri.jpeg';
 import Rob from '../assets/images/new_profile_pics/Rob-Nobile.jpeg';
 import Justin from '../assets/images/new_profile_pics/Justin-Jaeger.jpeg';
 import Andrei from '../assets/images/new_profile_pics/Andrei-Cabrera.jpeg';
