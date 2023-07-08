@@ -5,8 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Features = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = __importDefault(require("react"));
-const react_2 = require("react");
+const react_1 = require("react");
 const lightning_svg_1 = __importDefault(require("/client/src/assets/images/graphics/lightning.svg"));
 const cache_graphic_svg_1 = __importDefault(require("/client/src/assets/images/graphics/cache-graphic.svg"));
 const npm_install_graphic_svg_1 = __importDefault(require("/client/src/assets/images/graphics/npm-install-graphic.svg"));
@@ -16,7 +15,7 @@ const security_svg_1 = __importDefault(require("/client/src/assets/images/graphi
  */
 const Features = () => {
     // Set initial state to Text 1
-    const [selectedFeature, setSelectedFeature] = (0, react_2.useState)('Text 1');
+    const [selectedFeature, setSelectedFeature] = (0, react_1.useState)('Text 1');
     // Function to toggle between different features
     const toggleFeature = (text) => {
         setSelectedFeature(text);

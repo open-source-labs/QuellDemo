@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = __importStar(require("react"));
+const react_1 = require("react");
 const reactflow_1 = __importStar(require("reactflow"));
 const graphql_1 = require("graphql");
 // Converts the AST node to a ReactFlow NodeData

@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FeatureCallouts = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = __importDefault(require("react"));
 const visualizer_transparent_svg_1 = __importDefault(require("/client/src/assets/images/graphics/visualizer-transparent.svg"));
 const extension_transparent_svg_1 = __importDefault(require("/client/src/assets/images/graphics/extension-transparent.svg"));
 const FeatureCallouts = () => {

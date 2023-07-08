@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Team = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = __importDefault(require("react"));
 const react_router_dom_1 = require("react-router-dom");
 const QUELL_icons_linkedin_svg_1 = __importDefault(require("/client/src/assets/images/icons/QUELL-icons-linkedin.svg"));
 const QUELL_icons_github_svg_1 = __importDefault(require("/client/src/assets/images/icons/QUELL-icons-github.svg"));
