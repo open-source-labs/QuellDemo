@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Footer = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const quell_logo_side_svg_1 = __importDefault(require("/client/src/assets/images/quell_logos/quell-logo-side.svg"));
+const react_1 = __importDefault(require("react"));
 const react_router_dom_1 = require("react-router-dom");
 const Footer = () => {
     const scrollToTeamSection = () => {

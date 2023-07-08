@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamArr = void 0;
 const Nick_Kruckenberg_jpeg_1 = __importDefault(require("../assets/images/new_profile_pics/Nick-Kruckenberg.jpeg"));
-const Mike_Lauri_png_1 = __importDefault(require("../assets/images/new_profile_pics/Mike-Lauri.png"));
+const Mike_Lauri_jpeg_1 = __importDefault(require("../assets/images/new_profile_pics/Mike-Lauri.jpeg"));
 const Rob_Nobile_jpeg_1 = __importDefault(require("../assets/images/new_profile_pics/Rob-Nobile.jpeg"));
 const Justin_Jaeger_jpeg_1 = __importDefault(require("../assets/images/new_profile_pics/Justin-Jaeger.jpeg"));
 const Andrei_Cabrera_jpeg_1 = __importDefault(require("../assets/images/new_profile_pics/Andrei-Cabrera.jpeg"));
@@ -340,7 +340,7 @@ const NICKKRUCKENBERG = {
 };
 const MIKELAURI = {
     name: 'Mike Lauri',
-    src: Mike_Lauri_png_1.default,
+    src: Mike_Lauri_jpeg_1.default,
     bio: 'Mike Lauri is a full-stack JavaScript engineer specializing in React and Node.js.  His passion for open source projects, as well as his interest in the inner workings of GraphQL, made Quell a perfect fit.  Prior to Quell, Mike worked as a songwriter and producer in New York City, best known for his work with WWE Music Group.',
     linkedin: 'https://www.linkedin.com/in/mlauri/',
     github: 'https://github.com/MichaelLauri',
